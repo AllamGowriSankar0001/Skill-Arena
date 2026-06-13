@@ -29,48 +29,60 @@ const Navbar = () => {
   }, [menuOpen])
 
   const closeMenu = () => setMenuOpen(false)
+  const showNavbar = menuOpen || isVisible
 
   return (
-    <nav
-      className={`navbar${isVisible ? '' : ' navbar--hidden'}${hasBorder ? ' navbar--bordered' : ''}${menuOpen ? ' navbar--menu-open' : ''}`}
-    >
-      <Link to={ROUTES.home} className="navbar-logo" aria-label="Skill Arena home">
-        <BrandLogo />
-      </Link>
-
-      <ul className="navbar-links navbar-links--desktop">
-        {NAV_LINKS.map(({ label, to }) => (
-          <li key={label}>
-            <Link to={to}>{label}</Link>
-          </li>
-        ))}
-      </ul>
-
-      <div className="navbar-actions navbar-actions--desktop">
-        <Link to={ROUTES.login} className="navbar-login">
-          LOGIN
+    <>
+      <nav
+        className={`navbar${showNavbar ? '' : ' navbar--hidden'}${hasBorder || menuOpen ? ' navbar--bordered' : ''}${menuOpen ? ' navbar--menu-open' : ''}`}
+      >
+        <Link to={ROUTES.home} className="navbar-logo" aria-label="Skill Arena home">
+          <BrandLogo />
         </Link>
-        <Link to={ROUTES.signup} className="navbar-signup">
-          SIGN UP <span aria-hidden="true">→</span>
-        </Link>
-      </div>
+
+        <ul className="navbar-links navbar-links--desktop">
+          {NAV_LINKS.map(({ label, to }) => (
+            <li key={label}>
+              <Link to={to}>{label}</Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="navbar-actions navbar-actions--desktop">
+          <Link to={ROUTES.login} className="navbar-login">
+            LOGIN
+          </Link>
+          <Link to={ROUTES.signup} className="navbar-signup">
+            SIGN UP <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          className="navbar-toggle"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="navbar-mobile-menu"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className="navbar-toggle-line" />
+          <span className="navbar-toggle-line" />
+          <span className="navbar-toggle-line" />
+        </button>
+      </nav>
 
       <button
         type="button"
-        className="navbar-toggle"
-        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        aria-expanded={menuOpen}
-        aria-controls="navbar-mobile-menu"
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <span className="navbar-toggle-line" />
-        <span className="navbar-toggle-line" />
-        <span className="navbar-toggle-line" />
-      </button>
+        className={`navbar-mobile-backdrop${menuOpen ? ' navbar-mobile-backdrop--open' : ''}`}
+        aria-label="Close menu"
+        tabIndex={menuOpen ? 0 : -1}
+        onClick={closeMenu}
+      />
 
       <div
         id="navbar-mobile-menu"
         className={`navbar-mobile${menuOpen ? ' navbar-mobile--open' : ''}`}
+        aria-hidden={!menuOpen}
       >
         <ul className="navbar-mobile-links">
           {NAV_LINKS.map(({ label, to }) => (
@@ -91,7 +103,7 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
-    </nav>
+    </>
   )
 }
 

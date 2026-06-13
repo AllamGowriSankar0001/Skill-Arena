@@ -1,4 +1,5 @@
 import ScrollReveal from './ScrollReveal'
+import MediaPlaceholder from './MediaPlaceholder'
 import './BattlesSection.css'
 
 const BattlesSection = () => {
@@ -7,9 +8,7 @@ const BattlesSection = () => {
       <div className="battles-inner">
         <ScrollReveal className="battles-media-wrap">
           <div className="battles-media" aria-hidden="true">
-            <div className="battles-media-placeholder">
-              <span>Image coming soon</span>
-            </div>
+            <MediaPlaceholder />
           </div>
         </ScrollReveal>
 

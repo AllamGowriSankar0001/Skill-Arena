@@ -225,9 +225,9 @@
   transform: scale(1.08);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .features {
-    padding: 3.5rem 1.5rem 4rem;
+    padding: 3.5rem 2rem 4rem;
   }
 
   .features-intro {
@@ -251,6 +251,21 @@
   .deck-card {
     padding: 1.35rem;
     border-radius: 1.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .features {
+    padding: 3rem 1.25rem 3.5rem;
+  }
+
+  .features-deck-wrap {
+    padding: 2.5rem 0.75rem 2rem;
+    border-radius: 1.25rem;
+  }
+
+  .features-deck {
+    height: 21rem;
   }
 }
 

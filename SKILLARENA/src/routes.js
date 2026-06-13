@@ -17,6 +17,13 @@ export const ROUTES = {
   leaderboard: '/leaderboard',
   pricing: '/pricing',
   roadmap: '/roadmap',
+  faq: '/faq',
+  guides: '/guides',
+  security: '/security',
+  developers: '/developers',
+  partners: '/partners',
+  tournaments: '/tournaments',
+  safety: '/safety',
 }
 
 export const LANDING_SECTIONS = {
@@ -28,8 +35,10 @@ export const LANDING_SECTIONS = {
 
 export const FOOTER_LINKS = {
   Product: [
+    { label: 'Features', to: `${ROUTES.home}#features` },
     { label: 'Battles', to: ROUTES.battles },
     { label: 'Courses', to: ROUTES.courses },
+    { label: 'Tournaments', to: ROUTES.tournaments },
     { label: 'Leaderboard', to: ROUTES.leaderboard },
     { label: 'Pricing', to: ROUTES.pricing },
     { label: 'Roadmap', to: ROUTES.roadmap },
@@ -38,17 +47,23 @@ export const FOOTER_LINKS = {
     { label: 'About', to: ROUTES.about },
     { label: 'Careers', to: ROUTES.careers },
     { label: 'Press', to: ROUTES.press },
+    { label: 'Partners', to: ROUTES.partners },
     { label: 'Contact', to: ROUTES.contact },
     { label: 'Blog', to: ROUTES.blog },
   ],
   Resources: [
     { label: 'Help center', to: ROUTES.helpCenter },
     { label: 'Community', to: ROUTES.community },
+    { label: 'Guides', to: ROUTES.guides },
+    { label: 'FAQ', to: ROUTES.faq },
+    { label: 'Security', to: ROUTES.security },
+    { label: 'Developers', to: ROUTES.developers },
   ],
   Legal: [
     { label: 'Terms', to: ROUTES.terms },
     { label: 'Privacy', to: ROUTES.privacy },
     { label: 'Cookies', to: ROUTES.cookies },
+    { label: 'Safety', to: ROUTES.safety },
   ],
 }
 
@@ -78,6 +93,14 @@ export const CONTENT_PAGES = [
       'Understand how cookies and similar technologies help Skill Arena remember preferences and improve your experience.',
   },
   {
+    path: ROUTES.safety,
+    contentKey: 'safety',
+    eyebrow: 'Legal',
+    title: 'Safety Center',
+    description:
+      'How Skill Arena keeps learners safe through moderation, reporting tools, and fair-play enforcement.',
+  },
+  {
     path: ROUTES.helpCenter,
     contentKey: 'helpCenter',
     eyebrow: 'Resources',
@@ -92,6 +115,38 @@ export const CONTENT_PAGES = [
     title: 'Community',
     description:
       'Join discussions, meet other learners, share replays, and stay connected with the Skill Arena community.',
+  },
+  {
+    path: ROUTES.guides,
+    contentKey: 'guides',
+    eyebrow: 'Resources',
+    title: 'Guides',
+    description:
+      'Step-by-step guides for learning faster, winning battles, and getting the most from Skill Arena.',
+  },
+  {
+    path: ROUTES.faq,
+    contentKey: 'faq',
+    eyebrow: 'Resources',
+    title: 'FAQ',
+    description:
+      'Quick answers to the most common questions about accounts, battles, courses, and community features.',
+  },
+  {
+    path: ROUTES.security,
+    contentKey: 'security',
+    eyebrow: 'Resources',
+    title: 'Security',
+    description:
+      'How Skill Arena protects your account, data, and competitive integrity across the platform.',
+  },
+  {
+    path: ROUTES.developers,
+    contentKey: 'developers',
+    eyebrow: 'Resources',
+    title: 'Developers',
+    description:
+      'Build integrations, community tools, and extensions on top of Skill Arena.',
   },
   {
     path: ROUTES.about,
@@ -116,6 +171,14 @@ export const CONTENT_PAGES = [
     title: 'Press',
     description:
       'Media resources, brand assets, and the latest announcements from Skill Arena.',
+  },
+  {
+    path: ROUTES.partners,
+    contentKey: 'partners',
+    eyebrow: 'Company',
+    title: 'Partners',
+    description:
+      'Partner with Skill Arena for education programs, creator collaborations, and community initiatives.',
   },
   {
     path: ROUTES.contact,
@@ -148,6 +211,14 @@ export const CONTENT_PAGES = [
     title: 'Courses',
     description:
       'Browse 500+ free courses across coding, design, languages, math, business, and more.',
+  },
+  {
+    path: ROUTES.tournaments,
+    contentKey: 'tournaments',
+    eyebrow: 'Product',
+    title: 'Tournaments',
+    description:
+      'Join seasonal brackets, squad showdowns, and community-run events with custom rules and prizes.',
   },
   {
     path: ROUTES.leaderboard,

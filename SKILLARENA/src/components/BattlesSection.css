@@ -24,21 +24,8 @@
   min-height: 28rem;
 }
 
-.battles-media-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+.battles-media .media-frame {
   min-height: 28rem;
-  border-radius: 1.5rem;
-  border: 1px dashed rgba(26, 17, 10, 0.14);
-  background-color: rgba(255, 255, 255, 0.35);
-  color: var(--battles-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .battles-content {
@@ -112,9 +99,9 @@
   width: 100%;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .battles {
-    padding: 3.5rem 1.5rem 4rem;
+    padding: 3.5rem 2rem 4rem;
   }
 
   .battles-inner {
@@ -123,7 +110,7 @@
   }
 
   .battles-media,
-  .battles-media-placeholder {
+  .battles-media .media-frame {
     min-height: 18rem;
   }
 
@@ -133,5 +120,16 @@
 
   .battles-description {
     max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .battles {
+    padding: 3rem 1.25rem 3.5rem;
+  }
+
+  .battles-media,
+  .battles-media .media-frame {
+    min-height: 14rem;
   }
 }

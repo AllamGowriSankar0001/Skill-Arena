@@ -1,4 +1,5 @@
 import ScrollReveal from './ScrollReveal'
+import MediaPlaceholder from './MediaPlaceholder'
 import './CommunitySection.css'
 
 const CommunitySection = () => {
@@ -7,9 +8,7 @@ const CommunitySection = () => {
       <div className="community-inner">
         <ScrollReveal className="community-media-wrap">
           <div className="community-media" aria-hidden="true">
-            <div className="community-media-placeholder">
-              <span>Image coming soon</span>
-            </div>
+            <MediaPlaceholder />
           </div>
         </ScrollReveal>
 

@@ -1,4 +1,5 @@
 import ScrollReveal from './ScrollReveal'
+import MediaPlaceholder from './MediaPlaceholder'
 import './LearnSection.css'
 
 const LearnSection = () => {
@@ -33,9 +34,7 @@ const LearnSection = () => {
 
         <ScrollReveal className="learn-media-wrap" delay={120}>
           <div className="learn-media" aria-hidden="true">
-            <div className="learn-media-placeholder">
-              <span>Image coming soon</span>
-            </div>
+            <MediaPlaceholder />
           </div>
         </ScrollReveal>
       </div>

@@ -1,4 +1,5 @@
 import ScrollReveal from './ScrollReveal'
+import MediaPlaceholder from './MediaPlaceholder'
 import './Hero.css'
 
 const Hero = () => {
@@ -20,9 +21,10 @@ const Hero = () => {
             <ScrollReveal as="span" className="hero-title-line" delay={160}>
               Battle
             </ScrollReveal>
-            <ScrollReveal as="span" className="hero-title-line hero-title-accent" delay={240}>
-              harder.
-              <svg
+            <ScrollReveal as="span" className="hero-title-line" delay={240}>
+              <span className="hero-title-accent">
+                harder.
+                <svg
                   className="hero-title-underline"
                   viewBox="0 0 280 16"
                   preserveAspectRatio="none"
@@ -36,6 +38,7 @@ const Hero = () => {
                     strokeLinecap="round"
                   />
                 </svg>
+              </span>
             </ScrollReveal>
           </h1>
 
@@ -60,7 +63,9 @@ const Hero = () => {
         </div>
 
         <ScrollReveal className="hero-aside-wrap" delay={200}>
-          <div className="hero-aside" aria-hidden="true" />
+          <div className="hero-aside" aria-hidden="true">
+            <MediaPlaceholder />
+          </div>
         </ScrollReveal>
       </div>
     </section>

@@ -470,4 +470,240 @@ export const PAGE_SECTIONS = {
       note: 'Have a feature request? Send it to support@skillarena.com',
     },
   ],
+
+  faq: [
+    {
+      heading: 'Account and access',
+      list: [
+        'Is Skill Arena really free? Yes — all core courses, battles, and community features are free with no credit card required.',
+        'What is the minimum age? You must be at least 13 years old to create an account.',
+        'Can I use Skill Arena on mobile? Yes — the platform is optimized for phones and tablets.',
+        'How do I reset my password? Use the forgot-password link on the login page.',
+      ],
+    },
+    {
+      heading: 'Battles and ranking',
+      list: [
+        'How does matchmaking work? Skill Arena pairs you with opponents near your skill level based on recent performance.',
+        'What is the difference between 1v1 and 3v3? 1v1 is a solo duel; 3v3 lets you squad up with friends.',
+        'Do ranks reset? Seasonal ranks reset on a schedule, but legacy badges remain on your profile.',
+        'Can I report cheating? Yes — use the in-match report button or email support@skillarena.com.',
+      ],
+    },
+    {
+      heading: 'Courses and progress',
+      list: [
+        'How many courses are available? 500+ free courses across technical, creative, and professional tracks.',
+        'Does course progress affect battles? Yes — completing modules unlocks related battle categories.',
+        'Can I resume where I left off? Your dashboard saves lesson progress automatically.',
+      ],
+    },
+    {
+      heading: 'Still need help?',
+      paragraphs: [
+        'Browse the Help Center for detailed guides or email support@skillarena.com and we will get back to you within 1–2 business days.',
+      ],
+    },
+  ],
+
+  guides: [
+    {
+      heading: 'Start here',
+      paragraphs: [
+        'New to Skill Arena? These guides walk you from account setup to your first win on the leaderboard.',
+      ],
+      list: [
+        'Create your profile and pick a learning path.',
+        'Complete a placement activity to calibrate matchmaking.',
+        'Finish your first lesson, then queue for a 1v1 duel.',
+        'Review your replay and note one thing to improve next match.',
+      ],
+    },
+    {
+      heading: 'Win more battles',
+      list: [
+        'Study the topic category before queuing — course progress gives you an edge.',
+        'In 3v3, assign roles so teammates cover weak spots.',
+        'Use replays to spot patterns in wrong answers.',
+        'Play consistently so matchmaking stays accurate.',
+      ],
+    },
+    {
+      heading: 'Climb the leaderboard',
+      list: [
+        'Mix course milestones with ranked battles for steady XP gains.',
+        'Focus on one topic rank at a time instead of spreading too thin.',
+        'Join seasonal events for bonus badge opportunities.',
+        'Squad up — 3v3 wins count toward team standings too.',
+      ],
+    },
+    {
+      heading: 'For educators and squads',
+      paragraphs: [
+        'Run private tournaments with custom rules for classrooms, clubs, or friend groups. Contact partnerships@skillarena.com for setup help.',
+      ],
+    },
+  ],
+
+  security: [
+    {
+      heading: 'Platform security',
+      paragraphs: [
+        'Skill Arena uses industry-standard encryption, secure authentication, and continuous monitoring to protect accounts and competitive integrity.',
+      ],
+    },
+    {
+      heading: 'Account protection',
+      list: [
+        'Use a strong, unique password for your Skill Arena account.',
+        'Sign out on shared devices after each session.',
+        'Report suspicious login activity to support@skillarena.com immediately.',
+        'Never share your password or one-time codes with anyone claiming to be staff.',
+      ],
+    },
+    {
+      heading: 'Fair play and anti-cheat',
+      list: [
+        'Live match monitoring for abnormal behavior and exploit attempts.',
+        'Replay review for disputed outcomes and reported matches.',
+        'Automated and human moderation for repeat offenders.',
+        'Rank adjustments and account actions for confirmed cheating.',
+      ],
+    },
+    {
+      heading: 'Data handling',
+      paragraphs: [
+        'We do not sell personal data. See our Privacy Policy for full details on collection, retention, and your rights.',
+      ],
+      note: 'Security reports: security@skillarena.com',
+    },
+  ],
+
+  developers: [
+    {
+      heading: 'Build on Skill Arena',
+      paragraphs: [
+        'We are opening Skill Arena to community-built tools, integrations, and extensions. The developer program is in early access.',
+      ],
+    },
+    {
+      heading: 'What you can build',
+      list: [
+        'Leaderboard and stats widgets for streamers and creators.',
+        'Squad management tools for clubs and classrooms.',
+        'Study reminders tied to course progress and battle schedules.',
+        'Community bots for event announcements and tournament brackets.',
+      ],
+    },
+    {
+      heading: 'API roadmap',
+      paragraphs: [
+        'Public API access for profiles, match history, and course progress is on our roadmap. Early partners can request preview access.',
+      ],
+      list: [
+        'Read-only profile and stats endpoints.',
+        'Webhook support for match completion events.',
+        'OAuth for secure third-party sign-in.',
+        'Rate limits and sandbox environment for testing.',
+      ],
+      note: 'Apply for early access at developers@skillarena.com',
+    },
+  ],
+
+  partners: [
+    {
+      heading: 'Partner with Skill Arena',
+      paragraphs: [
+        'We collaborate with educators, creators, organizations, and brands that share our mission: make learning competitive, social, and free.',
+      ],
+    },
+    {
+      heading: 'Partnership types',
+      list: [
+        'Education — schools, bootcamps, and nonprofits running arena tournaments.',
+        'Creators — streamers and educators building challenge paths for their audience.',
+        'Community — clubs and meetups hosting seasonal brackets.',
+        'Brand — mission-aligned sponsorships for events and content series.',
+      ],
+    },
+    {
+      heading: 'What partners get',
+      list: [
+        'Co-branded tournament pages and event tooling.',
+        'Dedicated onboarding for squads and classrooms.',
+        'Featured placement in community announcements.',
+        'Early access to new platform features.',
+      ],
+      note: 'Reach out at partnerships@skillarena.com',
+    },
+  ],
+
+  tournaments: [
+    {
+      heading: 'Compete beyond the ladder',
+      paragraphs: [
+        'Tournaments bring structure, stakes, and spectacle to Skill Arena. Join open brackets or create private events for your squad, class, or community.',
+      ],
+    },
+    {
+      heading: 'Tournament formats',
+      list: [
+        'Weekly open brackets — solo 1v1 elimination across rotating topics.',
+        'Squad showdowns — 3v3 teams battle through group stages and finals.',
+        'Seasonal championships — top-ranked players qualify for prize-badge events.',
+        'Private events — custom rules, invite-only entry, and moderator tools.',
+      ],
+    },
+    {
+      heading: 'How to join',
+      list: [
+        'Check the arena dashboard for upcoming open registrations.',
+        'Form a squad of three for team events.',
+        'Review tournament rules and topic categories before registering.',
+        'Show up on time — late arrivals may forfeit the first round.',
+      ],
+    },
+    {
+      heading: 'Host your own',
+      paragraphs: [
+        'Educators, creators, and community leaders can request private tournament setup through partnerships@skillarena.com.',
+      ],
+    },
+  ],
+
+  safety: [
+    {
+      heading: 'Our safety commitment',
+      paragraphs: [
+        'Skill Arena is built for competitive learning, not harassment. We enforce clear standards so the arena stays sharp, fair, and welcoming.',
+      ],
+    },
+    {
+      heading: 'Reporting tools',
+      list: [
+        'Report abusive chat directly from any match or message thread.',
+        'Flag suspicious profiles, impersonation, or scam attempts.',
+        'Submit replay evidence for disputed or unfair matches.',
+        'Email community@skillarena.com for urgent safety concerns.',
+      ],
+    },
+    {
+      heading: 'Moderation actions',
+      list: [
+        'Warnings for first-time minor violations.',
+        'Temporary chat or match restrictions for repeated abuse.',
+        'Rank resets and account suspensions for cheating or exploitation.',
+        'Permanent bans for severe harassment, hate speech, or threats.',
+      ],
+    },
+    {
+      heading: 'Tips for a safe arena',
+      list: [
+        'Do not share personal contact information in public chat.',
+        'Use the block and report tools — do not engage with bad actors.',
+        'Verify official Skill Arena communications — we never ask for your password.',
+      ],
+      note: 'Safety team: community@skillarena.com',
+    },
+  ],
 }

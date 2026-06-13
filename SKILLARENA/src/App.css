@@ -56,3 +56,11 @@ body {
 .navbar-logo-arena {
   color: #c45c26;
 }
+
+@media (max-width: 640px) {
+  .brand-logo,
+  .navbar-logo-text {
+    font-size: 0.9375rem;
+    gap: 0.35rem;
+  }
+}
