@@ -1,0 +1,133 @@
+.learn {
+  --learn-ink: #1a110a;
+  --learn-muted: #5c4f45;
+
+  padding: 5rem 3rem 6rem;
+  background-color: #fdf8f0;
+  background-image:
+    radial-gradient(circle at 82% 48%, rgba(245, 232, 200, 0.45) 0%, transparent 38%),
+    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
+  background-size: auto, 22px 22px;
+}
+
+.learn-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 4rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.learn-content {
+  max-width: 34rem;
+}
+
+.learn-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--learn-muted);
+}
+
+.learn-eyebrow-line {
+  width: 2rem;
+  height: 1px;
+  background-color: var(--learn-muted);
+}
+
+.learn-title {
+  margin-top: 1.25rem;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--learn-ink);
+}
+
+.learn-description {
+  margin-top: 1.5rem;
+  max-width: 30rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--learn-muted);
+}
+
+.learn-link {
+  position: relative;
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--learn-ink);
+}
+
+.learn-link::after {
+  content: '';
+  position: absolute;
+  bottom: -0.35rem;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--learn-ink);
+  transition: width 0.35s ease;
+}
+
+.learn-link:hover::after {
+  width: 100%;
+}
+
+.learn-media {
+  min-height: 28rem;
+}
+
+.learn-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  border-radius: 1.5rem;
+  border: 1px dashed rgba(26, 17, 10, 0.14);
+  background-color: rgba(255, 255, 255, 0.35);
+  color: var(--learn-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .learn {
+    padding: 3.5rem 1.5rem 4rem;
+  }
+
+  .learn-inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .learn-content {
+    order: 1;
+    max-width: none;
+  }
+
+  .learn-media {
+    order: 2;
+    min-height: 18rem;
+  }
+
+  .learn-media-placeholder {
+    min-height: 18rem;
+  }
+
+  .learn-description {
+    max-width: none;
+  }
+}

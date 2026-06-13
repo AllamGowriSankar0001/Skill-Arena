@@ -1,0 +1,40 @@
+.stack-sections {
+  position: relative;
+}
+
+.stack-sections > section {
+  position: sticky;
+  top: var(--navbar-height, 4.25rem);
+  min-height: calc(100vh - var(--navbar-height, 4.25rem));
+  display: flex;
+  align-items: center;
+}
+
+.stack-sections .battles-inner,
+.stack-sections .learn-inner,
+.stack-sections .community-inner {
+  width: 100%;
+}
+
+.stack-sections > .battles {
+  z-index: 1;
+}
+
+.stack-sections > .learn {
+  z-index: 2;
+  box-shadow: 0 -20px 50px rgba(26, 17, 10, 0.07);
+}
+
+.stack-sections > .community {
+  z-index: 3;
+  box-shadow: 0 -20px 50px rgba(26, 17, 10, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-sections > section {
+    position: relative;
+    min-height: auto;
+    display: block;
+    box-shadow: none;
+  }
+}

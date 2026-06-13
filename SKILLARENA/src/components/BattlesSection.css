@@ -1,0 +1,137 @@
+.battles {
+  --battles-ink: #1a110a;
+  --battles-muted: #5c4f45;
+  --battles-accent: #8b5e3c;
+
+  padding: 5rem 3rem 6rem;
+  background-color: #fdf8f0;
+  background-image:
+    radial-gradient(circle at 18% 58%, rgba(245, 232, 200, 0.45) 0%, transparent 38%),
+    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
+  background-size: auto, 22px 22px;
+}
+
+.battles-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 4rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.battles-media {
+  min-height: 28rem;
+}
+
+.battles-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  border-radius: 1.5rem;
+  border: 1px dashed rgba(26, 17, 10, 0.14);
+  background-color: rgba(255, 255, 255, 0.35);
+  color: var(--battles-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.battles-content {
+  max-width: 34rem;
+}
+
+.battles-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--battles-muted);
+}
+
+.battles-eyebrow-line {
+  width: 2rem;
+  height: 1px;
+  background-color: var(--battles-muted);
+}
+
+.battles-title {
+  margin-top: 1.25rem;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--battles-ink);
+}
+
+.battles-title-line {
+  display: block;
+}
+
+.battles-title-accent {
+  color: var(--battles-accent);
+}
+
+.battles-description {
+  margin-top: 1.5rem;
+  max-width: 30rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--battles-muted);
+}
+
+.battles-link {
+  position: relative;
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--battles-ink);
+}
+
+.battles-link::after {
+  content: '';
+  position: absolute;
+  bottom: -0.35rem;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--battles-ink);
+  transition: width 0.35s ease;
+}
+
+.battles-link:hover::after {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .battles {
+    padding: 3.5rem 1.5rem 4rem;
+  }
+
+  .battles-inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .battles-media,
+  .battles-media-placeholder {
+    min-height: 18rem;
+  }
+
+  .battles-content {
+    max-width: none;
+  }
+
+  .battles-description {
+    max-width: none;
+  }
+}

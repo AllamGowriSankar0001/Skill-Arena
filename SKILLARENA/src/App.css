@@ -1,0 +1,58 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --navbar-height: 4.25rem;
+}
+
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  font-family: 'Poppins', system-ui, sans-serif;
+  background-color: #fdf8f0;
+  color: #1a110a;
+}
+
+.brand-logo,
+.navbar-logo-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Dela Gothic One', sans-serif;
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.brand-logo-skill,
+.navbar-logo-skill {
+  color: #1a110a;
+}
+
+.brand-logo-slash,
+.navbar-logo-slash {
+  display: inline-block;
+  width: 2px;
+  height: 1.15em;
+  background-color: #1a110a;
+  transform: skewX(-18deg);
+  flex-shrink: 0;
+}
+
+.brand-logo-arena,
+.navbar-logo-arena {
+  color: #c45c26;
+}

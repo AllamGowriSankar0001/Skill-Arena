@@ -1,0 +1,212 @@
+.page-shell {
+  min-height: calc(100vh - var(--navbar-height, 3.75rem));
+  padding: calc(2.5rem + var(--navbar-height, 3.75rem)) 3rem 5rem;
+  background-color: #fdf8f0;
+  background-image:
+    radial-gradient(circle at 18% 24%, rgba(245, 232, 200, 0.55) 0%, transparent 38%),
+    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
+  background-size: auto, 22px 22px;
+}
+
+.page-shell-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.page-shell-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5c4f45;
+}
+
+.page-shell-eyebrow-line {
+  width: 2rem;
+  height: 1px;
+  background-color: #5c4f45;
+}
+
+.page-shell-title {
+  margin-top: 1.25rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #1a110a;
+}
+
+.page-shell-description {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #5c4f45;
+}
+
+.page-content {
+  margin-top: 2rem;
+}
+
+.page-content-section + .page-content-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.page-content-heading {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #1a110a;
+}
+
+.page-content-text {
+  margin-top: 0.85rem;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #5c4f45;
+}
+
+.page-content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  padding-left: 1.15rem;
+}
+
+.page-content-list li {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: #5c4f45;
+}
+
+.page-content-list li::marker {
+  color: #c45c26;
+}
+
+.page-content-note {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.85rem;
+  background-color: rgba(245, 232, 200, 0.55);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #1a110a;
+}
+
+.page-shell-placeholder {
+  margin-top: 1.75rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(26, 17, 10, 0.14);
+  background-color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: #5c4f45;
+}
+
+.page-shell-back {
+  position: relative;
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #1a110a;
+}
+
+.page-shell-back::after {
+  content: '';
+  position: absolute;
+  bottom: -0.35rem;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #1a110a;
+  transition: width 0.35s ease;
+}
+
+.page-shell-back:hover::after {
+  width: 100%;
+}
+
+.page-shell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+  max-width: 24rem;
+}
+
+.page-shell-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.page-shell-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1a110a;
+}
+
+.page-shell-field input {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(26, 17, 10, 0.12);
+  border-radius: 0.85rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: #1a110a;
+}
+
+.page-shell-field input:focus {
+  outline: 2px solid rgba(196, 92, 38, 0.35);
+  border-color: rgba(196, 92, 38, 0.45);
+}
+
+.page-shell-submit {
+  margin-top: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  border: 2px solid #1a110a;
+  border-radius: 9999px;
+  background-color: #1a110a;
+  color: #fdf8f0;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.page-shell-submit:hover {
+  background-color: #fdf8f0;
+  color: #1a110a;
+}
+
+.page-shell-switch {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #5c4f45;
+}
+
+.page-shell-switch a {
+  font-weight: 700;
+  color: #1a110a;
+  text-decoration: none;
+}
+
+.page-shell-switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .page-shell {
+    padding: calc(2rem + var(--navbar-height, 3.5rem)) 1.5rem 4rem;
+  }
+}

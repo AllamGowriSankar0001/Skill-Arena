@@ -1,0 +1,31 @@
+.cursor-trail-circle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--cursor-trail-size, 24px);
+  height: var(--cursor-trail-size, 24px);
+  margin-left: calc(var(--cursor-trail-size, 24px) / -2);
+  margin-top: calc(var(--cursor-trail-size, 24px) / -2);
+  border-radius: 50%;
+  border: 1.5px solid rgba(26, 17, 10, 0.18);
+  pointer-events: none;
+  z-index: 10005;
+  will-change: transform, left, top;
+}
+
+html.cursor-trail-active,
+html.cursor-trail-active a,
+html.cursor-trail-active button,
+html.cursor-trail-active input,
+html.cursor-trail-active textarea,
+html.cursor-trail-active select,
+html.cursor-trail-active label,
+html.cursor-trail-active summary {
+  cursor: none !important;
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .cursor-trail-circle {
+    display: none;
+  }
+}
