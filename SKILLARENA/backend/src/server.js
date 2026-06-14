@@ -9,9 +9,35 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const parseAllowedOrigins = () => {
+  const raw = process.env.CLIENT_URLS || process.env.CLIENT_URL;
+  if (!raw || raw.trim() === '*') {
+    return true;
+  }
+
+  return raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || '*',
+    origin(origin, callback) {
+      if (!origin || allowedOrigins === true) {
+        callback(null, true);
+        return;
+      }
+
+      if (Array.isArray(allowedOrigins) && allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
     credentials: true,
   }),
 );
