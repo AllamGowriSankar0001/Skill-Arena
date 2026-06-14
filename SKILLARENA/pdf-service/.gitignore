@@ -1,0 +1,8 @@
+cache/
+work/
+bin/tectonic.exe
+__pycache__/
+*.pdf
+*.tex
+*.aux
+*.log

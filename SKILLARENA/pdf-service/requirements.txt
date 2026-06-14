@@ -1,0 +1,2 @@
+# No third-party runtime dependencies required.
+# Optional: install MiKTeX or TeX Live for pdflatex.

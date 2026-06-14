@@ -238,3 +238,48 @@
     font-size: clamp(2.5rem, 14vw, 4.5rem);
   }
 }
+
+.app-footer {
+  padding: 1.25rem clamp(1rem, 4vw, 1.5rem);
+  background: #fff;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.app-footer-inner {
+  max-width: var(--app-max-width, 76rem);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.app-footer-copy {
+  font-size: 0.82rem;
+  color: #6b5f54;
+}
+
+.app-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.app-footer-links a {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b5f54;
+  text-decoration: none;
+}
+
+.app-footer-links a:hover {
+  color: #c45c26;
+}
+
+@media (max-width: 480px) {
+  .app-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

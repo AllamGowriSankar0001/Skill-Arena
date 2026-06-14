@@ -34,7 +34,23 @@ const socialIcons = {
   ),
 }
 
-const Footer = () => {
+const Footer = ({ compact = false }) => {
+  if (compact) {
+    return (
+      <footer className="app-footer">
+        <div className="app-footer-inner">
+          <p className="app-footer-copy">© 2028 Skill Arena</p>
+          <nav className="app-footer-links" aria-label="Footer">
+            <Link to="/">Home</Link>
+            <Link to="/blog">Blog</Link>
+            <Link to="/help-center">Help</Link>
+            <Link to="/privacy">Privacy</Link>
+          </nav>
+        </div>
+      </footer>
+    )
+  }
+
   return (
     <footer className="footer">
       <div className="footer-watermark" aria-hidden="true">

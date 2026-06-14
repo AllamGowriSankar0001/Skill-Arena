@@ -1,0 +1,454 @@
+.admin-resumes-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-resumes-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+}
+
+.admin-resumes-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a7a6d;
+}
+
+.admin-resumes-header h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1a110a;
+}
+
+.admin-resumes-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.admin-resumes-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.admin-resumes-alert button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.admin-resumes-alert--error {
+  background: #fff5f2;
+  border: 1px solid rgba(168, 56, 32, 0.25);
+  color: #a83820;
+}
+
+.admin-resumes-alert--success {
+  background: #f2faf4;
+  border: 1px solid rgba(47, 107, 63, 0.2);
+  color: #2f6b3f;
+}
+
+.admin-resumes-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-resumes-stat {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.15rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+}
+
+.admin-resumes-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(26, 17, 10, 0.12);
+}
+
+.admin-resumes-stat--total::before {
+  background: linear-gradient(90deg, #1a110a 0%, #3d2e24 100%);
+}
+
+.admin-resumes-stat--recent::before {
+  background: linear-gradient(90deg, #c45c26 0%, #e07a3f 100%);
+}
+
+.admin-resumes-stat--users::before {
+  background: linear-gradient(90deg, #8a7a6d 0%, #c9a227 100%);
+}
+
+.admin-resumes-stat-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b5f54;
+}
+
+.admin-resumes-stat strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.65rem;
+  line-height: 1;
+  color: #1a110a;
+}
+
+.admin-resumes-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.admin-resumes-search {
+  flex: 1;
+  min-width: min(100%, 16rem);
+}
+
+.admin-resumes-search input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(26, 17, 10, 0.12);
+  background: #fdf8f0;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.admin-resumes-loading,
+.admin-resumes-empty {
+  padding: 2rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  text-align: center;
+}
+
+.admin-resumes-empty--compact {
+  padding: 1.5rem;
+}
+
+.admin-resumes-empty h2 {
+  font-size: 1.1rem;
+  color: #1a110a;
+}
+
+.admin-resumes-empty p {
+  margin-top: 0.35rem;
+  color: #5c4f45;
+}
+
+.admin-resumes-empty .admin-btn {
+  margin-top: 1rem;
+}
+
+.admin-resumes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.admin-resume-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  border-radius: 0.85rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.admin-resume-card:hover {
+  box-shadow: 0 8px 24px rgba(26, 17, 10, 0.08);
+  transform: translateY(-2px);
+}
+
+.admin-resume-card-main {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.1rem 1.2rem 0.9rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  flex: 1;
+}
+
+.admin-resume-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-resume-user {
+  display: inline-flex;
+  margin-bottom: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(26, 17, 10, 0.06);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #6b5f54;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-resume-card-main h2 {
+  font-size: 1rem;
+  color: #1a110a;
+  line-height: 1.35;
+}
+
+.admin-resume-card-main p {
+  color: #5c4f45;
+  line-height: 1.55;
+  font-size: 0.88rem;
+}
+
+.admin-resume-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.76rem;
+  color: #8a7a6d;
+  font-weight: 600;
+}
+
+.admin-resume-meta span {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #faf8f5;
+}
+
+.admin-resume-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.75rem 1.2rem 1rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.admin-resume-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-resume-detail-item {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.65rem;
+  background: #faf8f5;
+  border: 1px solid rgba(26, 17, 10, 0.06);
+}
+
+.admin-resume-detail-item span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7a6d;
+}
+
+.admin-resume-detail-item strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #1a110a;
+  word-break: break-word;
+}
+
+.admin-resume-detail-block {
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  background: #faf8f5;
+  border: 1px solid rgba(26, 17, 10, 0.06);
+}
+
+.admin-resume-detail-block h3 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a110a;
+}
+
+.admin-resume-detail-block p {
+  margin-top: 0.35rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: #5c4f45;
+}
+
+.admin-btn--accent {
+  background: #c45c26;
+}
+
+.admin-btn--ghost {
+  background: #fdf8f0;
+  color: #1a110a;
+  border: 1px solid rgba(26, 17, 10, 0.12);
+}
+
+.admin-btn--danger {
+  background: #a83820;
+  color: #fff;
+  border: 1px solid rgba(168, 56, 32, 0.4);
+}
+
+.admin-link-btn--danger {
+  background: #fff5f2;
+  border-color: rgba(168, 56, 32, 0.25);
+  color: #a83820;
+}
+
+.admin-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(26, 17, 10, 0.45);
+}
+
+.admin-modal-sheet {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  background: #fff;
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12px 40px rgba(26, 17, 10, 0.12);
+}
+
+.admin-modal-sheet--narrow {
+  width: min(440px, 100%);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.admin-modal-header h2 {
+  font-size: 1.2rem;
+  color: #1a110a;
+}
+
+.admin-modal-header p {
+  margin-top: 0.35rem;
+  color: #5c4f45;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.admin-modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: #fdf8f0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.admin-modal-body {
+  overflow: auto;
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-modal-footer {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.admin-modal-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.admin-delete-copy {
+  color: #5c4f45;
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.admin-delete-copy strong {
+  color: #1a110a;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .admin-resumes-stats,
+  .admin-resume-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-modal-root {
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+  .admin-modal-sheet {
+    border-radius: 1.25rem;
+    max-height: 85vh;
+  }
+}

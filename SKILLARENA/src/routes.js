@@ -1,5 +1,20 @@
 export const ROUTES = {
   home: '/',
+  dashboard: '/dashboard',
+  learn: '/courses',
+  practice: '/practice',
+  battles: '/battles',
+  leaderboard: '/leaderboard',
+  profile: '/profile',
+  resume: '/resume',
+  admin: '/admin',
+  adminLogin: '/admin/login',
+  adminCourses: '/admin/courses',
+  adminPractice: '/admin/practice',
+  adminBlog: '/admin/blog',
+  adminResume: '/admin/resume',
+  adminResumes: '/admin/resumes',
+  adminUsers: '/admin/users',
   login: '/login',
   signup: '/signup',
   terms: '/terms',
@@ -12,9 +27,7 @@ export const ROUTES = {
   press: '/press',
   contact: '/contact',
   blog: '/blog',
-  battles: '/battles',
   courses: '/courses',
-  leaderboard: '/leaderboard',
   pricing: '/pricing',
   roadmap: '/roadmap',
   faq: '/faq',
@@ -25,6 +38,9 @@ export const ROUTES = {
   tournaments: '/tournaments',
   safety: '/safety',
 }
+
+export const getHomeRouteForUser = (user) =>
+  user?.role === 'ADMIN' ? ROUTES.admin : ROUTES.dashboard
 
 export const LANDING_SECTIONS = {
   features: 'features',

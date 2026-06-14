@@ -139,6 +139,21 @@
   color: #1a110a;
 }
 
+.navbar--static {
+  transform: translateY(0) !important;
+}
+
+.navbar-login--active {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 0.35rem;
+}
+
+.navbar-signup--active {
+  background-position: 0 0;
+  color: #1a110a;
+}
+
 .navbar-signup span {
   font-size: 1rem;
   line-height: 1;

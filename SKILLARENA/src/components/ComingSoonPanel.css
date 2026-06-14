@@ -1,0 +1,121 @@
+.coming-soon {
+  min-height: calc(100vh - var(--navbar-height, 4rem));
+  padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 4vw, 1.5rem) clamp(2.5rem, 6vw, 4rem);
+  background: var(--app-bg, #f6f3ee);
+}
+
+.coming-soon-inner {
+  max-width: 40rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.coming-soon-card,
+.coming-soon-promo {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+}
+
+.coming-soon-badge,
+.coming-soon-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(26, 17, 10, 0.08);
+  color: #5c4f45;
+}
+
+.coming-soon-promo-badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(47, 107, 63, 0.12);
+  color: #2f6b3f;
+}
+
+.coming-soon-eyebrow {
+  margin-top: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a7a6d;
+}
+
+.coming-soon-card h1 {
+  margin-top: 0.45rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: #1a110a;
+}
+
+.coming-soon-copy {
+  margin-top: 0.75rem;
+  max-width: 36rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #6b5f54;
+}
+
+.coming-soon-note {
+  margin-top: 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #8a7a6d;
+}
+
+.coming-soon-card {
+  padding-right: 6.5rem;
+}
+
+.coming-soon-promo {
+  padding-right: 6.5rem;
+  border-color: rgba(196, 92, 38, 0.22);
+  background: linear-gradient(180deg, #fff 0%, #fffaf6 100%);
+}
+
+.coming-soon-promo h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a110a;
+}
+
+.coming-soon-promo p {
+  margin-top: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6b5f54;
+}
+
+.coming-soon-promo-btn {
+  display: inline-flex;
+  margin-top: 1rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.5rem;
+  background: #1a110a;
+  color: #fdf8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.coming-soon-promo-btn:hover {
+  background: #2d2218;
+}

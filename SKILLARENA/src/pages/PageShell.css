@@ -201,9 +201,21 @@
   text-decoration: none;
 }
 
-.page-shell-switch a:hover {
-  text-decoration: underline;
+.page-shell-error {
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background-color: rgba(196, 92, 38, 0.12);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #8b3c12;
 }
+
+.page-shell-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 
 @media (max-width: 1024px) {
   .page-shell {

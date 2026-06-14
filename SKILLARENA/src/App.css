@@ -6,17 +6,39 @@
   padding: 0;
 }
 
-:root {
-  --navbar-height: 4.25rem;
+.app-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--app-bg, #f6f3ee);
+  color: var(--app-muted, #6b5f54);
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
-html {
+:root {
+  --navbar-height: 4rem;
+  --app-bg: #f6f3ee;
+  --app-max-width: 76rem;
+  --app-surface: #fff;
+  --app-border: rgba(26, 17, 10, 0.08);
+  --app-text: #1a110a;
+  --app-muted: #6b5f54;
+}
+
+html,
+body,
+* {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-html::-webkit-scrollbar {
+*::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 body {

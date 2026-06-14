@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
+import { useAuth } from '../context/AuthContext'
 import { useNavbarScroll } from '../hooks/useNavbarScroll'
 import { ROUTES } from '../routes'
 import './Navbar.css'
@@ -12,10 +13,12 @@ const NAV_LINKS = [
   { label: 'COMMUNITY', to: `${ROUTES.home}#community` },
 ]
 
-const Navbar = () => {
+const Navbar = ({ alwaysVisible = false }) => {
   const { isVisible, hasBorder } = useNavbarScroll()
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated, logout } = useAuth()
 
   useEffect(() => {
     setMenuOpen(false)
@@ -29,12 +32,14 @@ const Navbar = () => {
   }, [menuOpen])
 
   const closeMenu = () => setMenuOpen(false)
-  const showNavbar = menuOpen || isVisible
+  const showNavbar = alwaysVisible || menuOpen || isVisible
+  const isLoginPage = location.pathname === ROUTES.login
+  const isSignupPage = location.pathname === ROUTES.signup
 
   return (
     <>
       <nav
-        className={`navbar${showNavbar ? '' : ' navbar--hidden'}${hasBorder || menuOpen ? ' navbar--bordered' : ''}${menuOpen ? ' navbar--menu-open' : ''}`}
+        className={`navbar${showNavbar ? '' : ' navbar--hidden'}${hasBorder || menuOpen || alwaysVisible ? ' navbar--bordered' : ''}${menuOpen ? ' navbar--menu-open' : ''}${alwaysVisible ? ' navbar--static' : ''}`}
       >
         <Link to={ROUTES.home} className="navbar-logo" aria-label="Skill Arena home">
           <BrandLogo />
@@ -49,12 +54,38 @@ const Navbar = () => {
         </ul>
 
         <div className="navbar-actions navbar-actions--desktop">
-          <Link to={ROUTES.login} className="navbar-login">
-            LOGIN
-          </Link>
-          <Link to={ROUTES.signup} className="navbar-signup">
-            SIGN UP <span aria-hidden="true">→</span>
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link to={ROUTES.dashboard} className="navbar-login">
+                DASHBOARD
+              </Link>
+              <button
+                type="button"
+                className="navbar-signup"
+                onClick={() => {
+                  logout()
+                  navigate(ROUTES.home)
+                }}
+              >
+                LOG OUT
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to={ROUTES.login}
+                className={`navbar-login${isLoginPage ? ' navbar-login--active' : ''}`}
+              >
+                LOGIN
+              </Link>
+              <Link
+                to={ROUTES.signup}
+                className={`navbar-signup${isSignupPage ? ' navbar-signup--active' : ''}`}
+              >
+                SIGN UP <span aria-hidden="true">→</span>
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -95,12 +126,41 @@ const Navbar = () => {
         </ul>
 
         <div className="navbar-mobile-actions">
-          <Link to={ROUTES.login} className="navbar-login" onClick={closeMenu}>
-            LOGIN
-          </Link>
-          <Link to={ROUTES.signup} className="navbar-signup" onClick={closeMenu}>
-            SIGN UP <span aria-hidden="true">→</span>
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link to={ROUTES.dashboard} className="navbar-login" onClick={closeMenu}>
+                DASHBOARD
+              </Link>
+              <button
+                type="button"
+                className="navbar-signup"
+                onClick={() => {
+                  logout()
+                  closeMenu()
+                  navigate(ROUTES.home)
+                }}
+              >
+                LOG OUT
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to={ROUTES.login}
+                className={`navbar-login${isLoginPage ? ' navbar-login--active' : ''}`}
+                onClick={closeMenu}
+              >
+                LOGIN
+              </Link>
+              <Link
+                to={ROUTES.signup}
+                className={`navbar-signup${isSignupPage ? ' navbar-signup--active' : ''}`}
+                onClick={closeMenu}
+              >
+                SIGN UP <span aria-hidden="true">→</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </>
