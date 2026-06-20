@@ -3,7 +3,7 @@ import ScrollReveal from '../components/ScrollReveal'
 import { ROUTES } from '../routes'
 import './PageShell.css'
 
-const PageShell = ({ eyebrow, title, description, children }) => {
+const PageShell = ({ eyebrow, title, description, children, showBackLink = true }) => {
   return (
     <main className="page-shell">
       <div className="page-shell-inner">
@@ -26,11 +26,13 @@ const PageShell = ({ eyebrow, title, description, children }) => {
           <div className="page-shell-body">{children}</div>
         </ScrollReveal>
 
-        <ScrollReveal delay={100}>
-          <Link to={ROUTES.home} className="page-shell-back">
-            Back to home <span aria-hidden="true">→</span>
-          </Link>
-        </ScrollReveal>
+        {showBackLink ? (
+          <ScrollReveal delay={100}>
+            <Link to={ROUTES.home} className="page-shell-back">
+              Back to home <span aria-hidden="true">→</span>
+            </Link>
+          </ScrollReveal>
+        ) : null}
       </div>
     </main>
   )

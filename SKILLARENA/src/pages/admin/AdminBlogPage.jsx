@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import BlogContent from '../../components/BlogContent'
+import BlogImage from '../../components/BlogImage'
 import { adminApi } from '../../services/api'
 import { ROUTES } from '../../routes'
 import './AdminBlogPage.css'
@@ -98,7 +100,12 @@ const BlogPostPreview = ({ form, authorName, compact = false }) => {
   return (
     <article className={`admin-blog-article-preview${compact ? ' admin-blog-article-preview--compact' : ''}`}>
       {form.coverImageUrl ? (
-        <img src={form.coverImageUrl} alt="" className="admin-blog-article-cover" />
+        <BlogImage
+          src={form.coverImageUrl}
+          alt=""
+          className="admin-blog-article-cover"
+          fallbackClassName="admin-blog-article-cover admin-blog-article-cover--placeholder"
+        />
       ) : (
         <div className="admin-blog-article-cover admin-blog-article-cover--placeholder">Cover image</div>
       )}
@@ -119,9 +126,7 @@ const BlogPostPreview = ({ form, authorName, compact = false }) => {
             ))}
           </div>
         ) : null}
-        <div className="admin-blog-article-content">
-          {form.content.trim() || 'Start writing your article content.'}
-        </div>
+        <BlogContent content={form.content.trim() || 'Start writing your article content.'} />
       </div>
     </article>
   )
@@ -436,7 +441,12 @@ const AdminBlogPage = () => {
         {filteredPosts.map((post) => (
           <article key={post.id} className="admin-blog-card">
             {post.coverImageUrl ? (
-              <img src={post.coverImageUrl} alt="" className="admin-blog-card-cover" />
+              <BlogImage
+                src={post.coverImageUrl}
+                alt=""
+                className="admin-blog-card-cover"
+                fallbackClassName="admin-blog-card-cover admin-blog-card-cover--placeholder"
+              />
             ) : (
               <div className="admin-blog-card-cover admin-blog-card-cover--placeholder">No cover</div>
             )}
@@ -617,7 +627,7 @@ const AdminBlogPage = () => {
                   onChange={handleChange}
                   required
                   className="admin-blog-content-input"
-                  placeholder="Write the full article here. Use blank lines between paragraphs."
+                  placeholder="Write the full article here. Paste image or Google Drive links on their own line to embed them."
                 />
               </label>
             </div>
@@ -626,17 +636,15 @@ const AdminBlogPage = () => {
               <section className="admin-blog-aside-card">
                 <h3>Cover image</h3>
                 {form.coverImageUrl.trim() ? (
-                  <img
+                  <BlogImage
                     src={form.coverImageUrl.trim()}
                     alt=""
                     className="admin-blog-cover-preview"
-                    onError={(event) => {
-                      event.currentTarget.classList.add('is-broken')
-                    }}
+                    fallbackClassName="admin-blog-cover-preview admin-blog-cover-preview--empty"
                   />
                 ) : (
                   <div className="admin-blog-cover-preview admin-blog-cover-preview--empty">
-                    Paste an image URL to preview the cover
+                    Paste an image or Google Drive link to preview the cover
                   </div>
                 )}
                 <label className="admin-blog-field admin-blog-field--compact">
@@ -645,7 +653,7 @@ const AdminBlogPage = () => {
                     name="coverImageUrl"
                     value={form.coverImageUrl}
                     onChange={handleChange}
-                    placeholder="https://…"
+                    placeholder="https://… or Google Drive share link"
                   />
                 </label>
                 {form.coverImageUrl ? (

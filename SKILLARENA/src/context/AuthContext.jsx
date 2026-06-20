@@ -51,13 +51,11 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, confirmPassword) => {
     setLoading(true)
     try {
-      const data = await authApi.signup({ name, email, password })
-      setAuth(data.token, data.user)
-      setUser(data.user)
-      return data.user
+      const data = await authApi.signup({ name, email, password, confirmPassword })
+      return data
     } finally {
       setLoading(false)
     }

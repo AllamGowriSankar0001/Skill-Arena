@@ -1,5 +1,5 @@
 import ScrollReveal from './ScrollReveal'
-import MediaPlaceholder from './MediaPlaceholder'
+import battleImage from '../assets/battle.png'
 import './BattlesSection.css'
 
 const BattlesSection = () => {
@@ -7,8 +7,15 @@ const BattlesSection = () => {
     <section className="battles" id="battles">
       <div className="battles-inner">
         <ScrollReveal className="battles-media-wrap">
-          <div className="battles-media" aria-hidden="true">
-            <MediaPlaceholder />
+          <div className="battles-media">
+            <img
+              className="battles-image"
+              src={battleImage}
+              alt="Skill Arena battles with 1v1 and 3v3 matchmaking, fair skill-based duels, and live leaderboards"
+              width={1024}
+              height={1024}
+              loading="lazy"
+            />
           </div>
         </ScrollReveal>
 

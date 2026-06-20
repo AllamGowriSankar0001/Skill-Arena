@@ -17,6 +17,7 @@ export const ROUTES = {
   adminUsers: '/admin/users',
   login: '/login',
   signup: '/signup',
+  forgotPassword: '/forgot-password',
   terms: '/terms',
   privacy: '/privacy',
   cookies: '/cookies',

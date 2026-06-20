@@ -1,24 +1,28 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import PasswordField from '../components/auth/PasswordField'
 import { useAuth } from '../context/AuthContext'
 import { getHomeRouteForUser, ROUTES } from '../routes'
+import { validateLoginForm } from '../utils/authValidation'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, loading, isAuthenticated, bootstrapping, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const successMessage = location.state?.signupSuccess
 
   const homeRoute = getHomeRouteForUser(user)
+  const redirectPath = location.state?.from?.pathname || homeRoute
 
   useEffect(() => {
     if (!bootstrapping && isAuthenticated) {
-      navigate(homeRoute, { replace: true })
+      navigate(redirectPath, { replace: true })
     }
-  }, [bootstrapping, isAuthenticated, navigate, homeRoute])
+  }, [bootstrapping, isAuthenticated, navigate, redirectPath])
 
   if (bootstrapping) {
     return (
@@ -31,16 +35,23 @@ const LoginPage = () => {
   }
 
   if (!bootstrapping && isAuthenticated) {
-    return <Navigate to={homeRoute} replace />
+    return <Navigate to={redirectPath} replace />
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
+    const validation = validateLoginForm({ email, password })
+    if (!validation.ok) {
+      setError(validation.message)
+      return
+    }
+
     try {
-      const loggedInUser = await login(email, password)
-      navigate(getHomeRouteForUser(loggedInUser))
+      const loggedInUser = await login(validation.email, validation.password)
+      const destination = location.state?.from?.pathname || getHomeRouteForUser(loggedInUser)
+      navigate(destination, { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
     }
@@ -58,8 +69,17 @@ const LoginPage = () => {
         </>
       }
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        {error ? <p className="auth-error">{error}</p> : null}
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        {successMessage ? (
+          <p className="auth-success" role="status">
+            {successMessage}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
         <div className="auth-field">
           <label htmlFor="login-email">Email</label>
@@ -70,7 +90,6 @@ const LoginPage = () => {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             autoComplete="email"
-            required
           />
         </div>
 
@@ -82,6 +101,12 @@ const LoginPage = () => {
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
         />
+
+        <div className="auth-field-row">
+          <Link to={ROUTES.forgotPassword} className="auth-forgot-link">
+            Forgot password?
+          </Link>
+        </div>
 
         <button type="submit" className="auth-submit" disabled={loading}>
           {loading ? 'Signing in…' : 'Sign in'}

@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getHomeRouteForUser, ROUTES } from '../routes'
 
 const ProtectedRoute = ({ children }) => {
+  const location = useLocation()
   const { isAuthenticated, bootstrapping, user } = useAuth()
 
   if (bootstrapping) {
@@ -10,7 +11,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.login} replace />
+    return <Navigate to={ROUTES.login} state={{ from: location }} replace />
   }
 
   if (user?.role === 'ADMIN') {

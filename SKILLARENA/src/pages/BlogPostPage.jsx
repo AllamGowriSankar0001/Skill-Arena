@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import PageShell from './PageShell'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import BlogContent from '../components/BlogContent'
+import BlogImage from '../components/BlogImage'
 import { platformApi } from '../services/api'
-import { ROUTES } from '../routes'
 import './Blog.css'
 
 const formatDate = (value) => {
@@ -14,6 +14,14 @@ const formatDate = (value) => {
   })
 }
 
+const estimateReadTime = (content) => {
+  const words = String(content || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
+  return Math.max(1, Math.ceil(words / 220))
+}
+
 const BlogPostPage = () => {
   const { slug } = useParams()
   const [post, setPost] = useState(null)
@@ -21,6 +29,8 @@ const BlogPostPage = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    setLoading(true)
+    setError('')
     platformApi
       .blog(slug)
       .then((data) => setPost(data.post))
@@ -28,38 +38,65 @@ const BlogPostPage = () => {
       .finally(() => setLoading(false))
   }, [slug])
 
+  const readTime = useMemo(() => estimateReadTime(post?.content), [post?.content])
+
   return (
-    <PageShell
-      eyebrow="Blog"
-      title={post?.title || 'Article'}
-      description={post?.excerpt || 'Loading article…'}
-    >
-      <Link to={ROUTES.blog} className="blog-back">
-        ← Back to blog
-      </Link>
+    <main className="blog-post-page">
+      <div className="blog-post-shell">
+        {loading ? <p className="blog-status">Loading article…</p> : null}
+        {error ? <p className="blog-error">{error}</p> : null}
 
-      {loading ? <p className="blog-status">Loading article…</p> : null}
-      {error ? <p className="blog-error">{error}</p> : null}
+        {post ? (
+          <article className="blog-post">
+            <div
+              className={`blog-post-intro${post.coverImageUrl ? '' : ' blog-post-intro--no-image'}`}
+            >
+              <header className="blog-post-intro-text">
+                <p className="blog-post-eyebrow">Skill Arena Blog</p>
+                <h1 className="blog-post-title">{post.title}</h1>
+                <p className="blog-post-excerpt">{post.excerpt}</p>
 
-      {post ? (
-        <article className="blog-article">
-          <p className="blog-article-meta">
-            {formatDate(post.publishedAt)} • {post.authorName}
-          </p>
-          {post.coverImageUrl ? (
-            <img src={post.coverImageUrl} alt="" className="blog-article-cover" />
-          ) : null}
-          {post.tags?.length ? (
-            <div className="blog-tags">
-              {post.tags.map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
+                <div className="blog-post-meta">
+                  <span>{formatDate(post.publishedAt)}</span>
+                  <span className="blog-post-meta-dot" aria-hidden="true">
+                    •
+                  </span>
+                  <span>{post.authorName}</span>
+                  <span className="blog-post-meta-dot" aria-hidden="true">
+                    •
+                  </span>
+                  <span>{readTime} min read</span>
+                </div>
+
+                {post.tags?.length ? (
+                  <div className="blog-tags blog-tags--post">
+                    {post.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </header>
+
+              {post.coverImageUrl ? (
+                <div className="blog-post-intro-media">
+                  <BlogImage
+                    src={post.coverImageUrl}
+                    alt={post.title}
+                    className="blog-post-hero-image"
+                    fallbackClassName="blog-post-hero-fallback"
+                    loading="eager"
+                  />
+                </div>
+              ) : null}
             </div>
-          ) : null}
-          <div className="blog-article-content">{post.content}</div>
-        </article>
-      ) : null}
-    </PageShell>
+
+            <div className="blog-post-body">
+              <BlogContent content={post.content} />
+            </div>
+          </article>
+        ) : null}
+      </div>
+    </main>
   )
 }
 

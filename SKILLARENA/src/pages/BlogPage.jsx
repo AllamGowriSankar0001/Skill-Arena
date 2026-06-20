@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import BlogImage from '../components/BlogImage'
 import PageShell from './PageShell'
 import { platformApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -32,6 +33,7 @@ const BlogPage = () => {
       eyebrow="Company"
       title="Blog"
       description="Product updates, learning tips, community highlights, and stories from inside the arena."
+      showBackLink={false}
     >
       {loading ? <p className="blog-status">Loading posts…</p> : null}
       {error ? <p className="blog-error">{error}</p> : null}
@@ -44,7 +46,14 @@ const BlogPage = () => {
         {posts.map((post) => (
           <Link key={post.id} to={`${ROUTES.blog}/${post.slug}`} className="blog-card">
             {post.coverImageUrl ? (
-              <img src={post.coverImageUrl} alt="" className="blog-card-cover" />
+              <div className="blog-card-cover-wrap">
+                <BlogImage
+                  src={post.coverImageUrl}
+                  alt={post.title}
+                  className="blog-card-cover"
+                  fallbackClassName="blog-card-cover-fallback"
+                />
+              </div>
             ) : (
               <div className="blog-card-cover blog-card-cover--placeholder">✦</div>
             )}

@@ -8,6 +8,7 @@ import ProtectedAdminRoute from './components/ProtectedAdminRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import DashboardPage from './pages/DashboardPage'
 import LearnAppPage from './pages/LearnAppPage'
 import CourseDetailPage from './pages/CourseDetailPage'
@@ -38,6 +39,7 @@ function App() {
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.signup} element={<SignupPage />} />
+        <Route path={ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
         <Route path={ROUTES.adminLogin} element={<Navigate to={ROUTES.login} replace />} />
       </Route>
 

@@ -21,11 +21,18 @@
 }
 
 .battles-media {
-  min-height: 28rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.battles-media .media-frame {
-  min-height: 28rem;
+.battles-image {
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  display: block;
+  border-radius: 1.25rem;
+  object-fit: contain;
 }
 
 .battles-content {
@@ -109,9 +116,9 @@
     gap: 2.5rem;
   }
 
-  .battles-media,
-  .battles-media .media-frame {
-    min-height: 18rem;
+  .battles-image {
+    max-width: 28rem;
+    margin-inline: auto;
   }
 
   .battles-content {
@@ -126,10 +133,5 @@
 @media (max-width: 640px) {
   .battles {
     padding: 3rem 1.25rem 3.5rem;
-  }
-
-  .battles-media,
-  .battles-media .media-frame {
-    min-height: 14rem;
   }
 }

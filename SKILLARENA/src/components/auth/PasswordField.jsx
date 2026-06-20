@@ -25,7 +25,8 @@ export function PasswordField({
   placeholder,
   autoComplete,
   minLength,
-  required = true,
+  maxLength,
+  required = false,
 }) {
   const [visible, setVisible] = useState(false)
 
@@ -41,6 +42,7 @@ export function PasswordField({
           onChange={onChange}
           autoComplete={autoComplete}
           minLength={minLength}
+          maxLength={maxLength}
           required={required}
         />
         <button

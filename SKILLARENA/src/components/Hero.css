@@ -31,14 +31,23 @@
 
 .hero-aside-wrap {
   min-height: 100%;
+  padding-top: 3rem;
 }
 
 .hero-aside {
-  min-height: 24rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 1.5rem;
 }
 
-.hero-aside .media-frame {
-  min-height: 24rem;
+.hero-image {
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  display: block;
+  border-radius: 1.25rem;
+  object-fit: contain;
 }
 
 .hero-badge {
@@ -161,7 +170,17 @@
   }
 
   .hero-aside-wrap {
-    display: none;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+  }
+
+  .hero-aside {
+    padding-top: 0;
+  }
+
+  .hero-image {
+    max-width: 28rem;
+    margin-inline: auto;
   }
 
   .hero-content {

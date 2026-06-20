@@ -1,5 +1,5 @@
 import ScrollReveal from './ScrollReveal'
-import MediaPlaceholder from './MediaPlaceholder'
+import heroImage from '../assets/hero-image.png'
 import './Hero.css'
 
 const Hero = () => {
@@ -63,8 +63,16 @@ const Hero = () => {
         </div>
 
         <ScrollReveal className="hero-aside-wrap" delay={200}>
-          <div className="hero-aside" aria-hidden="true">
-            <MediaPlaceholder />
+          <div className="hero-aside">
+            <img
+              className="hero-image"
+              src={heroImage}
+              alt="Students learning and competing in Skill Arena with courses, battles, XP, and leaderboards"
+              width={1024}
+              height={1024}
+              loading="eager"
+              fetchPriority="high"
+            />
           </div>
         </ScrollReveal>
       </div>

@@ -3,15 +3,19 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import PasswordField from '../components/auth/PasswordField'
 import { useAuth } from '../context/AuthContext'
+import { authApi } from '../services/api'
 import { getHomeRouteForUser, ROUTES } from '../routes'
+import { FIELD_LIMITS, validateSignupForm } from '../utils/authValidation'
 
 const SignupPage = () => {
   const navigate = useNavigate()
-  const { signup, loading, isAuthenticated, bootstrapping, user } = useAuth()
+  const { loading, isAuthenticated, bootstrapping, user } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!bootstrapping && isAuthenticated) {
@@ -37,13 +41,32 @@ const SignupPage = () => {
     event.preventDefault()
     setError('')
 
+    const validation = validateSignupForm({ name, email, password, confirmPassword })
+    if (!validation.ok) {
+      setError(validation.message)
+      return
+    }
+
+    setSubmitting(true)
     try {
-      const newUser = await signup(name, email, password)
-      navigate(getHomeRouteForUser(newUser))
+      await authApi.signup({
+        name: validation.name,
+        email: validation.email,
+        password: validation.password,
+        confirmPassword,
+      })
+      navigate(ROUTES.login, {
+        replace: true,
+        state: { signupSuccess: 'Account created successfully. Please sign in.' },
+      })
     } catch (err) {
       setError(err.message || 'Signup failed')
+    } finally {
+      setSubmitting(false)
     }
   }
+
+  const busy = loading || submitting
 
   return (
     <AuthCard
@@ -57,8 +80,12 @@ const SignupPage = () => {
         </>
       }
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        {error ? <p className="auth-error">{error}</p> : null}
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        {error ? (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
         <div className="auth-field">
           <label htmlFor="signup-name">Full name</label>
@@ -69,7 +96,7 @@ const SignupPage = () => {
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoComplete="name"
-            required
+            maxLength={FIELD_LIMITS.name}
           />
         </div>
 
@@ -82,7 +109,7 @@ const SignupPage = () => {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             autoComplete="email"
-            required
+            maxLength={FIELD_LIMITS.email}
           />
         </div>
 
@@ -93,11 +120,21 @@ const SignupPage = () => {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
-          minLength={6}
+          maxLength={FIELD_LIMITS.password}
         />
 
-        <button type="submit" className="auth-submit" disabled={loading}>
-          {loading ? 'Creating account…' : 'Create account'}
+        <PasswordField
+          id="signup-confirm-password"
+          label="Confirm password"
+          placeholder="Re-enter your password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+          autoComplete="new-password"
+          maxLength={FIELD_LIMITS.password}
+        />
+
+        <button type="submit" className="auth-submit" disabled={busy}>
+          {busy ? 'Creating account…' : 'Create account'}
         </button>
       </form>
     </AuthCard>

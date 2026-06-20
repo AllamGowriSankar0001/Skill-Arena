@@ -9,6 +9,8 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('trust proxy', 1);
+
 const parseAllowedOrigins = () => {
   const raw = process.env.CLIENT_URLS || process.env.CLIENT_URL;
   if (!raw || raw.trim() === '*') {

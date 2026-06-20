@@ -56,6 +56,8 @@ export const authApi = {
     request('/auth/signup', { method: 'POST', body: JSON.stringify(payload) }),
   login: (payload) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  forgotPassword: (payload) =>
+    request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(payload) }),
   me: () => request('/auth/me'),
   updateMe: (payload) =>
     request('/auth/me', { method: 'PATCH', body: JSON.stringify(payload) }),
