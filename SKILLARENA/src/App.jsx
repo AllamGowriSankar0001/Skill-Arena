@@ -12,6 +12,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import DashboardPage from './pages/DashboardPage'
 import LearnAppPage from './pages/LearnAppPage'
 import CourseDetailPage from './pages/CourseDetailPage'
+import LessonPage from './pages/LessonPage'
 import PracticePage from './pages/PracticePage'
 import BattlesAppPage from './pages/BattlesAppPage'
 import LeaderboardAppPage from './pages/LeaderboardAppPage'
@@ -73,6 +74,7 @@ function App() {
         <Route path={ROUTES.dashboard} element={<DashboardPage />} />
         <Route path={ROUTES.learn} element={<LearnAppPage />} />
         <Route path={`${ROUTES.learn}/:courseId`} element={<CourseDetailPage />} />
+        <Route path={`${ROUTES.learn}/:courseId/lessons/:lessonId`} element={<LessonPage />} />
         <Route path={ROUTES.practice} element={<PracticePage />} />
         <Route path={ROUTES.battles} element={<BattlesAppPage />} />
         <Route path={ROUTES.leaderboard} element={<LeaderboardAppPage />} />

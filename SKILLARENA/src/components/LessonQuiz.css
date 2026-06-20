@@ -1,0 +1,133 @@
+.lesson-quiz {
+  margin-top: 1.5rem;
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.lesson-quiz-head {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.lesson-quiz-head h2 {
+  font-size: 1.15rem;
+  color: #1a110a;
+}
+
+.lesson-quiz-head p {
+  color: #6b5f54;
+  line-height: 1.6;
+}
+
+.lesson-quiz-xp {
+  justify-self: start;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(196, 92, 38, 0.12);
+  color: #a84d1f;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.lesson-quiz-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson-quiz-question {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.lesson-quiz-prompt {
+  font-weight: 600;
+  color: #1a110a;
+  line-height: 1.55;
+}
+
+.lesson-quiz-number {
+  color: #c45c26;
+}
+
+.lesson-quiz-options {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.lesson-quiz-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(26, 17, 10, 0.1);
+  background: #faf8f5;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.lesson-quiz-option input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.lesson-quiz-option span {
+  color: #1a110a;
+  line-height: 1.5;
+}
+
+.lesson-quiz-option--selected {
+  border-color: rgba(196, 92, 38, 0.35);
+  background: rgba(196, 92, 38, 0.08);
+}
+
+.lesson-quiz-option--correct {
+  border-color: rgba(47, 107, 63, 0.35);
+  background: rgba(47, 107, 63, 0.1);
+}
+
+.lesson-quiz-option--wrong {
+  border-color: rgba(168, 77, 31, 0.35);
+  background: rgba(168, 77, 31, 0.08);
+}
+
+.lesson-quiz-explanation {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  background: rgba(26, 17, 10, 0.04);
+  color: #5c4f45;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.lesson-quiz-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+}
+
+.lesson-quiz-summary strong {
+  color: #1a110a;
+}
+
+.lesson-quiz-empty {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  color: #6b5f54;
+}

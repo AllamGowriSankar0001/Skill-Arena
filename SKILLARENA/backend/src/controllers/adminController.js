@@ -5,6 +5,23 @@ const sendError = (res, error, fallbackStatus = 400) => {
   return res.status(status).json({ message: error.message || 'Request failed.' });
 };
 
+const sendAiError = (res, error) => {
+  if (error.code === 'AI_RATE_LIMIT') {
+    return res.status(429).json({
+      message: error.message || 'AI service is temporarily busy.',
+      code: 'AI_RATE_LIMIT',
+      retryAfterSeconds: error.retryAfterSeconds || 60,
+    });
+  }
+  if (error.code === 'AI_KEY_REQUIRED') {
+    return res.status(503).json({
+      message: error.message || 'Configure GEMINI_API_KEY on the server or add a key in Profile settings.',
+      code: 'AI_KEY_REQUIRED',
+    });
+  }
+  return sendError(res, error);
+};
+
 const getOverview = async (req, res, next) => {
   try {
     const overview = await adminService.getOverview();
@@ -27,6 +44,15 @@ const createCategory = async (req, res, next) => {
   try {
     const category = await adminService.createCategory(req.body);
     res.status(201).json({ category });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+const deleteCategory = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteCategory(req.params.id);
+    res.json({ ...result, message: 'Category removed.' });
   } catch (error) {
     sendError(res, error);
   }
@@ -74,6 +100,54 @@ const createCourse = async (req, res, next) => {
     res.status(201).json({ course });
   } catch (error) {
     sendError(res, error);
+  }
+};
+
+const generateCourseWithAI = async (req, res, next) => {
+  try {
+    const result = await adminService.generateCourseWithAI(req.user._id, req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    sendAiError(res, error);
+  }
+};
+
+const writeSseEvent = (res, event, data) => {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+};
+
+const generateCourseWithAIStream = async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  try {
+    const result = await adminService.generateCourseWithAI(req.user._id, req.body, {
+      onProgress: (payload) => writeSseEvent(res, 'progress', payload),
+    });
+    writeSseEvent(res, 'complete', result);
+    res.end();
+  } catch (error) {
+    if (error.code === 'AI_RATE_LIMIT') {
+      writeSseEvent(res, 'error', {
+        message: error.message || 'AI service is temporarily busy.',
+        code: 'AI_RATE_LIMIT',
+        retryAfterSeconds: error.retryAfterSeconds || 60,
+      });
+    } else if (error.code === 'AI_KEY_REQUIRED') {
+      writeSseEvent(res, 'error', {
+        message:
+          error.message ||
+          'Configure GEMINI_API_KEY on the server or add a key in Profile settings.',
+        code: 'AI_KEY_REQUIRED',
+      });
+    } else {
+      writeSseEvent(res, 'error', {
+        message: error.message || 'Failed to generate course with AI.',
+      });
+    }
+    res.end();
   }
 };
 
@@ -174,6 +248,33 @@ const createLessonQuiz = async (req, res, next) => {
   }
 };
 
+const createLessonCoding = async (req, res, next) => {
+  try {
+    const result = await adminService.createLessonCoding(req.user._id, req.params.id, req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+const getLessonCoding = async (req, res, next) => {
+  try {
+    const result = await adminService.getLessonCoding(req.params.id);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+const updateLessonCoding = async (req, res, next) => {
+  try {
+    const result = await adminService.updateLessonCoding(req.user._id, req.params.id, req.body);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
 const listAssessments = async (req, res, next) => {
   try {
     const assessments = await adminService.listAssessments(req.query.type || 'PRACTICE');
@@ -223,6 +324,15 @@ const createQuestion = async (req, res, next) => {
   try {
     const question = await adminService.createQuestion(req.user._id, req.body);
     res.status(201).json({ question });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+const updateQuestion = async (req, res, next) => {
+  try {
+    const question = await adminService.updateQuestion(req.params.id, req.body);
+    res.json({ question });
   } catch (error) {
     sendError(res, error);
   }
@@ -345,11 +455,14 @@ module.exports = {
   getOverview,
   listCategories,
   createCategory,
+  deleteCategory,
   listSkills,
   createSkill,
   deleteSkill,
   listCourses,
   createCourse,
+  generateCourseWithAI,
+  generateCourseWithAIStream,
   updateCourse,
   deleteCourse,
   listCourseModules,
@@ -360,12 +473,16 @@ module.exports = {
   updateLesson,
   deleteLesson,
   createLessonQuiz,
+  createLessonCoding,
+  getLessonCoding,
+  updateLessonCoding,
   listAssessments,
   getAssessment,
   createPracticeAssessment,
   updateAssessment,
   deleteAssessment,
   createQuestion,
+  updateQuestion,
   addQuestionToAssessment,
   removeQuestionFromAssessment,
   listBlogPosts,

@@ -11,11 +11,14 @@ router.use(requireRole('ADMIN'));
 router.get('/overview', adminController.getOverview);
 router.get('/categories', adminController.listCategories);
 router.post('/categories', adminController.createCategory);
+router.delete('/categories/:id', adminController.deleteCategory);
 router.get('/skills', adminController.listSkills);
 router.post('/skills', adminController.createSkill);
 router.delete('/skills/:id', adminController.deleteSkill);
 
 router.get('/courses', adminController.listCourses);
+router.post('/courses/generate-ai/stream', adminController.generateCourseWithAIStream);
+router.post('/courses/generate-ai', adminController.generateCourseWithAI);
 router.post('/courses', adminController.createCourse);
 router.patch('/courses/:id', adminController.updateCourse);
 router.delete('/courses/:id', adminController.deleteCourse);
@@ -28,6 +31,9 @@ router.post('/courses/:courseId/modules/:moduleId/lessons', adminController.crea
 router.patch('/lessons/:id', adminController.updateLesson);
 router.delete('/lessons/:id', adminController.deleteLesson);
 router.post('/lessons/:id/quiz', adminController.createLessonQuiz);
+router.post('/lessons/:id/coding', adminController.createLessonCoding);
+router.get('/lessons/:id/coding', adminController.getLessonCoding);
+router.patch('/lessons/:id/coding', adminController.updateLessonCoding);
 
 router.get('/assessments', adminController.listAssessments);
 router.get('/assessments/:id', adminController.getAssessment);
@@ -38,6 +44,7 @@ router.post('/assessments/:id/questions', adminController.addQuestionToAssessmen
 router.delete('/assessments/:id/questions/:questionId', adminController.removeQuestionFromAssessment);
 
 router.post('/questions', adminController.createQuestion);
+router.patch('/questions/:id', adminController.updateQuestion);
 
 router.get('/blogs', adminController.listBlogPosts);
 router.post('/blogs', adminController.createBlogPost);

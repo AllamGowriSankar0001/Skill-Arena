@@ -10,9 +10,16 @@ const referenceSolutionSchema = new mongoose.Schema(
 
 const hiddenTestCaseSchema = new mongoose.Schema(
   {
-    input: { type: String, required: true },
-    expectedOutput: { type: String, required: true },
+    type: { type: String, trim: true },
+    selector: { type: String, trim: true },
+    attribute: { type: String, trim: true },
+    property: { type: String, trim: true },
+    variable: { type: String, trim: true },
+    expected: { type: mongoose.Schema.Types.Mixed },
+    label: { type: String, trim: true },
     points: { type: Number, default: 1, min: 0 },
+    input: { type: String },
+    expectedOutput: { type: String },
   },
   { _id: false },
 );

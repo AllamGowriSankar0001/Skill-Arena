@@ -1,0 +1,49 @@
+.lesson-page-course-progress {
+  margin: 1rem 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+
+.lesson-page-course-progress p {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.lesson-page-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.lesson-page-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent, #4338ca);
+  border-radius: inherit;
+}
+
+.lesson-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.lesson-page-actions .is-complete {
+  opacity: 0.85;
+}
+
+.lesson-page-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.lesson-page-nav a {
+  font-weight: 600;
+}

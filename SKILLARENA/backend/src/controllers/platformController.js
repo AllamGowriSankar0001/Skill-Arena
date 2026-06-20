@@ -32,7 +32,8 @@ const getLesson = async (req, res, next) => {
     const detail = await getLessonDetail(req.params.id);
     res.json(detail);
   } catch (error) {
-    const status = error.message === 'Lesson not found.' ? 404 : 400;
+    const status =
+      error.message === 'Course not found.' || error.message === 'Lesson not found.' ? 404 : 400;
     res.status(status).json({ message: error.message });
   }
 };

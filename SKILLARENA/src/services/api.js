@@ -44,6 +44,7 @@ async function request(path, options = {}) {
     const error = new Error(data.message || 'Request failed')
     error.status = response.status
     error.code = data.code
+    error.previousLessonId = data.previousLessonId
     error.retryAfterSeconds = data.retryAfterSeconds
     throw error
   }
@@ -82,6 +83,7 @@ export const adminApi = {
   categories: () => request('/admin/categories'),
   createCategory: (payload) =>
     request('/admin/categories', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteCategory: (id) => request(`/admin/categories/${id}`, { method: 'DELETE' }),
   skills: () => request('/admin/skills'),
   createSkill: (payload) =>
     request('/admin/skills', { method: 'POST', body: JSON.stringify(payload) }),
@@ -89,6 +91,71 @@ export const adminApi = {
   courses: () => request('/admin/courses'),
   createCourse: (payload) =>
     request('/admin/courses', { method: 'POST', body: JSON.stringify(payload) }),
+  generateCourseWithAI: (payload) =>
+    request('/admin/courses/generate-ai', { method: 'POST', body: JSON.stringify(payload) }),
+  generateCourseWithAIStream: async (payload, handlers = {}) => {
+    const token = getToken()
+    const response = await fetch(`${API_BASE_URL}/admin/courses/generate-ai/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: handlers.signal,
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      const error = new Error(data.message || 'Request failed')
+      error.status = response.status
+      error.code = data.code
+      throw error
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) throw new Error('Streaming is not supported in this browser.')
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let result = null
+
+    const dispatch = (block) => {
+      if (!block.trim()) return
+      let eventName = 'message'
+      let dataText = ''
+      block.split('\n').forEach((line) => {
+        if (line.startsWith('event:')) eventName = line.slice(6).trim()
+        if (line.startsWith('data:')) dataText += line.slice(5).trim()
+      })
+      if (!dataText) return
+      const parsed = JSON.parse(dataText)
+      if (eventName === 'progress') handlers.onProgress?.(parsed)
+      if (eventName === 'complete') {
+        result = parsed
+        handlers.onComplete?.(parsed)
+      }
+      if (eventName === 'error') {
+        const error = new Error(parsed.message || 'Request failed')
+        error.code = parsed.code
+        error.retryAfterSeconds = parsed.retryAfterSeconds
+        handlers.onError?.(error)
+        throw error
+      }
+    }
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const blocks = buffer.split('\n\n')
+      buffer = blocks.pop() || ''
+      blocks.forEach(dispatch)
+    }
+
+    if (buffer.trim()) dispatch(buffer)
+    return result
+  },
   updateCourse: (id, payload) =>
     request(`/admin/courses/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteCourse: (id) => request(`/admin/courses/${id}`, { method: 'DELETE' }),
@@ -115,6 +182,17 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  createLessonCoding: (lessonId, payload) =>
+    request(`/admin/lessons/${lessonId}/coding`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getLessonCoding: (lessonId) => request(`/admin/lessons/${lessonId}/coding`),
+  updateLessonCoding: (lessonId, payload) =>
+    request(`/admin/lessons/${lessonId}/coding`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
   assessments: (type = 'PRACTICE') => request(`/admin/assessments?type=${type}`),
   assessment: (id) => request(`/admin/assessments/${id}`),
   createAssessment: (payload) =>
@@ -124,6 +202,8 @@ export const adminApi = {
   deleteAssessment: (id) => request(`/admin/assessments/${id}`, { method: 'DELETE' }),
   createQuestion: (payload) =>
     request('/admin/questions', { method: 'POST', body: JSON.stringify(payload) }),
+  updateQuestion: (id, payload) =>
+    request(`/admin/questions/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   addQuestionToAssessment: (assessmentId, payload) =>
     request(`/admin/assessments/${assessmentId}/questions`, {
       method: 'POST',
@@ -162,4 +242,46 @@ export const resumeApi = {
   deleteMine: () => request('/resume/me', { method: 'DELETE' }),
   generateAI: (payload) =>
     request('/resume/ai', { method: 'POST', body: JSON.stringify(payload) }),
+}
+
+export const learningApi = {
+  enroll: (courseId) =>
+    request(`/learning/courses/${courseId}/enroll`, { method: 'POST' }),
+  courseProgress: (courseId) => request(`/learning/courses/${courseId}/progress`),
+  startLesson: (lessonId) =>
+    request(`/learning/lessons/${lessonId}/start`, { method: 'POST' }),
+  lessonProgress: (lessonId) => request(`/learning/lessons/${lessonId}/progress`),
+  lessonAccess: (lessonId) => request(`/learning/lessons/${lessonId}/access`),
+  completeLesson: (lessonId) =>
+    request(`/learning/lessons/${lessonId}/complete`, { method: 'POST' }),
+  markIncomplete: (lessonId) =>
+    request(`/learning/lessons/${lessonId}/mark-incomplete`, { method: 'POST' }),
+  videoProgress: (lessonId, payload) =>
+    request(`/learning/lessons/${lessonId}/video-progress`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  submitQuiz: (lessonId, answers) =>
+    request(`/learning/lessons/${lessonId}/quiz/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    }),
+  quizAttempts: (lessonId) => request(`/learning/lessons/${lessonId}/quiz/attempts`),
+  getCoding: (lessonId) => request(`/learning/lessons/${lessonId}/coding`),
+  saveCodingDraft: (lessonId, draft) =>
+    request(`/learning/lessons/${lessonId}/coding/draft`, {
+      method: 'PATCH',
+      body: JSON.stringify(draft),
+    }),
+  runCoding: (lessonId, code) =>
+    request(`/learning/lessons/${lessonId}/coding/run`, {
+      method: 'POST',
+      body: JSON.stringify(code),
+    }),
+  submitCoding: (lessonId, code) =>
+    request(`/learning/lessons/${lessonId}/coding/submit`, {
+      method: 'POST',
+      body: JSON.stringify(code),
+    }),
+  codingAttempts: (lessonId) => request(`/learning/lessons/${lessonId}/coding/attempts`),
 }

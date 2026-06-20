@@ -11,14 +11,20 @@ const PLATFORM_CARDS = [
     id: 'learn',
     eyebrow: 'Learn',
     title: 'Structured courses',
-    copy: 'Guided learning paths and lessons are being prepared.',
+    copy: 'Browse published courses, modules, and lessons.',
+    to: ROUTES.learn,
+    available: true,
+    cta: 'Browse courses',
     dark: false,
   },
   {
     id: 'practice',
     eyebrow: 'Practice',
     title: 'Sharpen skills',
-    copy: 'Quizzes, MCQs, and coding challenges will arrive here.',
+    copy: 'Quizzes, MCQs, and coding challenges to earn XP.',
+    to: ROUTES.practice,
+    available: true,
+    cta: 'View practice',
     dark: false,
   },
   {
@@ -26,6 +32,7 @@ const PLATFORM_CARDS = [
     eyebrow: 'Battle',
     title: 'Compete live',
     copy: '1v1 and team skill battles are on the roadmap.',
+    available: false,
     dark: true,
   },
 ]
@@ -68,7 +75,7 @@ const DashboardPage = () => {
           <div>
             <p className="dashboard-eyebrow">Dashboard</p>
             <h1 className="dashboard-title">Welcome back, {firstName}</h1>
-            <p className="dashboard-subtitle">Your arena hub — build your resume today while we finish Learn, Practice, and Battles.</p>
+            <p className="dashboard-subtitle">Your arena hub — explore courses, practice sets, and build your resume.</p>
           </div>
           <Link to={ROUTES.profile} className="dashboard-profile-link">
             View profile
@@ -135,29 +142,52 @@ const DashboardPage = () => {
         <section className="dashboard-section">
           <div className="dashboard-section-head">
             <h2 className="dashboard-section-title">Platform areas</h2>
-            <p className="dashboard-section-copy">Resume is live now. Learn, Practice, and Battles are on the way.</p>
+            <p className="dashboard-section-copy">Learn and Practice are live. Battles are still on the way.</p>
           </div>
           <div className="dashboard-quick" aria-label="Platform areas">
-            {PLATFORM_CARDS.map((card) => (
-              <article
-                key={card.id}
-                className={`dashboard-card dashboard-card--soon${card.dark ? ' dashboard-card--dark' : ''}`}
-              >
-                <span className={`dashboard-status${card.dark ? ' dashboard-status--light' : ''}`}>Coming soon</span>
-                <div className="dashboard-card-body">
-                  <p className="dashboard-card-eyebrow">{card.eyebrow}</p>
-                  <h2>{card.title}</h2>
-                  <p className="dashboard-card-copy">{card.copy}</p>
-                </div>
-                <div className="dashboard-card-foot">
+            {PLATFORM_CARDS.map((card) => {
+              const cardClassName = `dashboard-card${card.available ? ' dashboard-card--available' : ' dashboard-card--soon'}${card.dark ? ' dashboard-card--dark' : ''}`
+
+              const body = (
+                <>
                   <span
-                    className={`dashboard-btn dashboard-btn--disabled${card.dark ? ' dashboard-btn--disabled-light' : ''}`}
+                    className={`dashboard-status${card.available ? ' dashboard-status--live' : ''}${card.dark ? ' dashboard-status--light' : ''}`}
                   >
-                    Coming soon
+                    {card.available ? 'Available' : 'Coming soon'}
                   </span>
-                </div>
-              </article>
-            ))}
+                  <div className="dashboard-card-body">
+                    <p className="dashboard-card-eyebrow">{card.eyebrow}</p>
+                    <h2>{card.title}</h2>
+                    <p className="dashboard-card-copy">{card.copy}</p>
+                  </div>
+                  <div className="dashboard-card-foot">
+                    {card.available ? (
+                      <span className="dashboard-btn dashboard-btn--ghost">{card.cta}</span>
+                    ) : (
+                      <span
+                        className={`dashboard-btn dashboard-btn--disabled${card.dark ? ' dashboard-btn--disabled-light' : ''}`}
+                      >
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                </>
+              )
+
+              if (card.available) {
+                return (
+                  <Link key={card.id} to={card.to} className={cardClassName}>
+                    {body}
+                  </Link>
+                )
+              }
+
+              return (
+                <article key={card.id} className={cardClassName}>
+                  {body}
+                </article>
+              )
+            })}
           </div>
         </section>
 

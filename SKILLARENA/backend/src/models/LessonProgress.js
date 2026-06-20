@@ -62,6 +62,12 @@ const lessonProgressSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
+    codingDraft: {
+      html: { type: String, default: '' },
+      css: { type: String, default: '' },
+      javascript: { type: String, default: '' },
+      updatedAt: { type: Date },
+    },
   },
   {
     timestamps: true,

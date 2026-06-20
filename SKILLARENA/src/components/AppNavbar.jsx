@@ -7,8 +7,8 @@ import './AppNavbar.css'
 
 const APP_LINKS = [
   { label: 'Dashboard', to: ROUTES.dashboard },
-  { label: 'Learn', to: ROUTES.learn, comingSoon: true },
-  { label: 'Practice', to: ROUTES.practice, comingSoon: true },
+  { label: 'Learn', to: ROUTES.learn },
+  { label: 'Practice', to: ROUTES.practice },
   { label: 'Battles', to: ROUTES.battles, comingSoon: true },
   { label: 'Leaderboard', to: ROUTES.leaderboard },
   { label: 'Resume', to: ROUTES.resume, isNew: true },

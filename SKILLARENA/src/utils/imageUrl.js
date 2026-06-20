@@ -1,7 +1,7 @@
-const DRIVE_FILE_PATTERN = /drive\.google\.com\/file\/d\/([^/?]+)/
+const DRIVE_FILE_PATTERN = /drive\.google\.com\/file\/(?:u\/\d+\/)?d\/([^/?]+)/
 const DRIVE_OPEN_PATTERN = /drive\.google\.com\/open\?id=([^&]+)/
-const DRIVE_UC_PATTERN = /drive\.google\.com\/uc\?[^#]*id=([^&]+)/
-const DRIVE_PREVIEW_PATTERN = /drive\.google\.com\/file\/d\/([^/?]+)\/preview/
+const DRIVE_UC_PATTERN = /drive\.google\.com\/uc(?:\/view)?\?(?:[^#]*&)?id=([^&]+)/
+const DRIVE_PREVIEW_PATTERN = /drive\.google\.com\/file\/(?:u\/\d+\/)?d\/([^/?]+)\/preview/
 const GDRIVE_USERCONTENT_PATTERN = /lh3\.googleusercontent\.com\/d\/([^/?]+)/
 const IMAGE_EXTENSION_PATTERN = /\.(avif|bmp|gif|jpe?g|png|svg|webp)(\?.*)?$/i
 
@@ -46,7 +46,7 @@ export function resolveImageUrl(url) {
       provider: 'google-drive',
       originalUrl: trimmed,
       ...driveUrls,
-      displayUrl: driveUrls.viewUrl,
+      displayUrl: driveUrls.thumbnailUrl,
     }
   }
 

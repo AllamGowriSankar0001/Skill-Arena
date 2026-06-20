@@ -12,6 +12,7 @@ const {
   UserAchievement,
   Assessment,
   BlogPost,
+  Question,
 } = require('../models');
 const { getUserStats } = require('./userStatsService');
 const { rankFromLevel } = require('../utils/level');
@@ -319,30 +320,81 @@ async function getCourseDetail(courseId) {
   };
 }
 
+async function getLessonQuizPublic(assessmentId) {
+  const assessment = await Assessment.findOne({ _id: assessmentId, status: 'PUBLISHED' });
+  if (!assessment) return null;
+
+  const orderedEntries = [...assessment.questions].sort((a, b) => a.order - b.order);
+  const questionIds = orderedEntries.map((entry) => entry.questionId);
+  const questions = await Question.find({ _id: { $in: questionIds } });
+
+  const questionMap = new Map(questions.map((question) => [question._id.toString(), question]));
+
+  const formattedQuestions = orderedEntries
+    .map((entry) => {
+      const question = questionMap.get(entry.questionId.toString());
+      if (!question) return null;
+      return {
+        id: question._id.toString(),
+        prompt: question.prompt,
+        options: question.options,
+        points: entry.points,
+        order: entry.order,
+      };
+    })
+    .filter(Boolean);
+
+  if (!formattedQuestions.length) return null;
+
+  return {
+    id: assessment._id.toString(),
+    title: assessment.title,
+    description: assessment.description || '',
+    passingPercentage: assessment.passingPercentage ?? 70,
+    xpReward: assessment.xpReward,
+    questions: formattedQuestions,
+  };
+}
+
 async function getLessonDetail(lessonId) {
   const lesson = await Lesson.findOne({ _id: lessonId, status: 'PUBLISHED' });
   if (!lesson) {
     throw new Error('Lesson not found.');
   }
 
-  const course = await Course.findById(lesson.courseId).select('title slug');
+  const course = await Course.findOne({ _id: lesson.courseId, status: 'PUBLISHED' }).select(
+    'title slug thumbnailUrl',
+  );
+  if (!course) {
+    throw new Error('Course not found.');
+  }
+
   const moduleDoc = await CourseModule.findById(lesson.moduleId).select('title');
 
-  return {
-    lesson: {
-      id: lesson._id.toString(),
-      title: lesson.title,
-      slug: lesson.slug,
-      description: lesson.description,
-      type: lesson.type,
-      durationMinutes: lesson.durationMinutes,
-      content: lesson.content,
-      courseId: lesson.courseId.toString(),
-      moduleId: lesson.moduleId.toString(),
-      courseTitle: course?.title || '',
-      moduleTitle: moduleDoc?.title || '',
-    },
+  const payload = {
+    id: lesson._id.toString(),
+    title: lesson.title,
+    slug: lesson.slug,
+    description: lesson.description,
+    type: lesson.type,
+    durationMinutes: lesson.durationMinutes,
+    content: lesson.content,
+    courseId: lesson.courseId.toString(),
+    moduleId: lesson.moduleId.toString(),
+    courseTitle: course.title,
+    courseThumbnailUrl: course.thumbnailUrl || null,
+    moduleTitle: moduleDoc?.title || '',
   };
+
+  if (lesson.type === 'QUIZ' && lesson.assessmentId) {
+    payload.quiz = await getLessonQuizPublic(lesson.assessmentId);
+  }
+
+  if (lesson.type === 'CODING' && lesson.assessmentId) {
+    payload.requiresCodingApi = true;
+  }
+
+  return { lesson: payload };
 }
 
 async function listPracticeAssessments() {

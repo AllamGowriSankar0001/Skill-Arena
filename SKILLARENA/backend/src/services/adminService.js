@@ -19,6 +19,8 @@ const MatchmakingTicket = require('../models/MatchmakingTicket');
 const { slugify, uniqueSlug } = require('../utils/slugify');
 const { USER_ROLES, USER_STATUSES } = require('../constants/enums');
 const { rankFromLevel, calculateLevelProgress } = require('../utils/level');
+const lessonProgressService = require('./lessonProgressService');
+const { generateCoursePlanFromAi } = require('./courseAiService');
 
 const formatCourse = (course) => ({
   id: course._id.toString(),
@@ -26,6 +28,7 @@ const formatCourse = (course) => ({
   slug: course.slug,
   shortDescription: course.shortDescription,
   description: course.description,
+  thumbnailUrl: course.thumbnailUrl || '',
   categoryId: course.categoryId?._id?.toString() || course.categoryId?.toString(),
   categoryName: course.categoryId?.name || null,
   level: course.level,
@@ -148,6 +151,7 @@ const formatAssessment = (assessment) => ({
   difficulty: assessment.difficulty,
   questionCount: assessment.questions?.length ?? 0,
   xpReward: assessment.xpReward,
+  passingPercentage: assessment.passingPercentage ?? 70,
   status: assessment.status,
   createdAt: assessment.createdAt,
   updatedAt: assessment.updatedAt,
@@ -234,6 +238,23 @@ const createCategory = async (payload) => {
   });
 
   return formatCategory(category);
+};
+
+const deleteCategory = async (categoryId) => {
+  const category = await Category.findOne({ _id: categoryId, status: 'ACTIVE' });
+  if (!category) {
+    throw new Error('Category not found.');
+  }
+
+  const courseCount = await Course.countDocuments({ categoryId: category._id });
+  if (courseCount > 0) {
+    throw new Error(
+      `Cannot remove "${category.name}" — ${courseCount} course${courseCount === 1 ? '' : 's'} still use it.`,
+    );
+  }
+
+  await Category.findByIdAndDelete(category._id);
+  return { id: categoryId, name: category.name };
 };
 
 const listSkills = async () => {
@@ -387,6 +408,7 @@ const createCourse = async (adminId, payload) => {
     level: level || 'BEGINNER',
     estimatedMinutes: payload.estimatedMinutes || 0,
     completionXpReward: payload.completionXpReward || 0,
+    thumbnailUrl: payload.thumbnailUrl?.trim() || '',
     status: status || 'DRAFT',
     publishedAt: status === 'PUBLISHED' ? new Date() : undefined,
   });
@@ -404,6 +426,7 @@ const updateCourse = async (courseId, payload) => {
   if (payload.title) course.title = payload.title.trim();
   if (payload.shortDescription) course.shortDescription = payload.shortDescription.trim();
   if (payload.description) course.description = payload.description.trim();
+  if (payload.thumbnailUrl !== undefined) course.thumbnailUrl = payload.thumbnailUrl.trim();
   if (payload.categoryId) course.categoryId = payload.categoryId;
   if (payload.level) course.level = payload.level;
   if (payload.status) {
@@ -497,6 +520,7 @@ const updateAssessment = async (assessmentId, payload) => {
   if (payload.difficulty) assessment.difficulty = payload.difficulty;
   if (payload.mode) assessment.mode = payload.mode;
   if (payload.xpReward !== undefined) assessment.xpReward = payload.xpReward;
+  if (payload.passingPercentage !== undefined) assessment.passingPercentage = payload.passingPercentage;
   if (payload.status) assessment.status = payload.status;
 
   await assessment.save();
@@ -541,6 +565,50 @@ const createQuestion = async (adminId, payload) => {
     skillId: question.skillId.toString(),
     difficulty: question.difficulty,
     options: question.options,
+    status: question.status,
+  };
+};
+
+const updateQuestion = async (questionId, payload) => {
+  const question = await Question.findById(questionId);
+  if (!question) {
+    throw new Error('Question not found.');
+  }
+  if (question.type === 'CODING') {
+    throw new Error('Use the coding lesson editor to update coding questions.');
+  }
+
+  if (payload.prompt?.trim()) question.prompt = payload.prompt.trim();
+  if (payload.difficulty) question.difficulty = payload.difficulty;
+  if (Array.isArray(payload.options) && payload.options.length) {
+    question.options = payload.options.map((option, index) => ({
+      optionId: option.optionId || `opt-${index + 1}`,
+      text: String(option.text || '').trim(),
+    })).filter((option) => option.text);
+  }
+
+  await question.save();
+
+  const solution = await QuestionSolution.findOne({ questionId: question._id });
+  if (solution) {
+    if (payload.correctOptionId) {
+      solution.correctOptionIds = [payload.correctOptionId];
+    }
+    if (payload.explanation !== undefined) {
+      solution.explanation = payload.explanation.trim();
+    }
+    await solution.save();
+  }
+
+  const updatedSolution = await QuestionSolution.findOne({ questionId: question._id });
+  return {
+    id: question._id.toString(),
+    prompt: question.prompt,
+    skillId: question.skillId.toString(),
+    difficulty: question.difficulty,
+    options: question.options,
+    correctOptionId: updatedSolution?.correctOptionIds?.[0] || null,
+    explanation: updatedSolution?.explanation || '',
     status: question.status,
   };
 };
@@ -685,12 +753,26 @@ const updateLesson = async (lessonId, payload) => {
   if (payload.status) lesson.status = payload.status;
   if (payload.isPreview !== undefined) lesson.isPreview = payload.isPreview;
 
+  if (payload.status === 'PUBLISHED' && lesson.type === 'CODING') {
+    await validateCodingLessonForPublish(lesson);
+  }
+
   if (payload.slug) {
     lesson.slug = await uniqueSlug(Lesson, slugify(payload.slug), lesson._id);
   }
 
   await lesson.save();
   await syncCourseStats(lesson.courseId);
+
+  if (payload.status === 'PUBLISHED' || payload.status === 'ARCHIVED') {
+    const enrollments = await Enrollment.find({ courseId: lesson.courseId, status: { $in: ['ACTIVE', 'COMPLETED'] } });
+    await Promise.all(
+      enrollments.map((enrollment) =>
+        lessonProgressService.recalculateEnrollment(enrollment.userId, lesson.courseId),
+      ),
+    );
+  }
+
   return formatLesson(lesson);
 };
 
@@ -714,6 +796,7 @@ const createLessonQuiz = async (adminId, lessonId, payload) => {
     lessonId: lesson._id,
     difficulty: payload.difficulty || 'MIXED',
     xpReward: payload.xpReward || 15,
+    passingPercentage: payload.passingPercentage ?? 70,
     status: payload.status || 'DRAFT',
     createdBy: adminId,
   });
@@ -727,6 +810,357 @@ const createLessonQuiz = async (adminId, lessonId, payload) => {
     lesson: formatLesson(lesson),
     assessment: formatAssessment(populated),
   };
+};
+
+const CODING_LANGUAGES = ['HTML', 'CSS', 'JavaScript'];
+
+function parseTestCases(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function buildStarterCode(payload) {
+  const entries = [];
+  if (payload.htmlStarter?.trim()) {
+    entries.push({ language: 'HTML', code: payload.htmlStarter });
+  }
+  if (payload.cssStarter?.trim()) {
+    entries.push({ language: 'CSS', code: payload.cssStarter });
+  }
+  if (payload.javascriptStarter?.trim()) {
+    entries.push({ language: 'JavaScript', code: payload.javascriptStarter });
+  }
+  return entries;
+}
+
+function buildReferenceSolutions(payload) {
+  const entries = [];
+  if (payload.referenceHtml?.trim()) {
+    entries.push({ language: 'HTML', code: payload.referenceHtml });
+  }
+  if (payload.referenceCss?.trim()) {
+    entries.push({ language: 'CSS', code: payload.referenceCss });
+  }
+  if (payload.referenceJavascript?.trim()) {
+    entries.push({ language: 'JavaScript', code: payload.referenceJavascript });
+  }
+  return entries;
+}
+
+async function validateCodingLessonForPublish(lesson) {
+  if (lesson.type !== 'CODING') return;
+
+  const errors = [];
+  if (!lesson.title?.trim()) errors.push('Title is required.');
+  if (!lesson.completionXpReward && lesson.completionXpReward !== 0) {
+    errors.push('Completion XP reward is required.');
+  }
+  if (!lesson.assessmentId) {
+    errors.push('Assessment is required.');
+    throw new Error(`Cannot publish coding lesson: ${errors.join(' ')}`);
+  }
+
+  const assessment = await Assessment.findById(lesson.assessmentId);
+  if (!assessment) errors.push('Assessment not found.');
+
+  const entry = assessment?.questions?.[0];
+  if (!entry) errors.push('Coding question is required.');
+
+  const question = entry ? await Question.findById(entry.questionId) : null;
+  if (!question || question.type !== 'CODING') {
+    errors.push('A CODING question must be linked.');
+  } else {
+    if (!question.prompt?.trim()) errors.push('Problem statement is required.');
+    const starter = question.codingDetails?.starterCode || [];
+    if (!starter.length) errors.push('At least one starter code field is required.');
+    const visibleTests =
+      question.codingDetails?.visibleTestCases?.length ||
+      question.codingDetails?.sampleTestCases?.length;
+    if (!visibleTests) errors.push('At least one test case is required.');
+  }
+
+  const solution = question ? await QuestionSolution.findOne({ questionId: question._id }) : null;
+  if (!solution) errors.push('Question solution is required.');
+
+  if (errors.length) {
+    throw new Error(`Cannot publish coding lesson: ${errors.join(' ')}`);
+  }
+}
+
+const createLessonCoding = async (adminId, lessonId, payload) => {
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson) throw new Error('Lesson not found.');
+
+  const course = await Course.findById(lesson.courseId);
+  const skillId = payload.skillId || course?.skillIds?.[0];
+  if (!skillId) throw new Error('Skill is required for coding questions.');
+
+  const skill = await Skill.findById(skillId);
+  if (!skill) throw new Error('Skill not found.');
+
+  if (!payload.problemStatement?.trim()) {
+    throw new Error('Problem statement is required.');
+  }
+
+  const visibleTestCases = parseTestCases(payload.visibleTestCases || payload.sampleTestCases);
+  const hiddenTestCases = parseTestCases(payload.hiddenTestCases);
+  const starterCode = buildStarterCode(payload);
+
+  if (!starterCode.length) {
+    throw new Error('At least one starter code field is required.');
+  }
+
+  let assessment = null;
+  let question = null;
+
+  try {
+    assessment = await Assessment.create({
+      title: payload.problemTitle?.trim() || `${lesson.title} Challenge`,
+      description: payload.instructions?.trim() || '',
+      type: 'LESSON_QUIZ',
+      mode: 'CODING',
+      courseId: lesson.courseId,
+      moduleId: lesson.moduleId,
+      lessonId: lesson._id,
+      difficulty: payload.difficulty || 'MEDIUM',
+      xpReward: payload.xpReward || lesson.completionXpReward || 15,
+      passingPercentage: payload.passingThreshold ?? 100,
+      status: payload.status || 'DRAFT',
+      createdBy: adminId,
+    });
+
+    question = await Question.create({
+      type: 'CODING',
+      skillId,
+      courseId: lesson.courseId,
+      difficulty: payload.difficulty || 'MEDIUM',
+      title: payload.problemTitle?.trim() || lesson.title,
+      prompt: payload.problemStatement.trim(),
+      codingDetails: {
+        supportedLanguages: CODING_LANGUAGES,
+        starterCode,
+        instructions: payload.instructions?.trim() || '',
+        expectedOutputDescription: payload.expectedOutputDescription?.trim() || '',
+        hints: (payload.hints || []).filter(Boolean),
+        visibleTestCases,
+        sampleTestCases: visibleTestCases,
+      },
+      status: payload.status || 'DRAFT',
+      createdBy: adminId,
+    });
+
+    await QuestionSolution.create({
+      questionId: question._id,
+      explanation: payload.solutionExplanation?.trim() || '',
+      codingSolution: {
+        referenceSolutions: buildReferenceSolutions(payload),
+        hiddenTestCases,
+      },
+    });
+
+    assessment.questions.push({
+      questionId: question._id,
+      order: 0,
+      points: payload.points || 100,
+    });
+    await assessment.save();
+
+    lesson.type = 'CODING';
+    lesson.assessmentId = assessment._id;
+    if (payload.completionXpReward !== undefined) {
+      lesson.completionXpReward = payload.completionXpReward;
+    }
+    await lesson.save();
+  } catch (error) {
+    if (question?._id) {
+      await QuestionSolution.deleteMany({ questionId: question._id });
+      await Question.findByIdAndDelete(question._id);
+    }
+    if (assessment?._id) {
+      await Assessment.findByIdAndDelete(assessment._id);
+    }
+    throw error;
+  }
+
+  const populated = await Assessment.findById(assessment._id).populate('skillId', 'name');
+  return {
+    lesson: formatLesson(lesson),
+    assessment: formatAssessment(populated),
+    questionId: question._id.toString(),
+  };
+};
+
+const getLessonCoding = async (lessonId) => {
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson || lesson.type !== 'CODING') throw new Error('Coding lesson not found.');
+
+  const assessment = lesson.assessmentId
+    ? await Assessment.findById(lesson.assessmentId)
+    : null;
+  const entry = assessment?.questions?.[0];
+  const question = entry ? await Question.findById(entry.questionId) : null;
+  const solution = question ? await QuestionSolution.findOne({ questionId: question._id }) : null;
+
+  const starter = (question?.codingDetails?.starterCode || []).reduce(
+    (acc, item) => {
+      const key = item.language.toLowerCase();
+      if (key.includes('html')) acc.html = item.code;
+      else if (key.includes('css')) acc.css = item.code;
+      else if (key.includes('java')) acc.javascript = item.code;
+      return acc;
+    },
+    { html: '', css: '', javascript: '' },
+  );
+
+  const reference = (solution?.codingSolution?.referenceSolutions || []).reduce(
+    (acc, item) => {
+      const key = item.language.toLowerCase();
+      if (key.includes('html')) acc.html = item.code;
+      else if (key.includes('css')) acc.css = item.code;
+      else if (key.includes('java')) acc.javascript = item.code;
+      return acc;
+    },
+    { html: '', css: '', javascript: '' },
+  );
+
+  return {
+    lesson: formatLesson(lesson),
+    assessment: assessment ? formatAssessment(assessment) : null,
+    coding: question
+      ? {
+          questionId: question._id.toString(),
+          problemTitle: question.title || '',
+          problemStatement: question.prompt,
+          instructions: question.codingDetails?.instructions || '',
+          expectedOutputDescription: question.codingDetails?.expectedOutputDescription || '',
+          hints: question.codingDetails?.hints || [],
+          htmlStarter: starter.html,
+          cssStarter: starter.css,
+          javascriptStarter: starter.javascript,
+          visibleTestCases: question.codingDetails?.visibleTestCases || [],
+          sampleTestCases: question.codingDetails?.sampleTestCases || [],
+          hiddenTestCases: solution?.codingSolution?.hiddenTestCases || [],
+          passingThreshold: assessment?.passingPercentage ?? 100,
+          solutionExplanation: solution?.explanation || '',
+          referenceHtml: reference.html,
+          referenceCss: reference.css,
+          referenceJavascript: reference.javascript,
+        }
+      : null,
+  };
+};
+
+const updateLessonCoding = async (adminId, lessonId, payload) => {
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson || lesson.type !== 'CODING') throw new Error('Coding lesson not found.');
+
+  if (!lesson.assessmentId) {
+    return createLessonCoding(adminId, lessonId, payload);
+  }
+
+  const assessment = await Assessment.findById(lesson.assessmentId);
+  const entry = assessment?.questions?.[0];
+  const question = entry ? await Question.findById(entry.questionId) : null;
+  if (!question) throw new Error('Coding question not found.');
+
+  const visibleTestCases = parseTestCases(
+    payload.visibleTestCases ?? payload.sampleTestCases ?? question.codingDetails?.visibleTestCases,
+  );
+  const hiddenTestCases = parseTestCases(
+    payload.hiddenTestCases ?? (await QuestionSolution.findOne({ questionId: question._id }))
+      ?.codingSolution?.hiddenTestCases,
+  );
+
+  if (payload.problemTitle !== undefined) question.title = payload.problemTitle.trim();
+  if (payload.problemStatement !== undefined) question.prompt = payload.problemStatement.trim();
+  if (payload.instructions !== undefined) {
+    question.codingDetails.instructions = payload.instructions.trim();
+  }
+  if (payload.expectedOutputDescription !== undefined) {
+    question.codingDetails.expectedOutputDescription = payload.expectedOutputDescription.trim();
+  }
+  if (payload.hints !== undefined) {
+    question.codingDetails.hints = (payload.hints || []).filter(Boolean);
+  }
+
+  const starterCode = buildStarterCode({
+    htmlStarter: payload.htmlStarter,
+    cssStarter: payload.cssStarter,
+    javascriptStarter: payload.javascriptStarter,
+  });
+  if (starterCode.length) {
+    question.codingDetails.starterCode = starterCode;
+  }
+  if (visibleTestCases.length) {
+    question.codingDetails.visibleTestCases = visibleTestCases;
+    question.codingDetails.sampleTestCases = visibleTestCases;
+  }
+
+  await question.save();
+
+  let solution = await QuestionSolution.findOne({ questionId: question._id });
+  if (!solution) {
+    solution = await QuestionSolution.create({ questionId: question._id });
+  }
+  if (payload.solutionExplanation !== undefined) {
+    solution.explanation = payload.solutionExplanation.trim();
+  }
+  if (hiddenTestCases.length || payload.referenceHtml || payload.referenceCss || payload.referenceJavascript) {
+    solution.codingSolution = solution.codingSolution || {};
+    if (hiddenTestCases.length) {
+      solution.codingSolution.hiddenTestCases = hiddenTestCases;
+    }
+    const refs = buildReferenceSolutions(payload);
+    if (refs.length) solution.codingSolution.referenceSolutions = refs;
+    await solution.save();
+  }
+
+  if (payload.passingThreshold !== undefined) {
+    assessment.passingPercentage = payload.passingThreshold;
+  }
+  if (payload.problemTitle !== undefined) {
+    assessment.title = payload.problemTitle.trim();
+  }
+  if (payload.title !== undefined && payload.title.trim()) {
+    lesson.title = payload.title.trim();
+  }
+  if (payload.description !== undefined) {
+    lesson.description = payload.description.trim();
+  }
+  if (payload.durationMinutes !== undefined) {
+    lesson.durationMinutes = payload.durationMinutes;
+  }
+  if (payload.status) {
+    lesson.status = payload.status;
+  }
+  await assessment.save();
+
+  if (
+    payload.title !== undefined ||
+    payload.description !== undefined ||
+    payload.durationMinutes !== undefined ||
+    payload.status ||
+    payload.completionXpReward !== undefined
+  ) {
+    if (payload.completionXpReward !== undefined) {
+      lesson.completionXpReward = payload.completionXpReward;
+    }
+    await lesson.save();
+  } else if (payload.completionXpReward !== undefined) {
+    lesson.completionXpReward = payload.completionXpReward;
+    await lesson.save();
+  }
+
+  return getLessonCoding(lessonId);
 };
 
 const deleteModule = async (courseId, moduleId) => {
@@ -1107,15 +1541,241 @@ const deleteUser = async (targetUserId, actingAdminId) => {
   return { id: user._id.toString(), name: user.name, email: user.email };
 };
 
+async function resolveSkillForCourse(categoryId, skillName, adminId) {
+  const normalized = skillName?.trim();
+  if (!normalized) return null;
+
+  const existing = await Skill.findOne({
+    categoryId,
+    name: new RegExp(`^${normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+    status: 'ACTIVE',
+  });
+  if (existing) return existing;
+
+  return Skill.create({
+    categoryId,
+    name: normalized,
+    slug: await uniqueSlug(Skill, slugify(normalized)),
+    description: `${normalized} skills for course content.`,
+    status: 'ACTIVE',
+  });
+}
+
+async function materializeLesson(adminId, courseId, moduleId, skillId, lessonDef) {
+  const basePayload = {
+    title: lessonDef.title,
+    description: lessonDef.description,
+    type: lessonDef.type,
+    durationMinutes: lessonDef.durationMinutes,
+    completionXpReward: lessonDef.completionXpReward,
+    status: 'DRAFT',
+  };
+
+  if (lessonDef.type === 'ARTICLE') {
+    return createLesson(courseId, moduleId, {
+      ...basePayload,
+      content: { articleHtml: lessonDef.articleHtml || `# ${lessonDef.title}\n\n${lessonDef.description}` },
+    });
+  }
+
+  if (lessonDef.type === 'VIDEO') {
+    return createLesson(courseId, moduleId, {
+      ...basePayload,
+      content: { videoUrl: lessonDef.videoUrl || '' },
+    });
+  }
+
+  const lesson = await createLesson(courseId, moduleId, basePayload);
+
+  if (lessonDef.type === 'QUIZ') {
+    const quizSetup = await createLessonQuiz(adminId, lesson.id, {
+      title: `${lessonDef.title} Quiz`,
+      passingPercentage: lessonDef.passingPercentage,
+      status: 'DRAFT',
+    });
+
+    for (const questionDef of lessonDef.questions) {
+      const options = questionDef.options.slice(0, 4).map((text, index) => ({
+        optionId: `opt-${index + 1}`,
+        text: String(text),
+      }));
+      while (options.length < 4) {
+        options.push({
+          optionId: `opt-${options.length + 1}`,
+          text: `Option ${options.length + 1}`,
+        });
+      }
+      const correctIndex = Math.min(
+        Math.max(Number(questionDef.correctIndex) || 0, 0),
+        options.length - 1,
+      );
+      const question = await createQuestion(adminId, {
+        prompt: questionDef.prompt,
+        skillId,
+        difficulty: 'EASY',
+        options,
+        correctOptionId: options[correctIndex].optionId,
+        explanation: questionDef.explanation || '',
+      });
+      await addQuestionToAssessment(quizSetup.assessment.id, { questionId: question.id });
+    }
+
+    return quizSetup.lesson;
+  }
+
+  if (lessonDef.type === 'CODING') {
+    await createLessonCoding(adminId, lesson.id, {
+      skillId,
+      problemTitle: lessonDef.problemTitle,
+      problemStatement: lessonDef.problemStatement,
+      instructions: lessonDef.instructions,
+      htmlStarter: lessonDef.htmlStarter,
+      cssStarter: lessonDef.cssStarter,
+      javascriptStarter: lessonDef.javascriptStarter,
+      hints: lessonDef.hints,
+      visibleTestCases: lessonDef.visibleTestCases,
+      hiddenTestCases: lessonDef.hiddenTestCases,
+      passingThreshold: lessonDef.passingThreshold,
+      expectedOutputDescription: lessonDef.expectedOutputDescription,
+      solutionExplanation: lessonDef.solutionExplanation,
+      referenceHtml: lessonDef.referenceHtml,
+      referenceCss: lessonDef.referenceCss,
+      referenceJavascript: lessonDef.referenceJavascript,
+      completionXpReward: lessonDef.completionXpReward,
+      status: 'DRAFT',
+    });
+    const updated = await Lesson.findById(lesson.id);
+    return formatLesson(updated);
+  }
+
+  return lesson;
+}
+
+const generateCourseWithAI = async (adminId, payload, options = {}) => {
+  const onProgress = options.onProgress;
+  const titleInput = payload.title?.trim();
+  const briefInput = payload.brief?.trim();
+
+  if (!briefInput && !titleInput) {
+    throw new Error('Provide a course title or description for the AI to plan from.');
+  }
+
+  const categories = await listCategories();
+  const plan = await generateCoursePlanFromAi(
+    {
+      title: titleInput || briefInput,
+      brief: briefInput || titleInput,
+      categories,
+    },
+    adminId,
+    { onProgress },
+  );
+
+  if (onProgress) {
+    onProgress({
+      step: 'saving',
+      message: 'Saving course to database…',
+      moduleTotal: plan.modules.length,
+      lessonTotal: plan.modules.reduce((count, module) => count + module.lessons.length, 0),
+    });
+  }
+
+  const category = await createCategory({ name: plan.categoryName });
+  const categoryId = category.id;
+  const skill = await resolveSkillForCourse(categoryId, plan.skillName, adminId);
+  if (!skill) throw new Error('Could not resolve a skill for this course.');
+
+  let courseRecord = null;
+  try {
+    courseRecord = await createCourse(adminId, {
+      title: titleInput || plan.title,
+      shortDescription: plan.shortDescription,
+      description: plan.description,
+      categoryId,
+      level: plan.level,
+      skillIds: [skill._id],
+      estimatedMinutes: plan.estimatedMinutes,
+      completionXpReward: plan.completionXpReward,
+      status: 'DRAFT',
+    });
+
+    let lessonTotal = 0;
+    let moduleTotal = 0;
+
+    for (let moduleIndex = 0; moduleIndex < plan.modules.length; moduleIndex += 1) {
+      const moduleDef = plan.modules[moduleIndex];
+      moduleTotal += 1;
+
+      if (onProgress) {
+        onProgress({
+          step: 'saving',
+          phase: 'module',
+          moduleIndex,
+          moduleTotal: plan.modules.length,
+          moduleTitle: moduleDef.title,
+          message: `Saving module ${moduleTotal}/${plan.modules.length}: ${moduleDef.title}`,
+        });
+      }
+
+      const moduleDoc = await createModule(courseRecord.id, {
+        title: moduleDef.title,
+        description: moduleDef.description,
+        status: 'ACTIVE',
+      });
+
+      for (const lessonDef of moduleDef.lessons) {
+        lessonTotal += 1;
+        await materializeLesson(adminId, courseRecord.id, moduleDoc.id, skill._id, lessonDef);
+      }
+    }
+
+    if (!plan.estimatedMinutes) {
+      await Course.findByIdAndUpdate(courseRecord.id, {
+        estimatedMinutes: plan.modules.reduce(
+          (sum, module) =>
+            sum + module.lessons.reduce((inner, lesson) => inner + (lesson.durationMinutes || 0), 0),
+          0,
+        ),
+      });
+    }
+
+    await syncCourseStats(courseRecord.id);
+    const populated = await Course.findById(courseRecord.id).populate('categoryId', 'name');
+
+    return {
+      course: formatCourse(populated),
+      summary: {
+        modulesCreated: moduleTotal,
+        lessonsCreated: lessonTotal,
+        skillName: skill.name,
+        categoryName: category.name,
+        level: plan.level,
+        aiTitle: plan.title,
+      },
+    };
+  } catch (error) {
+    if (courseRecord?.id) {
+      try {
+        await deleteCourse(courseRecord.id);
+      } catch {
+        /* best-effort rollback */
+      }
+    }
+    throw error;
+  }
+};
+
 module.exports = {
   getOverview,
   listCategories,
   createCategory,
+  deleteCategory,
   listSkills,
   createSkill,
   deleteSkill,
   listCourses,
   createCourse,
+  generateCourseWithAI,
   updateCourse,
   deleteCourse,
   listCourseModules,
@@ -1125,6 +1785,10 @@ module.exports = {
   updateLesson,
   deleteLesson,
   createLessonQuiz,
+  createLessonCoding,
+  getLessonCoding,
+  updateLessonCoding,
+  validateCodingLessonForPublish,
   deleteModule,
   listAssessments,
   getAssessment,
@@ -1132,6 +1796,7 @@ module.exports = {
   updateAssessment,
   deleteAssessment,
   createQuestion,
+  updateQuestion,
   addQuestionToAssessment,
   removeQuestionFromAssessment,
   listBlogPosts,

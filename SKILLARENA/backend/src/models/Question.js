@@ -20,8 +20,16 @@ const starterCodeSchema = new mongoose.Schema(
 
 const sampleTestCaseSchema = new mongoose.Schema(
   {
-    input: { type: String, required: true },
-    expectedOutput: { type: String, required: true },
+    type: { type: String, trim: true },
+    selector: { type: String, trim: true },
+    attribute: { type: String, trim: true },
+    property: { type: String, trim: true },
+    variable: { type: String, trim: true },
+    expected: { type: mongoose.Schema.Types.Mixed },
+    label: { type: String, trim: true },
+    points: { type: Number, default: 1, min: 0 },
+    input: { type: String },
+    expectedOutput: { type: String },
   },
   { _id: false },
 );
@@ -34,7 +42,11 @@ const codingDetailsSchema = new mongoose.Schema(
     constraints: { type: [String], default: [] },
     inputFormat: { type: String },
     outputFormat: { type: String },
+    instructions: { type: String },
+    expectedOutputDescription: { type: String },
+    hints: { type: [String], default: [] },
     sampleTestCases: { type: [sampleTestCaseSchema], default: [] },
+    visibleTestCases: { type: [sampleTestCaseSchema], default: [] },
   },
   { _id: false },
 );

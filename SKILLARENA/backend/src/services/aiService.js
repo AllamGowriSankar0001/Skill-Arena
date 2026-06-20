@@ -374,18 +374,29 @@ const createAiError = (message, { code, retryAfterSeconds } = {}) => {
   return error;
 };
 
-const getMaxOutputTokens = (type) =>
-  ['build_resume', 'parse_resume', 'parse_experience', 'parse_projects', 'parse_education', 'categorize_skills', 'job_skills', 'project_skills', 'validate_skills'].includes(type)
-    ? 2000
-    : 800;
+const JSON_AI_TYPES = new Set(['course_plan', 'course_module_content']);
 
-const callGemini = async (apiKey, prompt, type) => {
+const getMaxOutputTokens = (type, override) => {
+  if (override) return override;
+  if (type === 'course_plan') return 8192;
+  if (type === 'course_module_content') return 12288;
+  return ['build_resume', 'parse_resume', 'parse_experience', 'parse_projects', 'parse_education', 'categorize_skills', 'job_skills', 'project_skills', 'validate_skills'].includes(type)
+    ? 8000
+    : 800;
+};
+
+const callGemini = async (apiKey, prompt, type, maxOutputTokens) => {
+  const generationConfig = {
+    temperature: JSON_AI_TYPES.has(type) ? 0.15 : 0.25,
+    maxOutputTokens: getMaxOutputTokens(type, maxOutputTokens),
+  };
+  if (JSON_AI_TYPES.has(type)) {
+    generationConfig.responseMimeType = 'application/json';
+  }
+
   const requestBody = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.25,
-      maxOutputTokens: getMaxOutputTokens(type),
-    },
+    generationConfig,
   });
 
   let lastError = 'AI request failed.';
@@ -439,7 +450,7 @@ const callGemini = async (apiKey, prompt, type) => {
   throw new Error(lastError);
 };
 
-const callOpenAI = async (apiKey, prompt, type) => {
+const callOpenAI = async (apiKey, prompt, type, maxOutputTokens) => {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -450,7 +461,7 @@ const callOpenAI = async (apiKey, prompt, type) => {
       model: OPENAI_MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.25,
-      max_tokens: getMaxOutputTokens(type),
+      max_tokens: getMaxOutputTokens(type, maxOutputTokens),
     }),
   });
 
@@ -469,6 +480,45 @@ const callOpenAI = async (apiKey, prompt, type) => {
   const output = json.choices?.[0]?.message?.content?.trim() || '';
   if (!output) throw new Error('OpenAI returned empty output.');
   return output;
+};
+
+const generateAiText = async (prompt, options = {}) => {
+  const type = options.type || 'generic';
+  const keyChain = await resolveUserAiKeyChain(options.userId);
+
+  if (!keyChain.length) {
+    throw createAiError(
+      'Add a Gemini or ChatGPT API key in Profile settings, or configure GEMINI_API_KEY on the server.',
+      { code: 'AI_KEY_REQUIRED' },
+    );
+  }
+
+  let lastError = 'AI request failed.';
+  let sawRateLimit = false;
+  let lastRetryAfterSeconds = 60;
+
+  for (const entry of keyChain) {
+    try {
+      return entry.provider === 'openai'
+        ? await callOpenAI(entry.key, prompt, type, options.maxOutputTokens)
+        : await callGemini(entry.key, prompt, type, options.maxOutputTokens);
+    } catch (error) {
+      lastError = error.message || 'AI request failed.';
+      if (error.code === 'AI_RATE_LIMIT' || isRateLimitMessage(lastError)) {
+        sawRateLimit = true;
+        lastRetryAfterSeconds = error.retryAfterSeconds || parseRetrySeconds(lastError);
+      }
+    }
+  }
+
+  if (sawRateLimit) {
+    throw createAiError('AI service is temporarily busy.', {
+      code: 'AI_RATE_LIMIT',
+      retryAfterSeconds: lastRetryAfterSeconds,
+    });
+  }
+
+  throw new Error(lastError);
 };
 
 const generateResumeContent = async (type, context, state, options = {}) => {
@@ -490,8 +540,8 @@ const generateResumeContent = async (type, context, state, options = {}) => {
     try {
       const output =
         entry.provider === 'openai'
-          ? await callOpenAI(entry.key, prompt, type)
-          : await callGemini(entry.key, prompt, type);
+          ? await callOpenAI(entry.key, prompt, type, options.maxOutputTokens)
+          : await callGemini(entry.key, prompt, type, options.maxOutputTokens);
       return polishStructuredOutput(type, output);
     } catch (error) {
       lastError = error.message || 'AI request failed.';
@@ -529,4 +579,5 @@ const generateResumeContent = async (type, context, state, options = {}) => {
 module.exports = {
   buildAIPrompt,
   generateResumeContent,
+  generateAiText,
 };

@@ -8,25 +8,32 @@ const BlogImage = ({
   loading = 'lazy',
   fallbackClassName = '',
 }) => {
-  const resolved = useMemo(() => resolveImageUrl(src), [src])
+  const trimmedSrc = String(src || '').trim()
+  const resolved = useMemo(() => resolveImageUrl(trimmedSrc), [trimmedSrc])
   const [activeSrc, setActiveSrc] = useState('')
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
-    setActiveSrc(resolved?.displayUrl || src || '')
+    setActiveSrc(resolved?.displayUrl || trimmedSrc)
     setFailed(false)
-  }, [resolved, src])
+  }, [resolved, trimmedSrc])
 
   const handleError = () => {
-    if (resolved?.provider === 'google-drive' && activeSrc !== resolved.thumbnailUrl) {
-      setActiveSrc(resolved.thumbnailUrl)
-      return
+    if (resolved?.provider === 'google-drive') {
+      if (activeSrc !== resolved.viewUrl) {
+        setActiveSrc(resolved.viewUrl)
+        return
+      }
+      if (activeSrc !== resolved.thumbnailUrl) {
+        setActiveSrc(resolved.thumbnailUrl)
+        return
+      }
     }
 
     setFailed(true)
   }
 
-  if (!src?.trim()) return null
+  if (!trimmedSrc) return null
 
   if (failed && resolved?.provider === 'google-drive') {
     return (
@@ -49,9 +56,18 @@ const BlogImage = ({
     )
   }
 
+  const displaySrc = activeSrc || resolved?.displayUrl || trimmedSrc
+  if (!displaySrc) {
+    return (
+      <div className={`blog-image-fallback blog-image-fallback--broken ${fallbackClassName}`.trim()}>
+        <span>Image unavailable</span>
+      </div>
+    )
+  }
+
   return (
     <img
-      src={activeSrc}
+      src={displaySrc}
       alt={alt}
       className={className}
       loading={loading}
