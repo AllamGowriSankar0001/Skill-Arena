@@ -78,35 +78,3 @@ export function resolveImageUrl(url) {
 export function isDisplayableImageUrl(url) {
   return Boolean(resolveImageUrl(url))
 }
-
-export function parseBlogContent(content) {
-  if (!content?.trim()) return []
-
-  return content
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-    .map((block) => {
-      const markdownImage = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-      if (markdownImage) {
-        return {
-          type: 'image',
-          alt: markdownImage[1],
-          url: markdownImage[2].trim(),
-        }
-      }
-
-      if (/^https?:\/\/\S+$/i.test(block) && isDisplayableImageUrl(block)) {
-        return {
-          type: 'image',
-          alt: '',
-          url: block,
-        }
-      }
-
-      return {
-        type: 'text',
-        text: block,
-      }
-    })
-}

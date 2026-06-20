@@ -627,7 +627,7 @@ const AdminBlogPage = () => {
                   onChange={handleChange}
                   required
                   className="admin-blog-content-input"
-                  placeholder="Write the full article here. Paste image or Google Drive links on their own line to embed them."
+                  placeholder="Write in Markdown (.md) — headings, lists, links, code blocks, and ![images](url) like a GitHub README."
                 />
               </label>
             </div>

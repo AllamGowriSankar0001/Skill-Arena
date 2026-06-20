@@ -706,6 +706,17 @@
   color: #5c4f45;
 }
 
+.admin-blog-article-preview .blog-markdown {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  white-space: normal;
+}
+
+.admin-blog-article-preview .blog-markdown pre {
+  white-space: pre-wrap;
+}
+
 .admin-blog-article-content {
   margin-top: 0.5rem;
   padding-top: 1rem;

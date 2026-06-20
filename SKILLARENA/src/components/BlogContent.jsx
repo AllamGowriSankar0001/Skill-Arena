@@ -1,37 +1,42 @@
 import { useMemo } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import BlogImage from './BlogImage'
-import { parseBlogContent } from '../utils/imageUrl'
+import { preprocessBlogMarkdown } from '../utils/blogMarkdown'
+import '../pages/Blog.css'
+
+const markdownComponents = {
+  img: ({ src, alt }) => (
+    <figure className="blog-article-figure">
+      <BlogImage
+        src={src}
+        alt={alt || 'Blog image'}
+        className="blog-article-inline-image"
+        fallbackClassName="blog-article-inline-fallback"
+      />
+      {alt ? <figcaption>{alt}</figcaption> : null}
+    </figure>
+  ),
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+  p: ({ children }) => <p className="blog-article-paragraph">{children}</p>,
+}
 
 const BlogContent = ({ content }) => {
-  const blocks = useMemo(() => parseBlogContent(content), [content])
+  const markdown = useMemo(() => preprocessBlogMarkdown(content), [content])
 
-  if (!blocks.length) {
+  if (!markdown.trim()) {
     return <p className="blog-article-empty">No content yet.</p>
   }
 
   return (
-    <div className="blog-article-content">
-      {blocks.map((block, index) => {
-        if (block.type === 'image') {
-          return (
-            <figure key={`image-${index}`} className="blog-article-figure">
-              <BlogImage
-                src={block.url}
-                alt={block.alt || 'Blog image'}
-                className="blog-article-inline-image"
-                fallbackClassName="blog-article-inline-fallback"
-              />
-              {block.alt ? <figcaption>{block.alt}</figcaption> : null}
-            </figure>
-          )
-        }
-
-        return (
-          <p key={`text-${index}`} className="blog-article-paragraph">
-            {block.text}
-          </p>
-        )
-      })}
+    <div className="blog-article-content blog-markdown">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+        {markdown}
+      </ReactMarkdown>
     </div>
   )
 }
