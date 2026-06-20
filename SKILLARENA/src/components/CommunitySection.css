@@ -21,11 +21,18 @@
 }
 
 .community-media {
-  min-height: 28rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.community-media .media-frame {
-  min-height: 28rem;
+.community-image {
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  display: block;
+  border-radius: 1.25rem;
+  object-fit: contain;
 }
 
 .community-content {
@@ -109,9 +116,9 @@
     gap: 2.5rem;
   }
 
-  .community-media,
-  .community-media .media-frame {
-    min-height: 18rem;
+  .community-image {
+    max-width: 28rem;
+    margin-inline: auto;
   }
 
   .community-content {
@@ -126,10 +133,5 @@
 @media (max-width: 640px) {
   .community {
     padding: 3rem 1.25rem 3.5rem;
-  }
-
-  .community-media,
-  .community-media .media-frame {
-    min-height: 14rem;
   }
 }

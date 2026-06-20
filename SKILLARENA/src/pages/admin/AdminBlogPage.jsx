@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import BlogContent from '../../components/BlogContent'
 import BlogImage from '../../components/BlogImage'
 import { adminApi } from '../../services/api'
+import { useToast } from '../../context/ToastContext'
 import { ROUTES } from '../../routes'
 import './AdminBlogPage.css'
 
@@ -61,19 +63,28 @@ const countWords = (value) => {
 const AdminModal = ({ open, title, subtitle, onClose, children, footer, size = 'default' }) => {
   if (!open) return null
 
-  const sizeClass =
+  const isEditor = size === 'editor'
+  const sheetClass = [
+    'admin-modal-sheet',
     size === 'editor'
-      ? ' admin-modal-sheet--editor'
+      ? 'admin-modal-sheet--editor'
       : size === 'wide'
-        ? ' admin-modal-sheet--wide'
+        ? 'admin-modal-sheet--wide'
         : size === 'narrow'
-          ? ' admin-modal-sheet--narrow'
-          : ''
+          ? 'admin-modal-sheet--narrow'
+          : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
-  return (
-    <div className="admin-modal-root" role="presentation" onClick={onClose}>
+  return createPortal(
+    <div
+      className={`admin-modal-root${isEditor ? ' admin-modal-root--editor' : ''}`}
+      role="presentation"
+      onClick={onClose}
+    >
       <div
-        className={`admin-modal-sheet${sizeClass}`}
+        className={sheetClass}
         role="dialog"
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
@@ -90,7 +101,8 @@ const AdminModal = ({ open, title, subtitle, onClose, children, footer, size = '
         <div className="admin-modal-body">{children}</div>
         {footer ? <div className="admin-modal-footer">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -115,7 +127,7 @@ const BlogPostPreview = ({ form, authorName, compact = false }) => {
         </p>
         <h3>{form.title.trim() || 'Untitled post'}</h3>
         <p className="admin-blog-article-excerpt">
-          {form.excerpt.trim() || 'Add a short excerpt to describe this article.'}
+          {form.excerpt.trim() || 'Add a short summary for the blog listing.'}
         </p>
         {tags.length ? (
           <div className="admin-blog-tags">
@@ -149,12 +161,11 @@ const PublishChecklist = ({ checks }) => (
 )
 
 const AdminBlogPage = () => {
+  const { showSuccess, showError } = useToast()
   const [posts, setPosts] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -171,7 +182,7 @@ const AdminBlogPage = () => {
   const publishChecks = useMemo(
     () => [
       { label: 'Title added', done: Boolean(form.title.trim()), required: true },
-      { label: 'Excerpt added', done: Boolean(form.excerpt.trim()), required: true },
+      { label: 'Summary added', done: Boolean(form.excerpt.trim()), required: true },
       { label: 'Article body written', done: Boolean(form.content.trim()), required: true },
       { label: 'Cover image linked (optional)', done: Boolean(form.coverImageUrl.trim()), required: false },
     ],
@@ -205,26 +216,19 @@ const AdminBlogPage = () => {
 
   const loadPosts = useCallback(async () => {
     setLoading(true)
-    setError('')
     try {
       const data = await adminApi.blogs()
       setPosts(data.posts)
     } catch (err) {
-      setError(err.message || 'Failed to load blog posts')
+      showError(err.message || 'Failed to load blog posts')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [showError])
 
   useEffect(() => {
     loadPosts()
   }, [loadPosts])
-
-  useEffect(() => {
-    if (!message) return undefined
-    const timer = window.setTimeout(() => setMessage(''), 4000)
-    return () => window.clearTimeout(timer)
-  }, [message])
 
   const closeEditor = () => {
     setModal('none')
@@ -267,53 +271,47 @@ const AdminBlogPage = () => {
 
     const payload = buildPayload(overrides)
     if (payload.status === 'PUBLISHED' && !canPublish) {
-      setError('Complete the publish checklist before going live.')
+      showError('Complete the publish checklist before going live.')
       setEditorTab('write')
       return
     }
 
     setSaving(true)
-    setMessage('')
-    setError('')
 
     try {
       if (editingId) {
         await adminApi.updateBlog(editingId, payload)
-        setMessage(payload.status === 'PUBLISHED' ? 'Blog post published.' : 'Blog post saved.')
+        showSuccess(payload.status === 'PUBLISHED' ? 'Blog post published.' : 'Blog post saved.')
       } else {
         await adminApi.createBlog(payload)
-        setMessage(payload.status === 'PUBLISHED' ? 'Blog post published.' : 'Draft created.')
+        showSuccess(payload.status === 'PUBLISHED' ? 'Blog post published.' : 'Draft created.')
       }
       closeEditor()
       await loadPosts()
     } catch (err) {
-      setError(err.message || 'Failed to save blog post')
+      showError(err.message || 'Failed to save blog post')
     } finally {
       setSaving(false)
     }
   }
 
   const handleQuickPublish = async (postId) => {
-    setError('')
-    setMessage('')
     try {
       await adminApi.updateBlog(postId, { status: 'PUBLISHED' })
-      setMessage('Blog post published.')
+      showSuccess('Blog post published.')
       await loadPosts()
     } catch (err) {
-      setError(err.message || 'Failed to publish blog post')
+      showError(err.message || 'Failed to publish blog post')
     }
   }
 
   const handleQuickUnpublish = async (postId) => {
-    setError('')
-    setMessage('')
     try {
       await adminApi.updateBlog(postId, { status: 'DRAFT' })
-      setMessage('Blog post moved to draft.')
+      showSuccess('Blog post moved to draft.')
       await loadPosts()
     } catch (err) {
-      setError(err.message || 'Failed to unpublish blog post')
+      showError(err.message || 'Failed to unpublish blog post')
     }
   }
 
@@ -321,17 +319,15 @@ const AdminBlogPage = () => {
     if (!deleteTarget) return
 
     setDeletingId(deleteTarget.id)
-    setError('')
-    setMessage('')
 
     try {
       await adminApi.deleteBlog(deleteTarget.id)
-      setMessage(`"${deleteTarget.title}" was deleted.`)
+      showSuccess(`"${deleteTarget.title}" was deleted.`)
       setDeleteTarget(null)
       setModal('none')
       await loadPosts()
     } catch (err) {
-      setError(err.message || 'Failed to delete blog post')
+      showError(err.message || 'Failed to delete blog post')
     } finally {
       setDeletingId('')
     }
@@ -362,20 +358,6 @@ const AdminBlogPage = () => {
           + New post
         </button>
       </div>
-
-      {error ? (
-        <div className="admin-blog-alert admin-blog-alert--error" role="alert">
-          {error}
-          <button type="button" onClick={() => setError('')} aria-label="Dismiss error">
-            ✕
-          </button>
-        </div>
-      ) : null}
-      {message ? (
-        <div className="admin-blog-alert admin-blog-alert--success" role="status">
-          {message}
-        </div>
-      ) : null}
 
       {!loading ? (
         <div className="admin-blog-stats">
@@ -517,7 +499,7 @@ const AdminBlogPage = () => {
         subtitle={
           editorTab === 'preview'
             ? 'Full article preview — switch to Write to keep editing.'
-            : 'Draft on the left, settings and live preview on the right.'
+            : 'Set cover and publishing at the top, then write your article below.'
         }
         onClose={closeEditor}
         size="editor"
@@ -528,31 +510,30 @@ const AdminBlogPage = () => {
                 ? `${wordCount} words • ${tags.length} tag${tags.length === 1 ? '' : 's'}`
                 : 'Review the article before publishing.'}
             </p>
-            <div className="admin-modal-action-row">
-              <button type="button" className="admin-btn admin-btn--ghost" onClick={closeEditor} disabled={saving}>
-                Cancel
-              </button>
-              {isEditing && activePost?.status === 'PUBLISHED' && activePost?.slug ? (
-                <Link to={`${ROUTES.blog}/${activePost.slug}`} className="admin-btn admin-btn--ghost">
-                  View live
-                </Link>
-              ) : null}
-              <button
-                type="button"
-                className="admin-btn admin-btn--ghost"
-                onClick={(event) => handleSubmit(event, { status: 'DRAFT' })}
-                disabled={saving || !form.title.trim()}
-              >
-                Save as draft
-              </button>
-              <button
-                type="submit"
-                form="blog-editor-form"
-                className="admin-btn admin-btn--accent"
-                disabled={saving || (form.status === 'PUBLISHED' && !canPublish)}
-              >
-                {saveLabel}
-              </button>
+            <div className="admin-blog-editor-footer-actions">
+              <div className="admin-blog-editor-footer-secondary">
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={closeEditor} disabled={saving}>
+                  Cancel
+                </button>
+              </div>
+              <div className="admin-blog-editor-footer-primary">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={(event) => handleSubmit(event, { status: 'DRAFT' })}
+                  disabled={saving || !form.title.trim()}
+                >
+                  Save as draft
+                </button>
+                <button
+                  type="submit"
+                  form="blog-editor-form"
+                  className="admin-btn admin-btn--accent"
+                  disabled={saving || (form.status === 'PUBLISHED' && !canPublish)}
+                >
+                  {saveLabel}
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -572,79 +553,35 @@ const AdminBlogPage = () => {
               </button>
             ))}
           </div>
-          <span
-            className={`admin-blog-editor-status${form.status === 'PUBLISHED' ? ' is-live' : ''}`}
-          >
-            {form.status === 'PUBLISHED' ? 'Will publish live' : 'Saving as draft'}
-          </span>
+          <div className="admin-blog-editor-toolbar-end">
+            {isEditing && activePost?.status === 'PUBLISHED' && activePost?.slug ? (
+              <Link to={`${ROUTES.blog}/${activePost.slug}`} className="admin-blog-editor-live-link">
+                View live ↗
+              </Link>
+            ) : null}
+            <span
+              className={`admin-blog-editor-status${form.status === 'PUBLISHED' ? ' is-live' : ''}`}
+            >
+              {form.status === 'PUBLISHED' ? 'Will publish live' : 'Draft'}
+            </span>
+          </div>
         </div>
 
         {editorTab === 'write' ? (
           <form id="blog-editor-form" className="admin-blog-editor-layout" onSubmit={handleSubmit}>
-            <div className="admin-blog-editor-main">
-              <label className="admin-blog-field admin-blog-field--title">
-                <span className="admin-blog-field-label">
-                  Title
-                  <span className="admin-blog-field-count">{form.title.length} chars</span>
-                </span>
-                <input
-                  name="title"
-                  value={form.title}
-                  onChange={handleChange}
-                  required
-                  placeholder="Give your article a clear headline"
-                  autoFocus
-                />
-              </label>
-
-              <label className="admin-blog-field">
-                <span className="admin-blog-field-label">
-                  Excerpt
-                  <span
-                    className={`admin-blog-field-count${form.excerpt.length > EXCERPT_MAX ? ' is-over' : ''}`}
-                  >
-                    {form.excerpt.length}/{EXCERPT_MAX}
-                  </span>
-                </span>
-                <textarea
-                  name="excerpt"
-                  value={form.excerpt}
-                  onChange={handleChange}
-                  required
-                  rows={3}
-                  placeholder="One or two sentences for the blog listing card"
-                />
-              </label>
-
-              <label className="admin-blog-field admin-blog-field--content">
-                <span className="admin-blog-field-label">
-                  Article body
-                  <span className="admin-blog-field-count">{wordCount} words</span>
-                </span>
-                <textarea
-                  name="content"
-                  value={form.content}
-                  onChange={handleChange}
-                  required
-                  className="admin-blog-content-input"
-                  placeholder="Write in Markdown (.md) — headings, lists, links, code blocks, and ![images](url) like a GitHub README."
-                />
-              </label>
-            </div>
-
-            <aside className="admin-blog-editor-aside">
-              <section className="admin-blog-aside-card">
-                <h3>Cover image</h3>
+            <aside className="admin-blog-editor-settings">
+              <div className="admin-blog-settings-block admin-blog-settings-block--cover">
+                <h3>Cover</h3>
                 {form.coverImageUrl.trim() ? (
                   <BlogImage
                     src={form.coverImageUrl.trim()}
                     alt=""
-                    className="admin-blog-cover-preview"
-                    fallbackClassName="admin-blog-cover-preview admin-blog-cover-preview--empty"
+                    className="admin-blog-cover-preview admin-blog-cover-preview--stacked"
+                    fallbackClassName="admin-blog-cover-preview admin-blog-cover-preview--empty admin-blog-cover-preview--stacked"
                   />
                 ) : (
-                  <div className="admin-blog-cover-preview admin-blog-cover-preview--empty">
-                    Paste an image or Google Drive link to preview the cover
+                  <div className="admin-blog-cover-preview admin-blog-cover-preview--empty admin-blog-cover-preview--stacked">
+                    No cover
                   </div>
                 )}
                 <label className="admin-blog-field admin-blog-field--compact">
@@ -653,7 +590,7 @@ const AdminBlogPage = () => {
                     name="coverImageUrl"
                     value={form.coverImageUrl}
                     onChange={handleChange}
-                    placeholder="https://… or Google Drive share link"
+                    placeholder="https://…"
                   />
                 </label>
                 {form.coverImageUrl ? (
@@ -662,27 +599,22 @@ const AdminBlogPage = () => {
                     className="admin-blog-link-btn"
                     onClick={() => setForm((current) => ({ ...current, coverImageUrl: '' }))}
                   >
-                    Remove cover
+                    Remove
                   </button>
                 ) : null}
-              </section>
+              </div>
 
-              <section className="admin-blog-aside-card">
+              <div className="admin-blog-settings-block admin-blog-settings-block--publish">
                 <h3>Publishing</h3>
                 <label className="admin-blog-field admin-blog-field--compact">
                   <span className="admin-blog-field-label">Visibility</span>
                   <select name="status" value={form.status} onChange={handleChange}>
-                    <option value="DRAFT">Draft — hidden from public blog</option>
-                    <option value="PUBLISHED">Published — live on public blog</option>
+                    <option value="DRAFT">Draft — hidden</option>
+                    <option value="PUBLISHED">Published — live</option>
                   </select>
                 </label>
-                <PublishChecklist checks={publishChecks} />
-              </section>
-
-              <section className="admin-blog-aside-card">
-                <h3>Tags</h3>
                 <label className="admin-blog-field admin-blog-field--compact">
-                  <span className="admin-blog-field-label">Comma-separated</span>
+                  <span className="admin-blog-field-label">Tags</span>
                   <input
                     name="tags"
                     value={form.tags}
@@ -698,16 +630,71 @@ const AdminBlogPage = () => {
                       </span>
                     ))}
                   </div>
-                ) : (
-                  <p className="admin-blog-aside-note">Tags help readers find related posts.</p>
-                )}
-              </section>
+                ) : null}
+              </div>
 
-              <section className="admin-blog-aside-card admin-blog-aside-card--preview">
-                <h3>Live preview</h3>
-                <BlogPostPreview form={form} authorName={activePost?.authorName} compact />
-              </section>
+              <div className="admin-blog-settings-block admin-blog-settings-block--checklist">
+                <h3>Ready to publish?</h3>
+                <PublishChecklist checks={publishChecks} />
+              </div>
             </aside>
+
+            <section className="admin-blog-editor-meta">
+              <label className="admin-blog-field admin-blog-field--title">
+                <span className="admin-blog-field-label">
+                  Title
+                  <span className="admin-blog-field-count">{form.title.length} chars</span>
+                </span>
+                <input
+                  name="title"
+                  value={form.title}
+                  onChange={handleChange}
+                  required
+                  placeholder="Give your article a clear headline"
+                  autoFocus
+                />
+              </label>
+
+              <label
+                className={`admin-blog-field admin-blog-field--excerpt${form.excerpt.length > EXCERPT_MAX ? ' is-over-limit' : ''}`}
+              >
+                <span className="admin-blog-field-label">
+                  Short summary
+                  <span
+                    className={`admin-blog-field-count${form.excerpt.length > EXCERPT_MAX ? ' is-over' : ''}`}
+                  >
+                    {form.excerpt.length}/{EXCERPT_MAX}
+                  </span>
+                </span>
+                <textarea
+                  name="excerpt"
+                  value={form.excerpt}
+                  onChange={handleChange}
+                  required
+                  rows={2}
+                  placeholder="A brief description shown on the blog listing page"
+                />
+                {form.excerpt.length > EXCERPT_MAX ? (
+                  <span className="admin-blog-field-error">Keep the summary to {EXCERPT_MAX} characters or less.</span>
+                ) : null}
+              </label>
+            </section>
+
+            <section className="admin-blog-editor-content" aria-label="Article content">
+              <div className="admin-blog-editor-pane-header">
+                <span>Markdown</span>
+                <span>{wordCount} words</span>
+              </div>
+              <textarea
+                name="content"
+                value={form.content}
+                onChange={handleChange}
+                required
+                className="admin-blog-content-input"
+                placeholder={'# Heading\n\nWrite in Markdown — **bold**, lists, links, and ![images](url).'}
+                aria-label="Article body"
+              />
+            </section>
           </form>
         ) : (
           <BlogPostPreview form={form} authorName={activePost?.authorName} />

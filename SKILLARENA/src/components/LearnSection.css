@@ -83,11 +83,18 @@
 }
 
 .learn-media {
-  min-height: 28rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.learn-media .media-frame {
-  min-height: 28rem;
+.learn-image {
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  display: block;
+  border-radius: 1.25rem;
+  object-fit: contain;
 }
 
 @media (max-width: 1024px) {
@@ -109,9 +116,9 @@
     order: 2;
   }
 
-  .learn-media,
-  .learn-media .media-frame {
-    min-height: 18rem;
+  .learn-image {
+    max-width: 28rem;
+    margin-inline: auto;
   }
 
   .learn-description {
@@ -122,10 +129,5 @@
 @media (max-width: 640px) {
   .learn {
     padding: 3rem 1.25rem 3.5rem;
-  }
-
-  .learn-media,
-  .learn-media .media-frame {
-    min-height: 14rem;
   }
 }

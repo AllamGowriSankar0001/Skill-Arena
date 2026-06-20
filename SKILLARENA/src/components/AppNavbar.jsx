@@ -127,11 +127,17 @@ const AppNavbar = () => {
         className={`app-navbar-mobile${menuOpen ? ' app-navbar-mobile--open' : ''}`}
         aria-hidden={!menuOpen}
       >
+        <div className="app-navbar-mobile-head">
+          <p className="app-navbar-mobile-eyebrow">Navigation</p>
+          <p className="app-navbar-mobile-lead">Quick links across Skill Arena.</p>
+        </div>
+
         <nav className="app-navbar-mobile-links" aria-label="Main">
           {APP_LINKS.map((link) => renderNavLink(link, closeMenu))}
         </nav>
 
         <div className="app-navbar-mobile-foot">
+          <p className="app-navbar-mobile-foot-label">Your account</p>
           <Link
             to={ROUTES.profile}
             className={`app-navbar-mobile-user${location.pathname === ROUTES.profile ? ' app-navbar-mobile-user--active' : ''}`}
@@ -147,6 +153,9 @@ const AppNavbar = () => {
               ) : (
                 <span className="app-navbar-user-role">View profile</span>
               )}
+            </span>
+            <span className="app-navbar-mobile-user-arrow" aria-hidden="true">
+              →
             </span>
           </Link>
           <button type="button" className="app-navbar-mobile-logout" onClick={handleLogout}>

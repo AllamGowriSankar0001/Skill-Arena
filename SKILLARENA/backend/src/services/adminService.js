@@ -5,6 +5,8 @@ const CourseModule = require('../models/CourseModule');
 const Lesson = require('../models/Lesson');
 const Assessment = require('../models/Assessment');
 const Question = require('../models/Question');
+const QuestionSolution = require('../models/QuestionSolution');
+const AssessmentAttempt = require('../models/AssessmentAttempt');
 const BlogPost = require('../models/BlogPost');
 const User = require('../models/User');
 const UserStats = require('../models/UserStats');
@@ -73,6 +75,50 @@ const syncCourseStats = async (courseId) => {
       'stats.lessonCount': lessonCount,
     },
   });
+};
+
+const deleteQuestionsIfOrphaned = async (questionIds) => {
+  const uniqueIds = [...new Set(questionIds.map((id) => id.toString()))];
+  if (!uniqueIds.length) return;
+
+  await Promise.all(
+    uniqueIds.map(async (questionId) => {
+      const stillUsed = await Assessment.countDocuments({ 'questions.questionId': questionId });
+      if (stillUsed) return;
+
+      await Promise.all([
+        QuestionSolution.deleteMany({ questionId }),
+        Question.findByIdAndDelete(questionId),
+      ]);
+    }),
+  );
+};
+
+const deleteAssessmentRecord = async (assessment) => {
+  const questionIds = assessment.questions.map((entry) => entry.questionId);
+  const assessmentId = assessment._id;
+
+  await Promise.all([
+    AssessmentAttempt.deleteMany({ assessmentId }),
+    DailyChallenge.updateMany({ assessmentId }, { $unset: { assessmentId: 1 } }),
+    Assessment.findByIdAndDelete(assessmentId),
+  ]);
+
+  await deleteQuestionsIfOrphaned(questionIds);
+};
+
+const deleteLessonsAndResources = async (lessonIds) => {
+  if (!lessonIds.length) return;
+
+  const assessments = await Assessment.find({ lessonId: { $in: lessonIds } });
+
+  await LessonProgress.deleteMany({ lessonId: { $in: lessonIds } });
+
+  for (const assessment of assessments) {
+    await deleteAssessmentRecord(assessment);
+  }
+
+  await Lesson.deleteMany({ _id: { $in: lessonIds } });
 };
 
 const formatBlogPost = (post, includeContent = false) => ({
@@ -683,6 +729,130 @@ const createLessonQuiz = async (adminId, lessonId, payload) => {
   };
 };
 
+const deleteModule = async (courseId, moduleId) => {
+  const moduleDoc = await CourseModule.findOne({ _id: moduleId, courseId });
+  if (!moduleDoc) {
+    throw new Error('Module not found.');
+  }
+
+  const lessons = await Lesson.find({ courseId, moduleId }).select('_id');
+  await deleteLessonsAndResources(lessons.map((lesson) => lesson._id));
+  await CourseModule.findByIdAndDelete(moduleId);
+  await syncCourseStats(courseId);
+
+  return { id: moduleId, courseId: courseId.toString() };
+};
+
+const deleteLesson = async (lessonId) => {
+  const lesson = await Lesson.findById(lessonId);
+  if (!lesson) {
+    throw new Error('Lesson not found.');
+  }
+
+  await deleteLessonsAndResources([lesson._id]);
+  await syncCourseStats(lesson.courseId);
+
+  return {
+    id: lessonId,
+    courseId: lesson.courseId.toString(),
+    moduleId: lesson.moduleId.toString(),
+  };
+};
+
+const getAssessment = async (assessmentId) => {
+  const assessment = await Assessment.findById(assessmentId).populate('skillId', 'name');
+  if (!assessment) {
+    throw new Error('Assessment not found.');
+  }
+
+  const orderedEntries = [...assessment.questions].sort((a, b) => a.order - b.order);
+  const questionIds = orderedEntries.map((entry) => entry.questionId);
+  const [questions, solutions] = await Promise.all([
+    Question.find({ _id: { $in: questionIds } }),
+    QuestionSolution.find({ questionId: { $in: questionIds } }),
+  ]);
+
+  const questionMap = new Map(questions.map((question) => [question._id.toString(), question]));
+  const solutionMap = new Map(
+    solutions.map((solution) => [solution.questionId.toString(), solution]),
+  );
+
+  const formattedQuestions = orderedEntries
+    .map((entry) => {
+      const question = questionMap.get(entry.questionId.toString());
+      if (!question) return null;
+      const solution = solutionMap.get(entry.questionId.toString());
+      return {
+        id: question._id.toString(),
+        prompt: question.prompt,
+        difficulty: question.difficulty,
+        options: question.options,
+        correctOptionId: solution?.correctOptionIds?.[0] || null,
+        explanation: solution?.explanation || '',
+        points: entry.points,
+        order: entry.order,
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    ...formatAssessment(assessment),
+    courseId: assessment.courseId?.toString() || null,
+    moduleId: assessment.moduleId?.toString() || null,
+    lessonId: assessment.lessonId?.toString() || null,
+    questions: formattedQuestions,
+  };
+};
+
+const deleteAssessment = async (assessmentId) => {
+  const assessment = await Assessment.findById(assessmentId);
+  if (!assessment) {
+    throw new Error('Assessment not found.');
+  }
+
+  if (assessment.lessonId) {
+    await Lesson.findByIdAndUpdate(assessment.lessonId, {
+      $unset: { assessmentId: 1 },
+    });
+  }
+
+  await deleteAssessmentRecord(assessment);
+
+  return {
+    id: assessmentId,
+    lessonId: assessment.lessonId?.toString() || null,
+    courseId: assessment.courseId?.toString() || null,
+  };
+};
+
+const removeQuestionFromAssessment = async (assessmentId, questionId) => {
+  const assessment = await Assessment.findById(assessmentId);
+  if (!assessment) {
+    throw new Error('Assessment not found.');
+  }
+
+  const linked = assessment.questions.some(
+    (entry) => entry.questionId.toString() === questionId.toString(),
+  );
+  if (!linked) {
+    throw new Error('Question is not linked to this assessment.');
+  }
+
+  assessment.questions = assessment.questions
+    .filter((entry) => entry.questionId.toString() !== questionId.toString())
+    .map((entry, index) => ({
+      questionId: entry.questionId,
+      order: index,
+      points: entry.points,
+    }));
+
+  await assessment.save();
+  await deleteQuestionsIfOrphaned([questionId]);
+
+  const populated = await Assessment.findById(assessmentId).populate('skillId', 'name');
+  return getAssessment(populated._id);
+};
+
 const listBlogPosts = async () => {
   const posts = await BlogPost.find()
     .populate('authorId', 'name')
@@ -953,12 +1123,17 @@ module.exports = {
   listModuleLessons,
   createLesson,
   updateLesson,
+  deleteLesson,
   createLessonQuiz,
+  deleteModule,
   listAssessments,
+  getAssessment,
   createPracticeAssessment,
   updateAssessment,
+  deleteAssessment,
   createQuestion,
   addQuestionToAssessment,
+  removeQuestionFromAssessment,
   listBlogPosts,
   createBlogPost,
   updateBlogPost,

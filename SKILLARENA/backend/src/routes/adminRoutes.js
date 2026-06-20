@@ -21,16 +21,21 @@ router.patch('/courses/:id', adminController.updateCourse);
 router.delete('/courses/:id', adminController.deleteCourse);
 router.get('/courses/:courseId/modules', adminController.listCourseModules);
 router.post('/courses/:courseId/modules', adminController.createModule);
+router.delete('/courses/:courseId/modules/:moduleId', adminController.deleteModule);
 router.get('/courses/:courseId/modules/:moduleId/lessons', adminController.listModuleLessons);
 router.post('/courses/:courseId/modules/:moduleId/lessons', adminController.createLesson);
 
 router.patch('/lessons/:id', adminController.updateLesson);
+router.delete('/lessons/:id', adminController.deleteLesson);
 router.post('/lessons/:id/quiz', adminController.createLessonQuiz);
 
 router.get('/assessments', adminController.listAssessments);
+router.get('/assessments/:id', adminController.getAssessment);
 router.post('/assessments', adminController.createPracticeAssessment);
 router.patch('/assessments/:id', adminController.updateAssessment);
+router.delete('/assessments/:id', adminController.deleteAssessment);
 router.post('/assessments/:id/questions', adminController.addQuestionToAssessment);
+router.delete('/assessments/:id/questions/:questionId', adminController.removeQuestionFromAssessment);
 
 router.post('/questions', adminController.createQuestion);
 

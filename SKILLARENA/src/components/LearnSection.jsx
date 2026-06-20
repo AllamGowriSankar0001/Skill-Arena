@@ -1,6 +1,7 @@
 import ScrollReveal from './ScrollReveal'
-import MediaPlaceholder from './MediaPlaceholder'
 import './LearnSection.css'
+
+const LIBRARY_IMAGE = '/library.png'
 
 const LearnSection = () => {
   return (
@@ -33,8 +34,15 @@ const LearnSection = () => {
         </div>
 
         <ScrollReveal className="learn-media-wrap" delay={120}>
-          <div className="learn-media" aria-hidden="true">
-            <MediaPlaceholder />
+          <div className="learn-media">
+            <img
+              className="learn-image"
+              src={LIBRARY_IMAGE}
+              alt="Skill Arena learning library with courses, progress tracking, streaks, and skill paths"
+              width={1024}
+              height={1024}
+              loading="lazy"
+            />
           </div>
         </ScrollReveal>
       </div>

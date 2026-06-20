@@ -9,9 +9,9 @@ import './Blog.css'
 const formatDate = (value) => {
   if (!value) return ''
   return new Date(value).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
+    year: 'numeric',
   })
 }
 
@@ -46,28 +46,37 @@ const BlogPage = () => {
         {posts.map((post) => (
           <Link key={post.id} to={`${ROUTES.blog}/${post.slug}`} className="blog-card">
             {post.coverImageUrl ? (
-              <div className="blog-card-cover-wrap">
-                <BlogImage
-                  src={post.coverImageUrl}
-                  alt={post.title}
-                  className="blog-card-cover"
-                  fallbackClassName="blog-card-cover-fallback"
-                />
-              </div>
+              <BlogImage
+                src={post.coverImageUrl}
+                alt={post.title}
+                className="blog-card-cover"
+                fallbackClassName="blog-card-cover blog-card-cover--placeholder"
+              />
             ) : (
-              <div className="blog-card-cover blog-card-cover--placeholder">✦</div>
+              <div className="blog-card-cover blog-card-cover--placeholder">No cover</div>
             )}
+
             <div className="blog-card-body">
-              <p className="blog-card-date">{formatDate(post.publishedAt)}</p>
               <h2>{post.title}</h2>
-              <p>{post.excerpt}</p>
+
+              <p className="blog-card-excerpt">{post.excerpt}</p>
+
               {post.tags?.length ? (
-                <div className="blog-tags">
-                  {post.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
+                <div className="blog-tags blog-tags--card">
+                  {post.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="blog-tag">
+                      {tag}
+                    </span>
                   ))}
+                  {post.tags.length > 3 ? (
+                    <span className="blog-tag blog-tag--more">+{post.tags.length - 3}</span>
+                  ) : null}
                 </div>
               ) : null}
+
+              <p className="blog-card-meta">
+                {post.authorName || 'Skill Arena'} • Updated {formatDate(post.updatedAt || post.publishedAt)}
+              </p>
             </div>
           </Link>
         ))}

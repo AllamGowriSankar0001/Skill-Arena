@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { ROUTES } from '../../routes'
@@ -60,21 +60,44 @@ const AdminNavIcon = ({ name }) => {
   return <span className="admin-nav-icon">{icons[name]}</span>
 }
 
-const NAV_ITEMS = [
-  { label: 'Overview', to: ROUTES.admin, icon: 'overview' },
-  { label: 'Courses', to: ROUTES.adminCourses, icon: 'courses' },
-  { label: 'Practice', to: ROUTES.adminPractice, icon: 'practice' },
-  { label: 'Blog', to: ROUTES.adminBlog, icon: 'blog' },
-  { label: 'Users', to: ROUTES.adminUsers, icon: 'users' },
-  { label: 'Resume', to: ROUTES.adminResume, icon: 'resume' },
-  { label: 'User resumes', to: ROUTES.adminResumes, icon: 'resumes' },
+const NAV_GROUPS = [
+  {
+    label: 'Overview',
+    items: [{ label: 'Dashboard', to: ROUTES.admin, icon: 'overview', exact: true }],
+  },
+  {
+    label: 'Content',
+    items: [
+      { label: 'Courses', to: ROUTES.adminCourses, icon: 'courses' },
+      { label: 'Practice', to: ROUTES.adminPractice, icon: 'practice' },
+      { label: 'Blog', to: ROUTES.adminBlog, icon: 'blog' },
+    ],
+  },
+  {
+    label: 'Management',
+    items: [
+      { label: 'Users', to: ROUTES.adminUsers, icon: 'users' },
+      { label: 'Resume builder', to: ROUTES.adminResume, icon: 'resume' },
+      { label: 'User resumes', to: ROUTES.adminResumes, icon: 'resumes' },
+    ],
+  },
 ]
+
+const isNavItemActive = (pathname, to, exact = false) => {
+  if (exact) return pathname === to
+  return pathname === to || pathname.startsWith(`${to}/`)
+}
 
 const AdminLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const userInitial = useMemo(() => {
+    const source = user?.name?.trim() || user?.email?.trim() || 'A'
+    return source.charAt(0).toUpperCase()
+  }, [user?.email, user?.name])
 
   const handleLogout = () => {
     logout()
@@ -83,60 +106,109 @@ const AdminLayout = () => {
 
   const closeMenu = () => setMenuOpen(false)
 
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
   return (
     <div className={`admin-shell${menuOpen ? ' admin-shell--menu-open' : ''}`}>
-      <div className="admin-mobile-topbar">
-        <button type="button" className="admin-menu-toggle" onClick={() => setMenuOpen((open) => !open)}>
-          ☰ Menu
+      <header className={`admin-mobile-topbar${menuOpen ? ' admin-mobile-topbar--open' : ''}`}>
+        <Link to={ROUTES.admin} className="admin-mobile-brand" onClick={closeMenu}>
+          <img src={skillArenaLogo} alt="" className="admin-brand-logo" aria-hidden="true" />
+          <div className="admin-mobile-brand-copy">
+            <strong>Skill Arena</strong>
+            <span>Admin console</span>
+          </div>
+        </Link>
+
+        <button
+          type="button"
+          className="admin-menu-toggle"
+          aria-expanded={menuOpen}
+          aria-controls="admin-mobile-nav"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className="admin-menu-toggle-line" />
+          <span className="admin-menu-toggle-line" />
+          <span className="admin-menu-toggle-line" />
         </button>
-        <div className="admin-mobile-brand">
-          <img src={skillArenaLogo} alt="" className="admin-brand-logo" aria-hidden="true" />
-          <div>
-            <strong>Skill Arena</strong>
-            <span>Admin</span>
-          </div>
-        </div>
-      </div>
+      </header>
 
-      <aside className="admin-sidebar">
-        <div className="admin-brand">
-          <img src={skillArenaLogo} alt="" className="admin-brand-logo" aria-hidden="true" />
-          <div>
-            <strong>Skill Arena</strong>
-            <p>Admin console</p>
-          </div>
+      <aside id="admin-mobile-nav" className="admin-sidebar">
+        <div className="admin-sidebar-top">
+          <Link to={ROUTES.admin} className="admin-brand" onClick={closeMenu}>
+            <img src={skillArenaLogo} alt="" className="admin-brand-logo" aria-hidden="true" />
+            <div className="admin-brand-copy">
+              <strong>Skill Arena</strong>
+              <span>Admin console</span>
+            </div>
+          </Link>
         </div>
 
-        <nav className="admin-nav">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`admin-nav-link${location.pathname === item.to ? ' admin-nav-link--active' : ''}`}
-              onClick={closeMenu}
-            >
-              <AdminNavIcon name={item.icon} />
-              <span>{item.label}</span>
-            </Link>
+        <nav className="admin-nav" aria-label="Admin navigation">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="admin-nav-group">
+              <p className="admin-nav-group-label">{group.label}</p>
+              <div className="admin-nav-group-items">
+                {group.items.map((item) => {
+                  const active = isNavItemActive(location.pathname, item.to, item.exact)
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`admin-nav-link${active ? ' admin-nav-link--active' : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                      onClick={closeMenu}
+                    >
+                      <AdminNavIcon name={item.icon} />
+                      <span className="admin-nav-link-label">{item.label}</span>
+                      <span className="admin-nav-link-arrow" aria-hidden="true">
+                        →
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
           ))}
         </nav>
 
         <div className="admin-sidebar-foot">
-          <p>{user?.name}</p>
-          <button type="button" onClick={handleLogout}>
-            Log out
-          </button>
+          <div className="admin-sidebar-user">
+            <span className="admin-sidebar-avatar" aria-hidden="true">
+              {userInitial}
+            </span>
+            <div className="admin-sidebar-user-copy">
+              <strong>{user?.name || 'Administrator'}</strong>
+              <span>{user?.email || 'Admin access'}</span>
+            </div>
+          </div>
+          <div className="admin-sidebar-actions">
+            <Link to={ROUTES.home} className="admin-sidebar-action" onClick={closeMenu}>
+              View site
+            </Link>
+            <button type="button" className="admin-sidebar-action admin-sidebar-action--logout" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
         </div>
       </aside>
 
-      {menuOpen ? (
-        <button
-          type="button"
-          className="admin-menu-backdrop"
-          aria-label="Close menu"
-          onClick={closeMenu}
-        />
-      ) : null}
+      <button
+        type="button"
+        className={`admin-menu-backdrop${menuOpen ? ' admin-menu-backdrop--open' : ''}`}
+        aria-label="Close menu"
+        tabIndex={menuOpen ? 0 : -1}
+        onClick={closeMenu}
+      />
 
       <main className="admin-main">
         <Outlet />

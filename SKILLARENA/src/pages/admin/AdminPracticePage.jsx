@@ -85,7 +85,13 @@ const AdminPracticePage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [modal, setModal] = useState('none')
+  const [previousModal, setPreviousModal] = useState('none')
   const [activeAssessment, setActiveAssessment] = useState(null)
+  const [assessmentDetail, setAssessmentDetail] = useState(null)
+  const [loadingAssessmentDetail, setLoadingAssessmentDetail] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [questionContextAssessment, setQuestionContextAssessment] = useState(null)
 
   const stats = useMemo(() => {
     const published = assessments.filter((item) => item.status === 'PUBLISHED').length
@@ -164,8 +170,87 @@ const AdminPracticePage = () => {
 
   const closeModal = () => {
     setModal('none')
+    setPreviousModal('none')
     setActiveAssessment(null)
+    setAssessmentDetail(null)
+    setQuestionContextAssessment(null)
     setCustomSkillName('')
+  }
+
+  const loadAssessmentDetail = async (assessmentId) => {
+    setLoadingAssessmentDetail(true)
+    try {
+      const data = await adminApi.assessment(assessmentId)
+      setAssessmentDetail(data.assessment)
+      setActiveAssessment(data.assessment)
+    } catch (err) {
+      setError(err.message || 'Failed to load practice set details')
+      setAssessmentDetail(null)
+    } finally {
+      setLoadingAssessmentDetail(false)
+    }
+  }
+
+  const openDeleteAssessmentModal = (assessment) => {
+    setDeleteTarget({ kind: 'assessment', item: assessment })
+    setPreviousModal(modal)
+    setModal('delete')
+  }
+
+  const openDeleteQuestionModal = (question, assessmentId) => {
+    setDeleteTarget({ kind: 'question', item: question, assessmentId })
+    setPreviousModal(modal)
+    setModal('delete')
+  }
+
+  const handleDeleteAssessment = async () => {
+    if (!deleteTarget || deleteTarget.kind !== 'assessment') return
+    setDeleting(true)
+    setError('')
+    try {
+      await adminApi.deleteAssessment(deleteTarget.item.id)
+      setMessage(`"${deleteTarget.item.title}" was deleted.`)
+      if (activeAssessment?.id === deleteTarget.item.id) {
+        setActiveAssessment(null)
+        setAssessmentDetail(null)
+      }
+      setDeleteTarget(null)
+      setModal('none')
+      await loadData()
+    } catch (err) {
+      setError(err.message || 'Failed to delete practice set')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteQuestion = async () => {
+    if (!deleteTarget || deleteTarget.kind !== 'question') return
+    setDeleting(true)
+    setError('')
+    try {
+      const data = await adminApi.removeQuestionFromAssessment(
+        deleteTarget.assessmentId,
+        deleteTarget.item.id,
+      )
+      setMessage('Question removed from practice set.')
+      setAssessmentDetail(data.assessment)
+      setActiveAssessment(data.assessment)
+      setDeleteTarget(null)
+      setModal(previousModal === 'none' ? 'view' : previousModal)
+      await loadData()
+    } catch (err) {
+      setError(err.message || 'Failed to delete question')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    if (deleteTarget.kind === 'assessment') return handleDeleteAssessment()
+    if (deleteTarget.kind === 'question') return handleDeleteQuestion()
+    return undefined
   }
 
   const openCreateModal = () => {
@@ -177,6 +262,7 @@ const AdminPracticePage = () => {
   }
 
   const openQuestionModal = (assessment) => {
+    setQuestionContextAssessment(assessment || null)
     setQuestionForm((current) => ({
       ...EMPTY_QUESTION,
       assessmentId: assessment?.id || current.assessmentId,
@@ -185,9 +271,11 @@ const AdminPracticePage = () => {
     setModal('question')
   }
 
-  const openViewModal = (assessment) => {
+  const openViewModal = async (assessment) => {
     setActiveAssessment(assessment)
+    setAssessmentDetail(null)
     setModal('view')
+    await loadAssessmentDetail(assessment.id)
   }
 
   const openEditModal = (assessment) => {
@@ -223,9 +311,9 @@ const AdminPracticePage = () => {
         ...current,
         assessmentId: result.assessment.id,
       }))
-      setMessage('Practice set created.')
-      closeModal()
+      setMessage('Practice set created. Add your first question.')
       await loadData()
+      openQuestionModal(result.assessment)
     } catch (err) {
       setError(err.message || 'Failed to create practice set')
     } finally {
@@ -283,9 +371,14 @@ const AdminPracticePage = () => {
         points: 10,
       })
 
-      setMessage('Question added to practice set.')
-      closeModal()
+      setMessage('Question added.')
+      const targetId = questionForm.assessmentId
       await loadData()
+      const refreshed = await adminApi.assessment(targetId)
+      setAssessmentDetail(refreshed.assessment)
+      setActiveAssessment(refreshed.assessment)
+      setQuestionContextAssessment(null)
+      setModal('view')
     } catch (err) {
       setError(err.message || 'Failed to add question')
     } finally {
@@ -628,7 +721,7 @@ const AdminPracticePage = () => {
                 className="admin-link-btn admin-link-btn--accent"
                 onClick={() => openQuestionModal(assessment)}
               >
-                Add Q
+                Add question
               </button>
               <button
                 type="button"
@@ -654,6 +747,13 @@ const AdminPracticePage = () => {
                   Publish
                 </button>
               )}
+              <button
+                type="button"
+                className="admin-link-btn admin-link-btn--danger"
+                onClick={() => openDeleteAssessmentModal(assessment)}
+              >
+                Delete
+              </button>
             </div>
           </article>
         ))}
@@ -662,21 +762,29 @@ const AdminPracticePage = () => {
       <AdminModal
         open={modal === 'create'}
         title="Create practice set"
-        subtitle="Define the quiz shell before adding questions."
+        subtitle="Step 1 — define the quiz. You will add MCQs in the next step."
         onClose={closeModal}
         footer={
-          <button
-            type="submit"
-            form="create-practice-form"
-            className="admin-btn"
-            disabled={savingAssessment}
-          >
-            {savingAssessment ? 'Saving…' : 'Create practice set'}
-          </button>
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeModal}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-practice-form"
+              className="admin-btn"
+              disabled={savingAssessment}
+            >
+              {savingAssessment ? 'Creating…' : 'Create set'}
+            </button>
+          </div>
         }
       >
         <form id="create-practice-form" className="admin-form" onSubmit={handleCreateAssessment}>
-          {renderAssessmentFormFields(assessmentForm, handleAssessmentChange, 'create')}
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">Set details</h4>
+            {renderAssessmentFormFields(assessmentForm, handleAssessmentChange, 'create')}
+          </div>
         </form>
       </AdminModal>
 
@@ -704,103 +812,139 @@ const AdminPracticePage = () => {
       <AdminModal
         open={modal === 'question'}
         title="Add question"
-        subtitle="Attach a multiple-choice question to a practice set."
+        subtitle={
+          questionContextAssessment
+            ? `Adding to "${questionContextAssessment.title}"`
+            : 'Choose a practice set, then write one MCQ.'
+        }
         onClose={closeModal}
         footer={
-          <button
-            type="submit"
-            form="add-question-form"
-            className="admin-btn"
-            disabled={savingQuestion || !assessments.length}
-          >
-            {savingQuestion ? 'Saving…' : 'Add question'}
-          </button>
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeModal}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-question-form"
+              className="admin-btn"
+              disabled={savingQuestion || !assessments.length}
+            >
+              {savingQuestion ? 'Adding…' : 'Add question'}
+            </button>
+          </div>
         }
       >
         <form id="add-question-form" className="admin-form" onSubmit={handleCreateQuestion}>
-          <label>
-            Practice set
-            <select
-              name="assessmentId"
-              value={questionForm.assessmentId}
-              onChange={handleQuestionChange}
-              required
-            >
-              {assessments.map((assessment) => (
-                <option key={assessment.id} value={assessment.id}>
-                  {assessment.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Question prompt
-            <textarea
-              name="prompt"
-              value={questionForm.prompt}
-              onChange={handleQuestionChange}
-              required
-            />
-          </label>
-          <div className="admin-practice-options-grid">
+          {questionContextAssessment ? (
+            <div className="admin-selected-type">
+              <span className="admin-selected-type-label">{questionContextAssessment.title}</span>
+              <button
+                type="button"
+                className="admin-link-btn"
+                onClick={() => setQuestionContextAssessment(null)}
+              >
+                Change set
+              </button>
+            </div>
+          ) : (
+            <div className="admin-form-section">
+              <h4 className="admin-form-section-title">Practice set</h4>
+              <label>
+                Attach to
+                <select
+                  name="assessmentId"
+                  value={questionForm.assessmentId}
+                  onChange={handleQuestionChange}
+                  required
+                >
+                  {assessments.map((assessment) => (
+                    <option key={assessment.id} value={assessment.id}>
+                      {assessment.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">Question</h4>
             <label>
-              Option A
-              <input
-                name="optionA"
-                value={questionForm.optionA}
+              Prompt
+              <textarea
+                name="prompt"
+                value={questionForm.prompt}
                 onChange={handleQuestionChange}
-                required
-              />
-            </label>
-            <label>
-              Option B
-              <input
-                name="optionB"
-                value={questionForm.optionB}
-                onChange={handleQuestionChange}
-                required
-              />
-            </label>
-            <label>
-              Option C
-              <input
-                name="optionC"
-                value={questionForm.optionC}
-                onChange={handleQuestionChange}
-                required
-              />
-            </label>
-            <label>
-              Option D
-              <input
-                name="optionD"
-                value={questionForm.optionD}
-                onChange={handleQuestionChange}
+                placeholder="What is the output of…?"
                 required
               />
             </label>
           </div>
-          <label>
-            Correct answer
-            <select
-              name="correctOptionId"
-              value={questionForm.correctOptionId}
-              onChange={handleQuestionChange}
-            >
-              <option value="opt-1">Option A</option>
-              <option value="opt-2">Option B</option>
-              <option value="opt-3">Option C</option>
-              <option value="opt-4">Option D</option>
-            </select>
-          </label>
-          <label>
-            Explanation
-            <textarea
-              name="explanation"
-              value={questionForm.explanation}
-              onChange={handleQuestionChange}
-            />
-          </label>
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">Answer options</h4>
+            <div className="admin-practice-options-grid">
+              <label>
+                Option A
+                <input
+                  name="optionA"
+                  value={questionForm.optionA}
+                  onChange={handleQuestionChange}
+                  required
+                />
+              </label>
+              <label>
+                Option B
+                <input
+                  name="optionB"
+                  value={questionForm.optionB}
+                  onChange={handleQuestionChange}
+                  required
+                />
+              </label>
+              <label>
+                Option C
+                <input
+                  name="optionC"
+                  value={questionForm.optionC}
+                  onChange={handleQuestionChange}
+                  required
+                />
+              </label>
+              <label>
+                Option D
+                <input
+                  name="optionD"
+                  value={questionForm.optionD}
+                  onChange={handleQuestionChange}
+                  required
+                />
+              </label>
+            </div>
+          </div>
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">Correct answer</h4>
+            <label>
+              Mark correct option
+              <select
+                name="correctOptionId"
+                value={questionForm.correctOptionId}
+                onChange={handleQuestionChange}
+              >
+                <option value="opt-1">Option A</option>
+                <option value="opt-2">Option B</option>
+                <option value="opt-3">Option C</option>
+                <option value="opt-4">Option D</option>
+              </select>
+            </label>
+            <label>
+              Explanation (optional)
+              <textarea
+                name="explanation"
+                value={questionForm.explanation}
+                onChange={handleQuestionChange}
+                placeholder="Briefly explain why this answer is correct"
+              />
+            </label>
+          </div>
         </form>
       </AdminModal>
 
@@ -846,38 +990,126 @@ const AdminPracticePage = () => {
                   Publish
                 </button>
               )}
+              <button
+                type="button"
+                className="admin-btn admin-btn--danger"
+                onClick={() => openDeleteAssessmentModal(activeAssessment)}
+              >
+                Delete set
+              </button>
             </div>
           ) : null
         }
       >
         {activeAssessment ? (
-          <div className="admin-practice-detail-grid">
-            <div className="admin-practice-detail-item">
-              <span>Skill</span>
-              <strong>{activeAssessment.skillName || '—'}</strong>
+          <>
+            <div className="admin-practice-detail-grid">
+              <div className="admin-practice-detail-item">
+                <span>Skill</span>
+                <strong>{activeAssessment.skillName || '—'}</strong>
+              </div>
+              <div className="admin-practice-detail-item">
+                <span>Status</span>
+                <strong>{activeAssessment.status}</strong>
+              </div>
+              <div className="admin-practice-detail-item">
+                <span>Questions</span>
+                <strong>{assessmentDetail?.questionCount ?? activeAssessment.questionCount ?? 0}</strong>
+              </div>
+              <div className="admin-practice-detail-item">
+                <span>Difficulty</span>
+                <strong>{activeAssessment.difficulty}</strong>
+              </div>
+              <div className="admin-practice-detail-item">
+                <span>Mode</span>
+                <strong>{activeAssessment.mode}</strong>
+              </div>
+              <div className="admin-practice-detail-item">
+                <span>XP reward</span>
+                <strong>{activeAssessment.xpReward ?? 0}</strong>
+              </div>
             </div>
-            <div className="admin-practice-detail-item">
-              <span>Status</span>
-              <strong>{activeAssessment.status}</strong>
-            </div>
-            <div className="admin-practice-detail-item">
-              <span>Questions</span>
-              <strong>{activeAssessment.questionCount ?? 0}</strong>
-            </div>
-            <div className="admin-practice-detail-item">
-              <span>Difficulty</span>
-              <strong>{activeAssessment.difficulty}</strong>
-            </div>
-            <div className="admin-practice-detail-item">
-              <span>Mode</span>
-              <strong>{activeAssessment.mode}</strong>
-            </div>
-            <div className="admin-practice-detail-item">
-              <span>XP reward</span>
-              <strong>{activeAssessment.xpReward ?? 0}</strong>
-            </div>
-          </div>
+            <h3 className="admin-modal-section-title">Questions</h3>
+            {loadingAssessmentDetail ? (
+              <p className="admin-muted">Loading questions…</p>
+            ) : assessmentDetail?.questions?.length ? (
+              <div className="admin-practice-question-list">
+                {assessmentDetail.questions.map((question, index) => (
+                  <div key={question.id} className="admin-practice-question-item">
+                    <div className="admin-practice-question-copy">
+                      <strong>
+                        Q{index + 1}. {question.prompt}
+                      </strong>
+                      <span>{question.points ?? 10} pts</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-link-btn admin-link-btn--danger"
+                      onClick={() => openDeleteQuestionModal(question, assessmentDetail.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-muted">No questions yet. Use Add Q to create MCQs.</p>
+            )}
+          </>
         ) : null}
+      </AdminModal>
+
+      <AdminModal
+        open={modal === 'delete' && Boolean(deleteTarget)}
+        title={deleteTarget?.kind === 'assessment' ? 'Delete practice set' : 'Delete question'}
+        subtitle="This action cannot be undone."
+        onClose={() => {
+          setDeleteTarget(null)
+          setModal(previousModal === 'none' ? 'none' : previousModal)
+        }}
+        size="narrow"
+        footer={
+          <div className="admin-modal-action-row">
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost"
+              onClick={() => {
+                setDeleteTarget(null)
+                setModal(previousModal === 'none' ? 'none' : previousModal)
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="admin-btn admin-btn--danger"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+            >
+              {deleting
+                ? 'Deleting…'
+                : deleteTarget?.kind === 'assessment'
+                  ? 'Delete practice set'
+                  : 'Delete question'}
+            </button>
+          </div>
+        }
+      >
+        <p className="admin-delete-copy">
+          {deleteTarget?.kind === 'assessment' ? (
+            <>
+              Delete practice set <strong>{deleteTarget.item.title}</strong>? All linked MCQs that
+              are not used elsewhere will be permanently removed.
+            </>
+          ) : null}
+          {deleteTarget?.kind === 'question' ? (
+            <>
+              Remove MCQ <strong>{deleteTarget.item.prompt}</strong> from this practice set? The
+              question will be deleted if it is not used elsewhere.
+            </>
+          ) : null}
+        </p>
       </AdminModal>
 
       <AdminModal

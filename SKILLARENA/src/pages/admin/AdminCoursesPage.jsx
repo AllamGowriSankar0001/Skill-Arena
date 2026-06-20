@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { adminApi } from '../../services/api'
+import BlogContent from '../../components/BlogContent'
 import VideoEmbed from '../../components/VideoEmbed'
 import './AdminCoursesPage.css'
 
@@ -34,9 +35,43 @@ const EDIT_TABS = [
   { id: 'builder', label: 'Content' },
 ]
 
+const BUILDER_FLOW_STEPS = [
+  { number: 1, title: 'Add modules', body: 'Split the course into sections.' },
+  { number: 2, title: 'Add lessons', body: 'Articles, videos, or quizzes inside each module.' },
+  { number: 3, title: 'Publish', body: 'Review everything, then publish the course.' },
+]
+
+const LESSON_TYPE_OPTIONS = [
+  {
+    value: 'ARTICLE',
+    label: 'Article',
+    description: 'Written lesson with Markdown — headings, lists, code blocks, and links.',
+  },
+  {
+    value: 'VIDEO',
+    label: 'Video',
+    description: 'Embed a YouTube or Google Drive video for students to watch.',
+  },
+  {
+    value: 'QUIZ',
+    label: 'Quiz',
+    description: 'Multiple-choice questions. You will add MCQs right after creating the lesson.',
+  },
+]
+
+const ADD_LESSON_STEPS = ['Choose type', 'Details & content']
+
+const EMPTY_QUIZ_QUESTION = {
+  prompt: '',
+  optionA: '',
+  optionB: '',
+  optionC: '',
+  optionD: '',
+  correctOptionId: 'opt-1',
+  explanation: '',
+}
+
 const formatLessonContent = (lesson) => {
-  if (lesson.type === 'VIDEO' && lesson.content?.videoUrl) return lesson.content.videoUrl
-  if (lesson.type === 'ARTICLE' && lesson.content?.articleHtml) return lesson.content.articleHtml
   if (lesson.type === 'QUIZ') return 'Quiz lesson — attach questions from the practice admin tools.'
   return 'No content added yet.'
 }
@@ -99,7 +134,14 @@ const AdminCoursesPage = () => {
   const [activeCourse, setActiveCourse] = useState(null)
   const [activeLesson, setActiveLesson] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [deletingCourse, setDeletingCourse] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const [skills, setSkills] = useState([])
+  const [lessonAssessment, setLessonAssessment] = useState(null)
+  const [loadingLessonAssessment, setLoadingLessonAssessment] = useState(false)
+  const [quizQuestionForm, setQuizQuestionForm] = useState(EMPTY_QUIZ_QUESTION)
+  const [savingQuizQuestion, setSavingQuizQuestion] = useState(false)
+  const [creatingLessonQuiz, setCreatingLessonQuiz] = useState(false)
 
   const [modules, setModules] = useState([])
   const [expandedModuleIds, setExpandedModuleIds] = useState([])
@@ -127,6 +169,9 @@ const AdminCoursesPage = () => {
   const [lessonContent, setLessonContent] = useState('')
   const [lessonDuration, setLessonDuration] = useState('10')
   const [lessonStatus, setLessonStatus] = useState('DRAFT')
+  const [lessonCreateStep, setLessonCreateStep] = useState(0)
+  const [savingLesson, setSavingLesson] = useState(false)
+  const [savingEditLesson, setSavingEditLesson] = useState(false)
 
   const stats = useMemo(() => {
     const published = courses.filter((course) => course.status === 'PUBLISHED').length
@@ -172,7 +217,8 @@ const AdminCoursesPage = () => {
     setLoading(true)
     setError('')
     try {
-      await loadCourses()
+      const [, skillData] = await Promise.all([loadCourses(), adminApi.skills()])
+      setSkills(skillData.skills)
     } catch (err) {
       setError(err.message || 'Failed to load courses')
     } finally {
@@ -216,6 +262,8 @@ const AdminCoursesPage = () => {
     setSubModal('none')
     setActiveCourse(null)
     setActiveLesson(null)
+    setLessonAssessment(null)
+    setQuizQuestionForm(EMPTY_QUIZ_QUESTION)
     setModules([])
     setExpandedModuleIds([])
     setLessonsByModule({})
@@ -236,7 +284,27 @@ const AdminCoursesPage = () => {
     setLessonDuration('10')
     setLessonType('ARTICLE')
     setLessonStatus('DRAFT')
+    setLessonCreateStep(0)
   }
+
+  const openAddQuizQuestionModal = () => {
+    setQuizQuestionForm(EMPTY_QUIZ_QUESTION)
+    setSubModal('quizQuestion')
+  }
+
+  const openEditArticleModal = (lesson) => {
+    setLessonTitle(lesson.title || '')
+    setLessonDescription(lesson.description || '')
+    setLessonContent(lesson.content?.articleHtml || '')
+    setLessonDuration(String(lesson.durationMinutes ?? 10))
+    setLessonStatus(lesson.status || 'DRAFT')
+    setSubModal('editLesson')
+  }
+
+  const activeLessonModule = useMemo(
+    () => modules.find((module) => module.id === lessonModuleId),
+    [modules, lessonModuleId],
+  )
 
   const openCreateModal = () => {
     setForm((current) => ({ ...EMPTY_FORM, categoryId: current.categoryId || categories[0]?.id || '' }))
@@ -285,12 +353,67 @@ const AdminCoursesPage = () => {
     setLessonContent('')
     setLessonDuration('10')
     setLessonStatus('DRAFT')
+    setLessonCreateStep(0)
     setSubModal('lesson')
   }
 
-  const openDeleteModal = (course) => {
-    setDeleteTarget(course)
+  const openDeleteModal = (target) => {
+    setDeleteTarget({
+      ...target,
+      returnTo:
+        target.returnTo ??
+        (target.kind === 'course'
+          ? 'none'
+          : modal === 'delete'
+            ? previousModal
+            : modal),
+    })
     setModal('delete')
+  }
+
+  const openDeleteCourseModal = (course) => {
+    openDeleteModal({ kind: 'course', item: course })
+  }
+
+  const openDeleteModuleModal = (module) => {
+    openDeleteModal({ kind: 'module', item: module, returnTo: 'edit' })
+  }
+
+  const openDeleteLessonModal = (lesson) => {
+    openDeleteModal({ kind: 'lesson', item: lesson, returnTo: 'edit' })
+  }
+
+  const openDeleteQuestionModal = (question, assessmentId) => {
+    openDeleteModal({ kind: 'question', item: question, assessmentId, returnTo: 'lesson' })
+  }
+
+  const loadLessonAssessment = async (lesson) => {
+    if (!lesson?.assessmentId) {
+      setLessonAssessment(null)
+      return
+    }
+
+    setLoadingLessonAssessment(true)
+    try {
+      const data = await adminApi.assessment(lesson.assessmentId)
+      setLessonAssessment(data.assessment)
+    } catch (err) {
+      setError(err.message || 'Failed to load quiz questions')
+      setLessonAssessment(null)
+    } finally {
+      setLoadingLessonAssessment(false)
+    }
+  }
+
+  const openLessonModal = async (lesson) => {
+    setPreviousModal(modal)
+    setActiveLesson(lesson)
+    setLessonAssessment(null)
+    setQuizQuestionForm(EMPTY_QUIZ_QUESTION)
+    setModal('lesson')
+    if (lesson.type === 'QUIZ') {
+      await loadLessonAssessment(lesson)
+    }
   }
 
   const toggleModule = async (moduleId) => {
@@ -382,13 +505,13 @@ const AdminCoursesPage = () => {
   }
 
   const handleDeleteCourse = async () => {
-    if (!deleteTarget) return
-    setDeletingCourse(true)
+    if (!deleteTarget || deleteTarget.kind !== 'course') return
+    setDeleting(true)
     setError('')
     try {
-      await adminApi.deleteCourse(deleteTarget.id)
-      setMessage(`"${deleteTarget.title}" was deleted.`)
-      if (activeCourse?.id === deleteTarget.id) {
+      await adminApi.deleteCourse(deleteTarget.item.id)
+      setMessage(`"${deleteTarget.item.title}" was deleted.`)
+      if (activeCourse?.id === deleteTarget.item.id) {
         closeModal()
       }
       setDeleteTarget(null)
@@ -397,7 +520,157 @@ const AdminCoursesPage = () => {
     } catch (err) {
       setError(err.message || 'Failed to delete course')
     } finally {
-      setDeletingCourse(false)
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteModule = async () => {
+    if (!deleteTarget || deleteTarget.kind !== 'module' || !activeCourse) return
+    setDeleting(true)
+    setError('')
+    try {
+      await adminApi.deleteModule(activeCourse.id, deleteTarget.item.id)
+      setMessage(`Module "${deleteTarget.item.title}" was deleted.`)
+      setDeleteTarget(null)
+      setModal(deleteTarget.returnTo || 'edit')
+      await loadCourseStructure(activeCourse.id)
+      await loadAll()
+    } catch (err) {
+      setError(err.message || 'Failed to delete module')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteLesson = async () => {
+    if (!deleteTarget || deleteTarget.kind !== 'lesson' || !activeCourse) return
+    const { item: lesson } = deleteTarget
+    setDeleting(true)
+    setError('')
+    try {
+      await adminApi.deleteLesson(lesson.id)
+      setMessage(`Lesson "${lesson.title}" was deleted.`)
+      if (activeLesson?.id === lesson.id) {
+        setActiveLesson(null)
+        setLessonAssessment(null)
+      }
+      setDeleteTarget(null)
+      setModal(deleteTarget.returnTo || 'edit')
+      await loadModuleLessons(activeCourse.id, lesson.moduleId)
+      await loadCourseStructure(activeCourse.id)
+      await loadAll()
+    } catch (err) {
+      setError(err.message || 'Failed to delete lesson')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleDeleteQuestion = async () => {
+    if (!deleteTarget || deleteTarget.kind !== 'question') return
+    const { item: question, assessmentId } = deleteTarget
+    setDeleting(true)
+    setError('')
+    try {
+      const data = await adminApi.removeQuestionFromAssessment(assessmentId, question.id)
+      setMessage('Question removed from quiz.')
+      setLessonAssessment(data.assessment)
+      if (activeLesson?.assessmentId === assessmentId) {
+        setActiveLesson((current) =>
+          current ? { ...current, assessmentId: data.assessment.id } : current,
+        )
+      }
+      setDeleteTarget(null)
+      setModal(deleteTarget.returnTo || 'lesson')
+      await loadAll()
+    } catch (err) {
+      setError(err.message || 'Failed to delete question')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    if (deleteTarget.kind === 'course') return handleDeleteCourse()
+    if (deleteTarget.kind === 'module') return handleDeleteModule()
+    if (deleteTarget.kind === 'lesson') return handleDeleteLesson()
+    if (deleteTarget.kind === 'question') return handleDeleteQuestion()
+    return undefined
+  }
+
+  const handleCreateLessonQuiz = async () => {
+    if (!activeLesson) return
+    setCreatingLessonQuiz(true)
+    setError('')
+    try {
+      const result = await adminApi.createLessonQuiz(activeLesson.id, {
+        title: `${activeLesson.title} Quiz`,
+      })
+      setActiveLesson(result.lesson)
+      const refreshed = await adminApi.assessment(result.lesson.assessmentId)
+      setLessonAssessment(refreshed.assessment)
+      setMessage('Quiz ready. Click + Add MCQ to create your first question.')
+      if (activeCourse) {
+        await loadModuleLessons(activeCourse.id, activeLesson.moduleId)
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create quiz')
+    } finally {
+      setCreatingLessonQuiz(false)
+    }
+  }
+
+  const handleQuizQuestionChange = (event) => {
+    const { name, value } = event.target
+    setQuizQuestionForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const handleAddQuizQuestion = async (event) => {
+    event.preventDefault()
+    if (!activeLesson?.assessmentId || !lessonAssessment) return
+
+    const skillId = skills[0]?.id
+    if (!skillId) {
+      setError('Add a skill in Practice admin before creating quiz questions.')
+      return
+    }
+
+    setSavingQuizQuestion(true)
+    setError('')
+    try {
+      const options = [
+        { optionId: 'opt-1', text: quizQuestionForm.optionA },
+        { optionId: 'opt-2', text: quizQuestionForm.optionB },
+        { optionId: 'opt-3', text: quizQuestionForm.optionC },
+        { optionId: 'opt-4', text: quizQuestionForm.optionD },
+      ].filter((option) => option.text.trim())
+
+      const questionResult = await adminApi.createQuestion({
+        prompt: quizQuestionForm.prompt.trim(),
+        skillId,
+        difficulty: 'EASY',
+        options,
+        correctOptionId: quizQuestionForm.correctOptionId,
+        explanation: quizQuestionForm.explanation.trim(),
+      })
+
+      await adminApi.addQuestionToAssessment(activeLesson.assessmentId, {
+        questionId: questionResult.question.id,
+      })
+
+      const refreshed = await adminApi.assessment(activeLesson.assessmentId)
+      setLessonAssessment(refreshed.assessment)
+      setQuizQuestionForm(EMPTY_QUIZ_QUESTION)
+      setMessage('MCQ added to lesson quiz.')
+      closeSubModal()
+      if (activeCourse) {
+        await loadModuleLessons(activeCourse.id, activeLesson.moduleId)
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to add quiz question')
+    } finally {
+      setSavingQuizQuestion(false)
     }
   }
 
@@ -409,7 +682,7 @@ const AdminCoursesPage = () => {
         title: moduleTitle.trim(),
         description: moduleDescription.trim(),
       })
-      setMessage('Module added.')
+      setMessage('Module created. Add lessons inside it next.')
       closeSubModal()
       const loadedModules = await loadCourseStructure(activeCourse.id)
       setEditModuleId(loadedModules[loadedModules.length - 1]?.id || loadedModules[0]?.id || '')
@@ -423,8 +696,11 @@ const AdminCoursesPage = () => {
     event.preventDefault()
     const moduleId = lessonModuleId || editModuleId
     if (!activeCourse || !moduleId || !lessonTitle.trim()) return
+
+    setSavingLesson(true)
+    setError('')
     try {
-      await adminApi.createLesson(activeCourse.id, moduleId, {
+      const { lesson: createdLesson } = await adminApi.createLesson(activeCourse.id, moduleId, {
         title: lessonTitle.trim(),
         description: lessonDescription.trim(),
         type: lessonType,
@@ -437,13 +713,32 @@ const AdminCoursesPage = () => {
         durationMinutes: Number(lessonDuration) || 0,
         status: lessonStatus,
       })
-      setMessage('Lesson added.')
-      closeSubModal()
+
+      let lessonToView = createdLesson
+      if (lessonType === 'QUIZ') {
+        const quizResult = await adminApi.createLessonQuiz(createdLesson.id, {
+          title: `${lessonTitle.trim()} Quiz`,
+        })
+        lessonToView = quizResult.lesson
+      }
+
       await loadModuleLessons(activeCourse.id, moduleId)
       await loadCourseStructure(activeCourse.id)
       await loadAll()
+      closeSubModal()
+      setExpandedModuleIds((current) => [...new Set([...current, moduleId])])
+
+      if (lessonType === 'QUIZ') {
+        setMessage('Quiz lesson created. Add your first MCQ below.')
+        setPreviousModal('edit')
+        await openLessonModal(lessonToView)
+      } else {
+        setMessage('Lesson added.')
+      }
     } catch (err) {
       setError(err.message || 'Failed to create lesson')
+    } finally {
+      setSavingLesson(false)
     }
   }
 
@@ -458,6 +753,101 @@ const AdminCoursesPage = () => {
       setError(err.message || 'Failed to publish lesson')
     }
   }
+
+  const handleUpdateArticleLesson = async (event) => {
+    event.preventDefault()
+    if (!activeLesson || !activeCourse) return
+
+    setSavingEditLesson(true)
+    setError('')
+    try {
+      const { lesson } = await adminApi.updateLesson(activeLesson.id, {
+        title: lessonTitle.trim(),
+        description: lessonDescription.trim(),
+        durationMinutes: Number(lessonDuration) || 0,
+        status: lessonStatus,
+        content: {
+          ...activeLesson.content,
+          articleHtml: lessonContent.trim(),
+        },
+      })
+
+      setActiveLesson(lesson)
+      setMessage('Article lesson updated.')
+      closeSubModal()
+      await loadModuleLessons(activeCourse.id, lesson.moduleId)
+      await loadCourseStructure(activeCourse.id)
+      await loadAll()
+    } catch (err) {
+      setError(err.message || 'Failed to update lesson')
+    } finally {
+      setSavingEditLesson(false)
+    }
+  }
+
+  const renderArticleLessonForm = (formId, onSubmit) => (
+    <form id={formId} className="admin-form" onSubmit={onSubmit}>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Basics</h4>
+        <label>
+          Lesson title
+          <input
+            value={lessonTitle}
+            onChange={(e) => setLessonTitle(e.target.value)}
+            placeholder="e.g. Variables and types"
+            required
+          />
+        </label>
+        <label>
+          Short description
+          <textarea
+            value={lessonDescription}
+            onChange={(e) => setLessonDescription(e.target.value)}
+            placeholder="Optional summary shown in the lesson list"
+          />
+        </label>
+      </div>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Settings</h4>
+        <div className="admin-form-row">
+          <label>
+            Duration (minutes)
+            <input
+              value={lessonDuration}
+              onChange={(e) => setLessonDuration(e.target.value)}
+              type="number"
+              min="0"
+            />
+          </label>
+          <label>
+            Status
+            <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)}>
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Article content</h4>
+        <label>
+          Markdown body
+          <textarea
+            value={lessonContent}
+            onChange={(e) => setLessonContent(e.target.value)}
+            className="admin-lesson-markdown-input"
+            placeholder="Write lesson content in Markdown — headings, lists, code blocks, and links are supported."
+          />
+        </label>
+        {lessonContent.trim() ? (
+          <div className="admin-lesson-markdown-preview">
+            <p className="admin-lesson-markdown-preview-label">Preview</p>
+            <BlogContent content={lessonContent} />
+          </div>
+        ) : null}
+      </div>
+    </form>
+  )
 
   const renderAccordion = (mode) =>
     modules.length ? (
@@ -480,13 +870,22 @@ const AdminCoursesPage = () => {
                   <span>{expanded ? '▴' : '▾'}</span>
                 </button>
                 {mode === 'builder' ? (
-                  <button
-                    type="button"
-                    className="admin-link-btn admin-link-btn--accent"
-                    onClick={() => openAddLessonModal(module.id)}
-                  >
-                    + Lesson
-                  </button>
+                  <div className="admin-accordion-item-actions">
+                    <button
+                      type="button"
+                      className="admin-link-btn admin-link-btn--accent"
+                      onClick={() => openAddLessonModal(module.id)}
+                    >
+                      + Lesson
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-link-btn admin-link-btn--danger"
+                      onClick={() => openDeleteModuleModal(module)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 ) : null}
               </div>
               {expanded ? (
@@ -497,26 +896,45 @@ const AdminCoursesPage = () => {
                         <button
                           type="button"
                           className="admin-lesson-link"
-                          onClick={() => {
-                            setPreviousModal(modal)
-                            setActiveLesson(lesson)
-                            setModal('lesson')
-                          }}
+                          onClick={() => openLessonModal(lesson)}
                         >
                           <strong>{lesson.title}</strong>
                           <span>
                             {lesson.type} • {lesson.durationMinutes} min • {lesson.status}
                           </span>
                         </button>
-                        {mode === 'explore' && lesson.status !== 'PUBLISHED' ? (
-                          <button
-                            type="button"
-                            className="admin-link-btn"
-                            onClick={() => handlePublishLesson(lesson)}
-                          >
-                            Publish
-                          </button>
-                        ) : null}
+                        <div className="admin-lesson-row-actions">
+                          {mode === 'explore' && lesson.status !== 'PUBLISHED' ? (
+                            <button
+                              type="button"
+                              className="admin-link-btn"
+                              onClick={() => handlePublishLesson(lesson)}
+                            >
+                              Publish
+                            </button>
+                          ) : null}
+                          {mode === 'builder' && lesson.type === 'ARTICLE' ? (
+                            <button
+                              type="button"
+                              className="admin-link-btn"
+                              onClick={() => {
+                                setActiveLesson(lesson)
+                                openEditArticleModal(lesson)
+                              }}
+                            >
+                              Edit
+                            </button>
+                          ) : null}
+                          {mode === 'builder' ? (
+                            <button
+                              type="button"
+                              className="admin-link-btn admin-link-btn--danger"
+                              onClick={() => openDeleteLessonModal(lesson)}
+                            >
+                              Delete
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -530,13 +948,13 @@ const AdminCoursesPage = () => {
       </div>
     ) : (
       <div className="admin-course-builder-empty">
-        <p>No modules yet.</p>
+        <p>No modules yet — start with your first section.</p>
         {mode === 'builder' ? (
           <button type="button" className="admin-btn admin-btn--accent" onClick={openAddModuleModal}>
-            Add first module
+            + Add first module
           </button>
         ) : (
-          <p className="admin-muted">Use Content tab to add modules and lessons.</p>
+          <p className="admin-muted">Switch to the Content tab to add modules and lessons.</p>
         )}
       </div>
     )
@@ -781,13 +1199,135 @@ const AdminCoursesPage = () => {
     </form>
   )
 
+  const renderBuilderFlowGuide = () => (
+    <div className="admin-flow-steps" aria-label="How to build a course">
+      {BUILDER_FLOW_STEPS.map((step) => (
+        <div key={step.number} className="admin-flow-step">
+          <span className="admin-flow-step-number">{step.number}</span>
+          <div className="admin-flow-step-copy">
+            <strong>{step.title}</strong>
+            <p>{step.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const renderFlowContext = (trail) => (
+    <p className="admin-flow-context">
+      {trail.map((part, index) => (
+        <span key={`${part}-${index}`}>
+          {index > 0 ? <span className="admin-flow-context-sep">→</span> : null}
+          <span>{part}</span>
+        </span>
+      ))}
+    </p>
+  )
+
+  const renderWizardSteps = (steps, activeIndex) => (
+    <div className="admin-wizard-steps" aria-label="Progress">
+      {steps.map((label, index) => (
+        <div
+          key={label}
+          className={`admin-wizard-step${index === activeIndex ? ' is-active' : ''}${index < activeIndex ? ' is-complete' : ''}`}
+        >
+          <span className="admin-wizard-step-index">{index + 1}</span>
+          <span className="admin-wizard-step-label">{label}</span>
+        </div>
+      ))}
+    </div>
+  )
+
+  const renderLessonTypePicker = () => (
+    <div className="admin-type-card-grid">
+      {LESSON_TYPE_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={`admin-type-card${lessonType === option.value ? ' is-active' : ''}`}
+          onClick={() => setLessonType(option.value)}
+        >
+          <span className="admin-type-card-label">{option.label}</span>
+          <span className="admin-type-card-description">{option.description}</span>
+        </button>
+      ))}
+    </div>
+  )
+
+  const renderQuizQuestionForm = (formId) => (
+    <form id={formId} className="admin-form" onSubmit={handleAddQuizQuestion}>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Question</h4>
+        <label>
+          Prompt
+          <textarea
+            name="prompt"
+            value={quizQuestionForm.prompt}
+            onChange={handleQuizQuestionChange}
+            placeholder="What is the output of…?"
+            required
+          />
+        </label>
+      </div>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Answer options</h4>
+        <div className="admin-form-row">
+          <label>
+            Option A
+            <input name="optionA" value={quizQuestionForm.optionA} onChange={handleQuizQuestionChange} required />
+          </label>
+          <label>
+            Option B
+            <input name="optionB" value={quizQuestionForm.optionB} onChange={handleQuizQuestionChange} required />
+          </label>
+        </div>
+        <div className="admin-form-row">
+          <label>
+            Option C
+            <input name="optionC" value={quizQuestionForm.optionC} onChange={handleQuizQuestionChange} />
+          </label>
+          <label>
+            Option D
+            <input name="optionD" value={quizQuestionForm.optionD} onChange={handleQuizQuestionChange} />
+          </label>
+        </div>
+      </div>
+      <div className="admin-form-section">
+        <h4 className="admin-form-section-title">Correct answer</h4>
+        <label>
+          Mark correct option
+          <select
+            name="correctOptionId"
+            value={quizQuestionForm.correctOptionId}
+            onChange={handleQuizQuestionChange}
+          >
+            <option value="opt-1">Option A</option>
+            <option value="opt-2">Option B</option>
+            <option value="opt-3">Option C</option>
+            <option value="opt-4">Option D</option>
+          </select>
+        </label>
+        <label>
+          Explanation (optional)
+          <textarea
+            name="explanation"
+            value={quizQuestionForm.explanation}
+            onChange={handleQuizQuestionChange}
+            placeholder="Briefly explain why this answer is correct"
+          />
+        </label>
+      </div>
+    </form>
+  )
+
   const renderBuilderPanel = () => (
     <div className="admin-course-builder">
+      {renderBuilderFlowGuide()}
       <div className="admin-course-builder-toolbar">
         <div>
           <h3 className="admin-modal-section-title">Course structure</h3>
           <p className="admin-course-builder-lead">
-            Organize content into modules, then add lessons inside each module.
+            Expand a module to see its lessons. Use <strong>+ Lesson</strong> to add content.
           </p>
         </div>
         <button type="button" className="admin-btn admin-btn--accent" onClick={openAddModuleModal}>
@@ -945,7 +1485,7 @@ const AdminCoursesPage = () => {
               <button
                 type="button"
                 className="admin-link-btn admin-link-btn--danger"
-                onClick={() => openDeleteModal(course)}
+                onClick={() => openDeleteCourseModal(course)}
               >
                 Delete
               </button>
@@ -1100,33 +1640,42 @@ const AdminCoursesPage = () => {
       <AdminModal
         open={modal === 'edit' && subModal === 'module'}
         title="Add module"
-        subtitle="Group related lessons into a module."
+        subtitle="Step 1 of your course structure — group related lessons together."
         onClose={closeSubModal}
         stack
         footer={
-          <button type="submit" form="add-module-form" className="admin-btn">
-            Add module
-          </button>
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeSubModal}>
+              Cancel
+            </button>
+            <button type="submit" form="add-module-form" className="admin-btn">
+              Create module
+            </button>
+          </div>
         }
       >
+        {renderFlowContext([activeCourse?.title || 'Course', 'New module'])}
         <form id="add-module-form" className="admin-form" onSubmit={handleCreateModule}>
-          <label>
-            Module title
-            <input
-              value={moduleTitle}
-              onChange={(e) => setModuleTitle(e.target.value)}
-              placeholder="e.g. Getting started"
-              required
-            />
-          </label>
-          <label>
-            Module description
-            <textarea
-              value={moduleDescription}
-              onChange={(e) => setModuleDescription(e.target.value)}
-              placeholder="Optional summary for this section"
-            />
-          </label>
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">Module details</h4>
+            <label>
+              Module title
+              <input
+                value={moduleTitle}
+                onChange={(e) => setModuleTitle(e.target.value)}
+                placeholder="e.g. Getting started"
+                required
+              />
+            </label>
+            <label>
+              Short description
+              <textarea
+                value={moduleDescription}
+                onChange={(e) => setModuleDescription(e.target.value)}
+                placeholder="Optional — shown to help you organize this section"
+              />
+            </label>
+          </div>
         </form>
       </AdminModal>
 
@@ -1134,76 +1683,203 @@ const AdminCoursesPage = () => {
         open={modal === 'edit' && subModal === 'lesson'}
         title="Add lesson"
         subtitle={
-          modules.find((module) => module.id === lessonModuleId)?.title || 'New lesson'
+          lessonCreateStep === 0
+            ? 'Step 1 — pick the lesson format'
+            : 'Step 2 — fill in details and content'
         }
         onClose={closeSubModal}
         stack
         size="wide"
         footer={
-          <button type="submit" form="add-lesson-form" className="admin-btn">
-            Add lesson
-          </button>
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeSubModal}>
+              Cancel
+            </button>
+            {lessonCreateStep === 1 ? (
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => setLessonCreateStep(0)}
+              >
+                Back
+              </button>
+            ) : null}
+            {lessonCreateStep === 0 ? (
+              <button type="button" className="admin-btn" onClick={() => setLessonCreateStep(1)}>
+                Continue
+              </button>
+            ) : (
+              <button type="submit" form="add-lesson-form" className="admin-btn" disabled={savingLesson}>
+                {savingLesson ? 'Creating…' : 'Create lesson'}
+              </button>
+            )}
+          </div>
         }
       >
-        <form id="add-lesson-form" className="admin-form" onSubmit={handleCreateLesson}>
-          <label>
-            Lesson title
-            <input
-              value={lessonTitle}
-              onChange={(e) => setLessonTitle(e.target.value)}
-              placeholder="e.g. Variables and types"
-              required
-            />
-          </label>
-          <label>
-            Lesson description
-            <textarea
-              value={lessonDescription}
-              onChange={(e) => setLessonDescription(e.target.value)}
-              placeholder="Optional lesson summary"
-            />
-          </label>
-          <div className="admin-form-row">
-            <label>
-              Lesson type
-              <select value={lessonType} onChange={(e) => setLessonType(e.target.value)}>
-                <option value="ARTICLE">Article</option>
-                <option value="VIDEO">Video</option>
-                <option value="QUIZ">Quiz</option>
-              </select>
-            </label>
-            <label>
-              Duration (minutes)
-              <input
-                value={lessonDuration}
-                onChange={(e) => setLessonDuration(e.target.value)}
-                type="number"
-                min="0"
-              />
-            </label>
+        {renderFlowContext([
+          activeCourse?.title || 'Course',
+          activeLessonModule?.title || 'Module',
+          'New lesson',
+        ])}
+        {renderWizardSteps(ADD_LESSON_STEPS, lessonCreateStep)}
+        {lessonCreateStep === 0 ? (
+          <div className="admin-form-section">
+            <h4 className="admin-form-section-title">What type of lesson is this?</h4>
+            {renderLessonTypePicker()}
           </div>
-          <label>
-            {lessonType === 'VIDEO' ? 'Video URL' : lessonType === 'ARTICLE' ? 'Article content' : 'Content notes'}
-            <textarea
-              value={lessonContent}
-              onChange={(e) => setLessonContent(e.target.value)}
-              placeholder={
-                lessonType === 'VIDEO'
-                  ? 'YouTube or Google Drive link (e.g. youtube.com/watch?v=… or drive.google.com/file/d/…)'
-                  : lessonType === 'QUIZ'
-                    ? 'Quiz lessons link to practice admin tools.'
-                    : 'Write the lesson content here…'
-              }
-            />
-          </label>
-          <label>
-            Lesson status
-            <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)}>
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-            </select>
-          </label>
-        </form>
+        ) : (
+          <form id="add-lesson-form" className="admin-form" onSubmit={handleCreateLesson}>
+            <div className="admin-form-section">
+              <h4 className="admin-form-section-title">Basics</h4>
+              <div className="admin-selected-type">
+                <span className="admin-selected-type-label">
+                  {LESSON_TYPE_OPTIONS.find((option) => option.value === lessonType)?.label}
+                </span>
+                <button type="button" className="admin-link-btn" onClick={() => setLessonCreateStep(0)}>
+                  Change type
+                </button>
+              </div>
+              <label>
+                Lesson title
+                <input
+                  value={lessonTitle}
+                  onChange={(e) => setLessonTitle(e.target.value)}
+                  placeholder="e.g. Variables and types"
+                  required
+                />
+              </label>
+              <label>
+                Short description
+                <textarea
+                  value={lessonDescription}
+                  onChange={(e) => setLessonDescription(e.target.value)}
+                  placeholder="Optional summary shown in the lesson list"
+                />
+              </label>
+            </div>
+            <div className="admin-form-section">
+              <h4 className="admin-form-section-title">Settings</h4>
+              <div className="admin-form-row">
+                <label>
+                  Duration (minutes)
+                  <input
+                    value={lessonDuration}
+                    onChange={(e) => setLessonDuration(e.target.value)}
+                    type="number"
+                    min="0"
+                  />
+                </label>
+                <label>
+                  Status
+                  <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)}>
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            {lessonType === 'VIDEO' ? (
+              <div className="admin-form-section">
+                <h4 className="admin-form-section-title">Video</h4>
+                <label>
+                  Video URL
+                  <input
+                    value={lessonContent}
+                    onChange={(e) => setLessonContent(e.target.value)}
+                    placeholder="youtube.com/watch?v=… or drive.google.com/file/d/…"
+                  />
+                </label>
+              </div>
+            ) : null}
+            {lessonType === 'ARTICLE' ? (
+              <div className="admin-form-section">
+                <h4 className="admin-form-section-title">Article content</h4>
+                <label>
+                  Markdown body
+                  <textarea
+                    value={lessonContent}
+                    onChange={(e) => setLessonContent(e.target.value)}
+                    className="admin-lesson-markdown-input"
+                    placeholder="Write lesson content in Markdown — headings, lists, code blocks, and links are supported."
+                  />
+                </label>
+                {lessonContent.trim() ? (
+                  <div className="admin-lesson-markdown-preview">
+                    <p className="admin-lesson-markdown-preview-label">Preview</p>
+                    <BlogContent content={lessonContent} />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {lessonType === 'QUIZ' ? (
+              <div className="admin-info-panel">
+                <strong>Quiz lessons</strong>
+                <p>
+                  After you create this lesson, you will be taken straight to the quiz screen to add
+                  multiple-choice questions one at a time.
+                </p>
+              </div>
+            ) : null}
+          </form>
+        )}
+      </AdminModal>
+
+      <AdminModal
+        open={(modal === 'lesson' || modal === 'edit') && subModal === 'editLesson' && Boolean(activeLesson)}
+        title="Edit article lesson"
+        subtitle="Update the lesson details and Markdown content."
+        onClose={closeSubModal}
+        stack
+        size="wide"
+        footer={
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeSubModal}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="edit-article-lesson-form"
+              className="admin-btn"
+              disabled={savingEditLesson}
+            >
+              {savingEditLesson ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
+        }
+      >
+        {renderFlowContext([
+          activeCourse?.title || 'Course',
+          modules.find((module) => module.id === activeLesson?.moduleId)?.title || 'Module',
+          activeLesson?.title || 'Lesson',
+        ])}
+        {renderArticleLessonForm('edit-article-lesson-form', handleUpdateArticleLesson)}
+      </AdminModal>
+
+      <AdminModal
+        open={modal === 'lesson' && subModal === 'quizQuestion'}
+        title="Add MCQ"
+        subtitle="Add one multiple-choice question to this lesson quiz."
+        onClose={closeSubModal}
+        stack
+        size="wide"
+        footer={
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeSubModal}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-quiz-question-form"
+              className="admin-btn"
+              disabled={savingQuizQuestion}
+            >
+              {savingQuizQuestion ? 'Adding…' : 'Add question'}
+            </button>
+          </div>
+        }
+      >
+        {renderFlowContext([activeCourse?.title || 'Course', activeLesson?.title || 'Quiz', 'New MCQ'])}
+        {renderQuizQuestionForm('add-quiz-question-form')}
       </AdminModal>
 
       <AdminModal
@@ -1215,26 +1891,140 @@ const AdminCoursesPage = () => {
             : undefined
         }
         onClose={() => {
+          closeSubModal()
           setActiveLesson(null)
+          setLessonAssessment(null)
           setModal(previousModal === 'none' ? 'explore' : previousModal)
         }}
+        footer={
+          activeLesson ? (
+            <div className="admin-modal-action-row">
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost"
+                onClick={() => {
+                  setActiveLesson(null)
+                  setLessonAssessment(null)
+                  setModal(previousModal === 'none' ? 'explore' : previousModal)
+                }}
+              >
+                Close
+              </button>
+              {activeLesson.type === 'ARTICLE' ? (
+                <button
+                  type="button"
+                  className="admin-btn"
+                  onClick={() => openEditArticleModal(activeLesson)}
+                >
+                  Edit article
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="admin-btn admin-btn--danger"
+                onClick={() =>
+                  openDeleteModal({
+                    kind: 'lesson',
+                    item: activeLesson,
+                    returnTo: previousModal === 'none' ? 'edit' : previousModal,
+                  })
+                }
+              >
+                Delete lesson
+              </button>
+            </div>
+          ) : null
+        }
       >
         {activeLesson?.description ? <p>{activeLesson.description}</p> : null}
         <h3 className="admin-modal-section-title">Content</h3>
         {activeLesson?.type === 'VIDEO' && activeLesson.content?.videoUrl ? (
           <VideoEmbed url={activeLesson.content.videoUrl} title={activeLesson.title} />
+        ) : activeLesson?.type === 'ARTICLE' ? (
+          <div className="admin-lesson-content admin-lesson-content--markdown">
+            <BlogContent content={activeLesson.content?.articleHtml || ''} />
+          </div>
+        ) : activeLesson?.type === 'QUIZ' ? (
+          <div className="admin-lesson-quiz">
+            {loadingLessonAssessment ? (
+              <p className="admin-muted">Loading quiz…</p>
+            ) : lessonAssessment ? (
+              <>
+                <div className="admin-lesson-quiz-toolbar">
+                  <div className="admin-lesson-quiz-meta">
+                    <span>{lessonAssessment.questionCount ?? 0} MCQs</span>
+                    <span>{lessonAssessment.status}</span>
+                  </div>
+                  <button type="button" className="admin-btn admin-btn--accent" onClick={openAddQuizQuestionModal}>
+                    + Add MCQ
+                  </button>
+                </div>
+                {lessonAssessment.questions?.length ? (
+                  <div className="admin-lesson-quiz-list">
+                    {lessonAssessment.questions.map((question, index) => (
+                      <div key={question.id} className="admin-lesson-quiz-item">
+                        <div className="admin-lesson-quiz-item-copy">
+                          <strong>
+                            Q{index + 1}. {question.prompt}
+                          </strong>
+                          <span>{question.options?.length ?? 0} options</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-link-btn admin-link-btn--danger"
+                          onClick={() => openDeleteQuestionModal(question, lessonAssessment.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="admin-info-panel">
+                    <strong>No questions yet</strong>
+                    <p>Click <strong>+ Add MCQ</strong> to create the first multiple-choice question.</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="admin-lesson-quiz-empty">
+                <div className="admin-info-panel">
+                  <strong>Quiz not set up</strong>
+                  <p>Create the quiz shell first, then add your MCQs.</p>
+                </div>
+                <button
+                  type="button"
+                  className="admin-btn"
+                  onClick={handleCreateLessonQuiz}
+                  disabled={creatingLessonQuiz}
+                >
+                  {creatingLessonQuiz ? 'Creating…' : 'Set up quiz'}
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
-          <pre className="admin-lesson-content">{activeLesson ? formatLessonContent(activeLesson) : ''}</pre>
+          <p className="admin-lesson-content admin-lesson-content--plain">
+            {activeLesson ? formatLessonContent(activeLesson) : ''}
+          </p>
         )}
       </AdminModal>
 
       <AdminModal
         open={modal === 'delete' && Boolean(deleteTarget)}
-        title="Delete course"
+        title={
+          deleteTarget?.kind === 'course'
+            ? 'Delete course'
+            : deleteTarget?.kind === 'module'
+              ? 'Delete module'
+              : deleteTarget?.kind === 'lesson'
+                ? 'Delete lesson'
+                : 'Delete question'
+        }
         subtitle="This action cannot be undone."
         onClose={() => {
           setDeleteTarget(null)
-          setModal('none')
+          setModal(deleteTarget?.returnTo || 'none')
         }}
         size="narrow"
         footer={
@@ -1244,26 +2034,56 @@ const AdminCoursesPage = () => {
               className="admin-btn admin-btn--ghost"
               onClick={() => {
                 setDeleteTarget(null)
-                setModal('none')
+                setModal(deleteTarget?.returnTo || 'none')
               }}
-              disabled={deletingCourse}
+              disabled={deleting}
             >
               Cancel
             </button>
             <button
               type="button"
               className="admin-btn admin-btn--danger"
-              onClick={handleDeleteCourse}
-              disabled={deletingCourse}
+              onClick={handleConfirmDelete}
+              disabled={deleting}
             >
-              {deletingCourse ? 'Deleting…' : 'Delete course'}
+              {deleting
+                ? 'Deleting…'
+                : deleteTarget?.kind === 'course'
+                  ? 'Delete course'
+                  : deleteTarget?.kind === 'module'
+                    ? 'Delete module'
+                    : deleteTarget?.kind === 'lesson'
+                      ? 'Delete lesson'
+                      : 'Delete question'}
             </button>
           </div>
         }
       >
         <p className="admin-delete-copy">
-          Delete <strong>{deleteTarget?.title}</strong>? All modules, lessons, enrollments, and
-          student progress for this course will be permanently removed.
+          {deleteTarget?.kind === 'course' ? (
+            <>
+              Delete <strong>{deleteTarget.item.title}</strong>? All modules, lessons, enrollments, and
+              student progress for this course will be permanently removed.
+            </>
+          ) : null}
+          {deleteTarget?.kind === 'module' ? (
+            <>
+              Delete module <strong>{deleteTarget.item.title}</strong>? All lessons, quiz questions, and
+              learner progress in this module will be permanently removed.
+            </>
+          ) : null}
+          {deleteTarget?.kind === 'lesson' ? (
+            <>
+              Delete lesson <strong>{deleteTarget.item.title}</strong>? Its content
+              {deleteTarget.item.type === 'QUIZ' ? ', quiz, and MCQs' : ''} will be permanently removed.
+            </>
+          ) : null}
+          {deleteTarget?.kind === 'question' ? (
+            <>
+              Remove MCQ <strong>{deleteTarget.item.prompt}</strong> from this lesson quiz? The question
+              will be deleted if it is not used elsewhere.
+            </>
+          ) : null}
         </p>
       </AdminModal>
     </div>

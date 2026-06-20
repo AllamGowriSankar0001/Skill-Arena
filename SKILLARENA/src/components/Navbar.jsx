@@ -7,10 +7,10 @@ import { ROUTES } from '../routes'
 import './Navbar.css'
 
 const NAV_LINKS = [
-  { label: 'FEATURES', to: `${ROUTES.home}#features` },
-  { label: 'BATTLES', to: `${ROUTES.home}#battles` },
-  { label: 'LEARN', to: `${ROUTES.home}#learn` },
-  { label: 'COMMUNITY', to: `${ROUTES.home}#community` },
+  { label: 'FEATURES', mobileLabel: 'Features', to: `${ROUTES.home}#features` },
+  { label: 'BATTLES', mobileLabel: 'Battles', to: `${ROUTES.home}#battles` },
+  { label: 'LEARN', mobileLabel: 'Learn', to: `${ROUTES.home}#learn` },
+  { label: 'COMMUNITY', mobileLabel: 'Community', to: `${ROUTES.home}#community` },
 ]
 
 const Navbar = ({ alwaysVisible = false }) => {
@@ -115,49 +115,58 @@ const Navbar = ({ alwaysVisible = false }) => {
         className={`navbar-mobile${menuOpen ? ' navbar-mobile--open' : ''}`}
         aria-hidden={!menuOpen}
       >
+        <div className="navbar-mobile-head">
+          <p className="navbar-mobile-eyebrow">Explore</p>
+          <p className="navbar-mobile-lead">Jump to a section or sign in to continue.</p>
+        </div>
+
         <ul className="navbar-mobile-links">
-          {NAV_LINKS.map(({ label, to }) => (
+          {NAV_LINKS.map(({ label, mobileLabel, to }) => (
             <li key={label}>
               <Link to={to} onClick={closeMenu}>
-                {label}
+                <span>{mobileLabel || label}</span>
+                <span className="navbar-mobile-link-arrow" aria-hidden="true">
+                  →
+                </span>
               </Link>
             </li>
           ))}
         </ul>
 
         <div className="navbar-mobile-actions">
+          <p className="navbar-mobile-actions-label">Account</p>
           {isAuthenticated ? (
             <>
-              <Link to={ROUTES.dashboard} className="navbar-login" onClick={closeMenu}>
-                DASHBOARD
+              <Link to={ROUTES.dashboard} className="navbar-mobile-btn navbar-mobile-btn--primary" onClick={closeMenu}>
+                Dashboard
               </Link>
               <button
                 type="button"
-                className="navbar-signup"
+                className="navbar-mobile-btn navbar-mobile-btn--ghost"
                 onClick={() => {
                   logout()
                   closeMenu()
                   navigate(ROUTES.home)
                 }}
               >
-                LOG OUT
+                Log out
               </button>
             </>
           ) : (
             <>
               <Link
-                to={ROUTES.login}
-                className={`navbar-login${isLoginPage ? ' navbar-login--active' : ''}`}
+                to={ROUTES.signup}
+                className={`navbar-mobile-btn navbar-mobile-btn--primary${isSignupPage ? ' navbar-mobile-btn--active' : ''}`}
                 onClick={closeMenu}
               >
-                LOGIN
+                Sign up free
               </Link>
               <Link
-                to={ROUTES.signup}
-                className={`navbar-signup${isSignupPage ? ' navbar-signup--active' : ''}`}
+                to={ROUTES.login}
+                className={`navbar-mobile-btn navbar-mobile-btn--ghost${isLoginPage ? ' navbar-mobile-btn--active' : ''}`}
                 onClick={closeMenu}
               >
-                SIGN UP <span aria-hidden="true">→</span>
+                Log in
               </Link>
             </>
           )}

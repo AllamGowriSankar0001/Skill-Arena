@@ -1,14 +1,22 @@
 import ScrollReveal from './ScrollReveal'
-import MediaPlaceholder from './MediaPlaceholder'
 import './CommunitySection.css'
+
+const COMMUNITY_IMAGE = '/community.png'
 
 const CommunitySection = () => {
   return (
     <section className="community" id="community">
       <div className="community-inner">
         <ScrollReveal className="community-media-wrap">
-          <div className="community-media" aria-hidden="true">
-            <MediaPlaceholder />
+          <div className="community-media">
+            <img
+              className="community-image"
+              src={COMMUNITY_IMAGE}
+              alt="Skill Arena community with squads, real-time chat, and study sessions"
+              width={1024}
+              height={1024}
+              loading="lazy"
+            />
           </div>
         </ScrollReveal>
 

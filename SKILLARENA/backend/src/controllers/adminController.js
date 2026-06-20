@@ -113,6 +113,15 @@ const createModule = async (req, res, next) => {
   }
 };
 
+const deleteModule = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteModule(req.params.courseId, req.params.moduleId);
+    res.json({ ...result, message: 'Module deleted.' });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
 const listModuleLessons = async (req, res, next) => {
   try {
     const lessons = await adminService.listModuleLessons(
@@ -147,6 +156,15 @@ const updateLesson = async (req, res, next) => {
   }
 };
 
+const deleteLesson = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteLesson(req.params.id);
+    res.json({ ...result, message: 'Lesson deleted.' });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
 const createLessonQuiz = async (req, res, next) => {
   try {
     const result = await adminService.createLessonQuiz(req.user._id, req.params.id, req.body);
@@ -162,6 +180,15 @@ const listAssessments = async (req, res, next) => {
     res.json({ assessments });
   } catch (error) {
     next(error);
+  }
+};
+
+const getAssessment = async (req, res, next) => {
+  try {
+    const assessment = await adminService.getAssessment(req.params.id);
+    res.json({ assessment });
+  } catch (error) {
+    sendError(res, error);
   }
 };
 
@@ -183,6 +210,15 @@ const updateAssessment = async (req, res, next) => {
   }
 };
 
+const deleteAssessment = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteAssessment(req.params.id);
+    res.json({ ...result, message: 'Assessment deleted.' });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
 const createQuestion = async (req, res, next) => {
   try {
     const question = await adminService.createQuestion(req.user._id, req.body);
@@ -196,6 +232,18 @@ const addQuestionToAssessment = async (req, res, next) => {
   try {
     const assessment = await adminService.addQuestionToAssessment(req.params.id, req.body);
     res.json({ assessment });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+const removeQuestionFromAssessment = async (req, res, next) => {
+  try {
+    const assessment = await adminService.removeQuestionFromAssessment(
+      req.params.id,
+      req.params.questionId,
+    );
+    res.json({ assessment, message: 'Question removed.' });
   } catch (error) {
     sendError(res, error);
   }
@@ -306,15 +354,20 @@ module.exports = {
   deleteCourse,
   listCourseModules,
   createModule,
+  deleteModule,
   listModuleLessons,
   createLesson,
   updateLesson,
+  deleteLesson,
   createLessonQuiz,
   listAssessments,
+  getAssessment,
   createPracticeAssessment,
   updateAssessment,
+  deleteAssessment,
   createQuestion,
   addQuestionToAssessment,
+  removeQuestionFromAssessment,
   listBlogPosts,
   createBlogPost,
   updateBlogPost,

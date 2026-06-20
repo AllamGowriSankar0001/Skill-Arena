@@ -6,6 +6,11 @@ import { preprocessBlogMarkdown } from '../utils/blogMarkdown'
 import '../pages/Blog.css'
 
 const markdownComponents = {
+  h1: ({ children }) => <h1 className="blog-md-h1">{children}</h1>,
+  h2: ({ children }) => <h2 className="blog-md-h2">{children}</h2>,
+  h3: ({ children }) => <h3 className="blog-md-h3">{children}</h3>,
+  h4: ({ children }) => <h4 className="blog-md-h4">{children}</h4>,
+  hr: () => <hr className="blog-md-hr" />,
   img: ({ src, alt }) => (
     <figure className="blog-article-figure">
       <BlogImage

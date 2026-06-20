@@ -98,6 +98,8 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  deleteModule: (courseId, moduleId) =>
+    request(`/admin/courses/${courseId}/modules/${moduleId}`, { method: 'DELETE' }),
   moduleLessons: (courseId, moduleId) =>
     request(`/admin/courses/${courseId}/modules/${moduleId}/lessons`),
   createLesson: (courseId, moduleId, payload) =>
@@ -107,22 +109,29 @@ export const adminApi = {
     }),
   updateLesson: (lessonId, payload) =>
     request(`/admin/lessons/${lessonId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteLesson: (lessonId) => request(`/admin/lessons/${lessonId}`, { method: 'DELETE' }),
   createLessonQuiz: (lessonId, payload) =>
     request(`/admin/lessons/${lessonId}/quiz`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
   assessments: (type = 'PRACTICE') => request(`/admin/assessments?type=${type}`),
+  assessment: (id) => request(`/admin/assessments/${id}`),
   createAssessment: (payload) =>
     request('/admin/assessments', { method: 'POST', body: JSON.stringify(payload) }),
   updateAssessment: (id, payload) =>
     request(`/admin/assessments/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteAssessment: (id) => request(`/admin/assessments/${id}`, { method: 'DELETE' }),
   createQuestion: (payload) =>
     request('/admin/questions', { method: 'POST', body: JSON.stringify(payload) }),
   addQuestionToAssessment: (assessmentId, payload) =>
     request(`/admin/assessments/${assessmentId}/questions`, {
       method: 'POST',
       body: JSON.stringify(payload),
+    }),
+  removeQuestionFromAssessment: (assessmentId, questionId) =>
+    request(`/admin/assessments/${assessmentId}/questions/${questionId}`, {
+      method: 'DELETE',
     }),
   blogs: () => request('/admin/blogs'),
   createBlog: (payload) =>

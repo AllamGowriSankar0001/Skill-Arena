@@ -388,6 +388,7 @@ async function listPublishedBlogPosts() {
     coverImageUrl: post.coverImageUrl || null,
     authorName: post.authorId?.name || 'Skill Arena',
     publishedAt: post.publishedAt,
+    updatedAt: post.updatedAt,
     tags: post.tags || [],
   }));
 }

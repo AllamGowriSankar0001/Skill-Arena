@@ -57,12 +57,13 @@
   }
 
   .stack-sections .battles-media,
-  .stack-sections .battles-media .media-frame,
-  .stack-sections .learn-media,
-  .stack-sections .learn-media .media-frame,
-  .stack-sections .community-media,
-  .stack-sections .community-media .media-frame {
+  .stack-sections .community-media {
     min-height: 11rem;
+  }
+
+  .stack-sections .learn-image,
+  .stack-sections .community-image {
+    max-width: min(100%, 20rem);
   }
 
   .stack-sections .battles-title,
