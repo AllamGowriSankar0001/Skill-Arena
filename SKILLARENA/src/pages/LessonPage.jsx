@@ -8,11 +8,13 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { learningApi, platformApi } from '../services/api'
 import { applyXpUpdate } from '../utils/xpSync'
+import { getCodingGateAction } from '../utils/codingGateAction'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './LessonPage.css'
 
 const CodingPlayground = lazy(() => import('../components/CodingPlayground'))
+const CodingViewportGate = lazy(() => import('../components/CodingViewportGate'))
 
 const formatLabel = (value = '') =>
   value
@@ -244,14 +246,24 @@ const LessonPage = () => {
       }
       return (
         <Suspense fallback={<p className="app-section-meta">Loading coding playground…</p>}>
-          <CodingPlayground
-            lessonId={lessonId}
-            payload={codingPayload}
-            progress={progressDetail}
-            onProgressUpdate={handleLessonCompleted}
-            nextLessonId={progressDetail?.nextLessonId}
-            coursePath={coursePath}
-          />
+          <CodingViewportGate
+            action={getCodingGateAction({
+              passed: progressDetail?.status === 'COMPLETED',
+              inProgress: progressDetail?.status === 'IN_PROGRESS',
+            })}
+            contextLabel="coding lesson"
+            backTo={coursePath}
+            backLabel="← Back to course"
+          >
+            <CodingPlayground
+              lessonId={lessonId}
+              payload={codingPayload}
+              progress={progressDetail}
+              onProgressUpdate={handleLessonCompleted}
+              nextLessonId={progressDetail?.nextLessonId}
+              coursePath={coursePath}
+            />
+          </CodingViewportGate>
         </Suspense>
       )
     }

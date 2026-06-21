@@ -1,0 +1,70 @@
+.coding-viewport-gate {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  text-align: center;
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.25rem, 4vw, 2rem);
+  border-radius: 1rem;
+  border: 1px solid rgba(67, 56, 202, 0.18);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(67, 56, 202, 0.1), transparent 55%),
+    #fff;
+  box-shadow: 0 12px 32px rgba(26, 17, 10, 0.06);
+}
+
+.coding-viewport-gate-icon {
+  width: 4.5rem;
+  height: 3.5rem;
+  color: #4338ca;
+}
+
+.coding-viewport-gate-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6366f1;
+}
+
+.coding-viewport-gate-title {
+  margin: 0;
+  max-width: 22rem;
+  font-size: clamp(1.25rem, 3vw, 1.55rem);
+  line-height: 1.35;
+  color: #1a110a;
+}
+
+.coding-viewport-gate-copy {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6b5f54;
+}
+
+.coding-viewport-gate-list {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+  max-width: 24rem;
+  text-align: left;
+  font-size: 0.84rem;
+  color: #6b5f54;
+}
+
+.coding-viewport-gate-back {
+  margin-top: 0.35rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.55rem;
+  background: #1a110a;
+  color: #fdf8f0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.coding-viewport-gate-back:hover {
+  background: #2d2218;
+}

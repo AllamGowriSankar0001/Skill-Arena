@@ -176,6 +176,11 @@
   color: #b91c1c;
 }
 
+.practice-badge--desktop {
+  background: rgba(67, 56, 202, 0.1);
+  color: #4338ca;
+}
+
 .practice-card-icon {
   flex-shrink: 0;
   display: inline-flex;

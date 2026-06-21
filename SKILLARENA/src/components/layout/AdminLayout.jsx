@@ -55,6 +55,12 @@ const AdminNavIcon = ({ name }) => {
         <path d="M19.5 19.5c0-2.2-1.5-4-3.5-4.5" />
       </svg>
     ),
+    community: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M4 6.5h16a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-4 3v-3H4a1.5 1.5 0 0 1-1.5-1.5V8a1.5 1.5 0 0 1 1.5-1.5z" />
+        <path d="M8 10.5h8M8 13.5h5" />
+      </svg>
+    ),
   }
 
   return <span className="admin-nav-icon">{icons[name]}</span>
@@ -77,6 +83,7 @@ const NAV_GROUPS = [
     label: 'Management',
     items: [
       { label: 'Users', to: ROUTES.adminUsers, icon: 'users' },
+      { label: 'Community', to: ROUTES.adminCommunity, icon: 'community' },
       { label: 'Resume builder', to: ROUTES.adminResume, icon: 'resume' },
       { label: 'User resumes', to: ROUTES.adminResumes, icon: 'resumes' },
     ],
@@ -117,8 +124,26 @@ const AdminLayout = () => {
     }
   }, [menuOpen])
 
+  const isFullBleed = location.pathname === ROUTES.adminCommunity
+  const isCommunityRoute = location.pathname === ROUTES.adminCommunity
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(isCommunityRoute)
+
+  useEffect(() => {
+    if (isCommunityRoute) {
+      setSidebarCollapsed(true)
+    }
+  }, [isCommunityRoute])
+
+  const shellClassName = [
+    'admin-shell',
+    menuOpen ? 'admin-shell--menu-open' : '',
+    sidebarCollapsed ? 'admin-shell--sidebar-collapsed' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`admin-shell${menuOpen ? ' admin-shell--menu-open' : ''}`}>
+    <div className={shellClassName}>
       <header className={`admin-mobile-topbar${menuOpen ? ' admin-mobile-topbar--open' : ''}`}>
         <Link to={ROUTES.admin} className="admin-mobile-brand" onClick={closeMenu}>
           <img src={skillArenaLogo} alt="" className="admin-brand-logo" aria-hidden="true" />
@@ -151,6 +176,22 @@ const AdminLayout = () => {
               <span>Admin console</span>
             </div>
           </Link>
+          <button
+            type="button"
+            className="admin-sidebar-collapse"
+            onClick={() => setSidebarCollapsed((current) => !current)}
+            aria-label={sidebarCollapsed ? 'Expand admin navigation' : 'Collapse admin navigation'}
+            aria-expanded={!sidebarCollapsed}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              {sidebarCollapsed ? (
+                <path d="M9 6l6 6-6 6" />
+              ) : (
+                <path d="M15 18l-6-6 6-6" />
+              )}
+            </svg>
+          </button>
         </div>
 
         <nav className="admin-nav" aria-label="Admin navigation">
@@ -166,6 +207,7 @@ const AdminLayout = () => {
                       to={item.to}
                       className={`admin-nav-link${active ? ' admin-nav-link--active' : ''}`}
                       aria-current={active ? 'page' : undefined}
+                      title={sidebarCollapsed ? item.label : undefined}
                       onClick={closeMenu}
                     >
                       <AdminNavIcon name={item.icon} />
@@ -210,7 +252,7 @@ const AdminLayout = () => {
         onClick={closeMenu}
       />
 
-      <main className="admin-main">
+      <main className={`admin-main${isFullBleed ? ' admin-main--fullbleed' : ''}`}>
         <Outlet />
       </main>
     </div>

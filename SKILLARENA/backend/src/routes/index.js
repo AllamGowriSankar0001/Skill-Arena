@@ -5,6 +5,7 @@ const platformRoutes = require('./platformRoutes');
 const adminRoutes = require('./adminRoutes');
 const resumeRoutes = require('./resumeRoutes');
 const learningRoutes = require('./learningRoutes');
+const battleRoutes = require('./battleRoutes');
 
 const router = express.Router();
 
@@ -13,6 +14,7 @@ router.use('/home', homeRoutes);
 router.use('/platform', platformRoutes);
 router.use('/resume', resumeRoutes);
 router.use('/learning', learningRoutes);
+router.use('/battles', battleRoutes);
 router.use('/admin', adminRoutes);
 
 router.get('/health', (req, res) => {

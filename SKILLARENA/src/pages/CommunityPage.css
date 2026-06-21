@@ -16,6 +16,19 @@
   background: var(--disc-chat-bg);
 }
 
+.disc-community--admin {
+  --disc-shell-height: 100%;
+  height: 100%;
+}
+
+.disc-community--admin .disc-server {
+  display: none;
+}
+
+.disc-community--admin .disc-channel-search {
+  padding-top: 0.85rem;
+}
+
 .disc-community-shell {
   display: flex;
   width: 100%;

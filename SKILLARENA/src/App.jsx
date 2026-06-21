@@ -17,6 +17,7 @@ import LessonPage from './pages/LessonPage'
 import PracticePage from './pages/PracticePage'
 import PracticeDetailPage from './pages/PracticeDetailPage'
 import BattlesAppPage from './pages/BattlesAppPage'
+import BattleRoomPage from './pages/BattleRoomPage'
 import LeaderboardAppPage from './pages/LeaderboardAppPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -83,6 +84,7 @@ function App() {
         <Route path={ROUTES.practice} element={<PracticePage />} />
         <Route path={`${ROUTES.practice}/:assessmentId`} element={<PracticeDetailPage />} />
         <Route path={ROUTES.battles} element={<BattlesAppPage />} />
+        <Route path={`${ROUTES.battles}/:battleId`} element={<BattleRoomPage />} />
         <Route path={ROUTES.leaderboard} element={<LeaderboardAppPage />} />
         <Route path={ROUTES.community} element={<CommunityPage />} />
         <Route path={ROUTES.profile} element={<ProfilePage />} />
@@ -103,6 +105,7 @@ function App() {
         <Route path={ROUTES.adminResume} element={<ResumeMakerPage adminMode />} />
         <Route path={ROUTES.adminResumes} element={<AdminResumesPage />} />
         <Route path={ROUTES.adminUsers} element={<AdminUsersPage />} />
+        <Route path={ROUTES.adminCommunity} element={<CommunityPage adminLayout />} />
       </Route>
     </Routes>
     </>

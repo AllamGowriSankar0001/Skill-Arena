@@ -102,7 +102,6 @@ const battleSchema = new mongoose.Schema(
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Assessment',
-      required: true,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

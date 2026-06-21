@@ -144,7 +144,7 @@ const LeaderboardAppPage = () => {
                 'Compare progress globally, within a course category, or on a specific course.'}
             </p>
           </div>
-          {data?.yourRank ? (
+          {user && data?.yourRank ? (
             <div className="leaderboard-you-card" aria-label="Your current rank">
               <span>Your rank</span>
               <strong>#{data.yourRank}</strong>

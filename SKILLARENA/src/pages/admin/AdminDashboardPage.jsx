@@ -110,6 +110,14 @@ const QUICK_ACTIONS = [
     icon: 'users',
   },
   {
+    title: 'Community',
+    copy: 'Official channels, rooms, posts, and moderation.',
+    to: ROUTES.adminCommunity,
+    label: 'Open',
+    accent: 'blog',
+    icon: 'blog',
+  },
+  {
     title: 'Resume',
     copy: 'AI builder and saved user resumes.',
     to: ROUTES.adminResume,

@@ -358,3 +358,25 @@ export const learningApi = {
   deleteCommunityRoom: (roomId) =>
     request(`/learning/community/rooms/${roomId}`, { method: 'DELETE' }),
 }
+
+export const battleApi = {
+  meta: () => request('/battles/meta'),
+  history: () => request('/battles/history'),
+  joinQueue: (payload) =>
+    request('/battles/queue', { method: 'POST', body: JSON.stringify(payload) }),
+  queueStatus: () => request('/battles/queue/status'),
+  leaveQueue: () => request('/battles/queue', { method: 'DELETE' }),
+  createFriendBattle: (payload) =>
+    request('/battles/friends/create', { method: 'POST', body: JSON.stringify(payload) }),
+  joinFriendBattle: (payload) =>
+    request('/battles/friends/join', { method: 'POST', body: JSON.stringify(payload) }),
+  startFriendBattle: (battleId) =>
+    request(`/battles/${battleId}/start`, { method: 'POST' }),
+  getBattle: (battleId) => request(`/battles/${battleId}`),
+  getQuiz: (battleId) => request(`/battles/${battleId}/quiz`),
+  submitQuiz: (battleId, answers) =>
+    request(`/battles/${battleId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    }),
+}

@@ -184,7 +184,7 @@ async function getWeeklyLeaderboard(userId) {
 
   const myStats = await UserStats.findOne({ userId });
   let yourRank = null;
-  if (myStats) {
+  if (myStats && myStats.totalXp > 0) {
     yourRank =
       (await UserStats.countDocuments({
         userId: { $nin: adminIds },

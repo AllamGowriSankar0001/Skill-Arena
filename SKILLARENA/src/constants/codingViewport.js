@@ -1,0 +1,3 @@
+export const CODING_VIEWPORT_MIN_WIDTH = 768
+
+export const CODING_VIEWPORT_MEDIA_QUERY = `(min-width: ${CODING_VIEWPORT_MIN_WIDTH}px)`

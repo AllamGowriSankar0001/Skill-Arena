@@ -571,7 +571,7 @@ const ChannelWelcome = ({ channel }) => (
   </div>
 )
 
-const CommunityPage = () => {
+const CommunityPage = ({ adminLayout = false }) => {
   const { user } = useAuth()
   const isPlatformAdmin = user?.role === 'ADMIN'
   const [channels, setChannels] = useState([])
@@ -812,7 +812,7 @@ const CommunityPage = () => {
     filteredGroups.courses.length > 0
 
   return (
-    <main className="disc-community">
+    <main className={`disc-community${adminLayout ? ' disc-community--admin' : ''}`}>
       <div className="disc-community-shell">
         {sidebarOpen ? (
           <button

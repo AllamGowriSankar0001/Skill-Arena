@@ -4,6 +4,7 @@ import AppEmptyState from '../components/AppEmptyState'
 import { learningApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { getPracticeModeMeta } from '../utils/practiceMode'
+import useCodingViewportAllowed from '../hooks/useCodingViewportAllowed'
 import './PracticePage.css'
 
 const formatLabel = (value = '') =>
@@ -26,6 +27,7 @@ const PracticeCardSkeleton = () => (
 )
 
 const PracticePage = () => {
+  const codingViewportAllowed = useCodingViewportAllowed()
   const [assessments, setAssessments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -159,6 +161,9 @@ const PracticePage = () => {
                   {assessment.description ? <p>{assessment.description}</p> : null}
                   <div className="practice-card-meta">
                     <span>{modeMeta.label}</span>
+                    {assessment.mode === 'CODING' && !codingViewportAllowed ? (
+                      <span className="practice-badge practice-badge--desktop">Laptop / tablet</span>
+                    ) : null}
                     <span>{assessment.questionCount || 0} question{(assessment.questionCount || 0) === 1 ? '' : 's'}</span>
                     {assessment.xpReward ? <span>{assessment.xpReward} XP</span> : null}
                   </div>

@@ -246,7 +246,7 @@ const DashboardPage = () => {
                   <div className="dashboard-panel-head dashboard-panel-head--compact">
                     <div>
                       <h2>Weekly leaderboard</h2>
-                      {leaderboard.yourRank ? (
+                      {user && leaderboard.yourRank ? (
                         <p>Your rank: #{leaderboard.yourRank}</p>
                       ) : (
                         <p>Top learners this week</p>

@@ -11,13 +11,12 @@ const NAVBAR_LINKS = [{ label: 'Dashboard', to: ROUTES.dashboard }]
 const DROPDOWN_LINKS = [
   { label: 'Learn', to: ROUTES.learn },
   { label: 'Practice', to: ROUTES.practice },
+  { label: 'Battles', to: ROUTES.battles },
   { label: 'Community', to: ROUTES.community },
   { label: 'Leaderboard', to: ROUTES.leaderboard },
   { label: 'Resume', to: ROUTES.resume },
   { label: 'Profile', to: ROUTES.profile },
 ]
-
-const MOBILE_EXTRA_LINKS = [{ label: 'Battles', to: ROUTES.battles }]
 
 const getInitials = (name = '') => {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -130,7 +129,7 @@ const AppNavbar = () => {
     )
   }
 
-  const mobileLinks = [...NAVBAR_LINKS, ...DROPDOWN_LINKS, ...MOBILE_EXTRA_LINKS]
+  const mobileLinks = [...NAVBAR_LINKS, ...DROPDOWN_LINKS]
 
   return (
     <>

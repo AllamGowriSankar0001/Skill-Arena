@@ -5,6 +5,8 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const routes = require('./routes');
 const errorMiddleware = require('./middleware/errorMiddleware');
+const { tryMatchWaitingTickets, expireStaleTickets, startBattleIfReady } = require('./services/matchmakingService');
+const { Battle } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -55,6 +57,19 @@ const start = async () => {
     app.listen(PORT, () => {
       console.log(`Skill Arena API running on http://localhost:${PORT}`);
     });
+
+    setInterval(async () => {
+      try {
+        await tryMatchWaitingTickets();
+        await expireStaleTickets();
+        const startingBattles = await Battle.find({ status: { $in: ['STARTING', 'IN_PROGRESS'] } });
+        for (const battle of startingBattles) {
+          await startBattleIfReady(battle._id);
+        }
+      } catch (error) {
+        console.error('Battle scheduler error:', error.message);
+      }
+    }, 2000);
   } catch (error) {
     console.error('Failed to start server:', error.message);
     process.exit(1);

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CodingPlayground from '../components/CodingPlayground'
+import CodingViewportGate from '../components/CodingViewportGate'
 import PracticeQuiz from '../components/PracticeQuiz'
 import { useAuth } from '../context/AuthContext'
 import { applyXpUpdate } from '../utils/xpSync'
 import { learningApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { getPracticeModeMeta } from '../utils/practiceMode'
+import { getCodingGateAction } from '../utils/codingGateAction'
 import './PracticeDetailPage.css'
 
 const formatLabel = (value = '') =>
@@ -85,6 +87,10 @@ const PracticeDetailPage = () => {
   }
 
   const modeMeta = getPracticeModeMeta(practice)
+  const codingAction = getCodingGateAction({
+    passed: practice.passed,
+    attemptCount: practice.attemptCount,
+  })
 
   return (
     <main className="practice-detail-page">
@@ -163,12 +169,19 @@ const PracticeDetailPage = () => {
 
         <section className="practice-detail-session">
           {practice.sessionType === 'CODING' && codingPayload ? (
-            <CodingPlayground
-              contextType="practice"
-              assessmentId={assessmentId}
-              payload={codingPayload}
-              onProgressUpdate={handleCompleted}
-            />
+            <CodingViewportGate
+              action={codingAction}
+              contextLabel="coding practice"
+              backTo={ROUTES.practice}
+              backLabel="← Back to practice"
+            >
+              <CodingPlayground
+                contextType="practice"
+                assessmentId={assessmentId}
+                payload={codingPayload}
+                onProgressUpdate={handleCompleted}
+              />
+            </CodingViewportGate>
           ) : null}
 
           {practice.sessionType === 'QUIZ' && quiz ? (
