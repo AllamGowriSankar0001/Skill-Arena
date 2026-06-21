@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
+import { ROUTES } from '../routes'
 import './CommunitySection.css'
 
 const COMMUNITY_IMAGE = '/community.png'
@@ -49,9 +51,9 @@ const CommunitySection = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={320}>
-            <a href="#community" className="community-link">
-              Learn more <span aria-hidden="true">→</span>
-            </a>
+            <Link to={ROUTES.community} className="community-link">
+              Join the community <span aria-hidden="true">→</span>
+            </Link>
           </ScrollReveal>
         </div>
       </div>

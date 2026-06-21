@@ -12,20 +12,97 @@ const {
   DailyChallenge,
   Assessment,
   Achievement,
+  Question,
+  QuestionSolution,
 } = require('../src/models');
+
+async function seedCommunityPosts(authorId) {
+  const CommunityPost = require('../src/models/CommunityPost');
+  if (!authorId) return;
+
+  const count = await CommunityPost.countDocuments();
+  if (count > 0) return;
+
+  await CommunityPost.insertMany([
+    {
+      authorId,
+      postType: 'DISCUSSION',
+      category: 'CODING',
+      title: 'Best way to prep for JS battles?',
+      content:
+        'I keep losing early-round JS duels even though I finish lessons fine. Do you drill practice sets first, or jump straight into ranked? Curious what worked for people who climbed Gold.',
+      likeCount: 12,
+      commentCount: 4,
+    },
+    {
+      authorId,
+      postType: 'WIN',
+      category: 'BATTLES',
+      title: 'First 3v3 squad win!',
+      content:
+        'Our squad finally synced roles — one on speed, one on accuracy, one on clutch tie-breakers. Down 2-1 and came back in the final round. Replay link below if anyone wants pointers.',
+      linkUrl: 'https://skillarena.com/replays/demo-squad-win',
+      likeCount: 28,
+      commentCount: 7,
+    },
+    {
+      authorId,
+      postType: 'REPLAY',
+      category: 'CODING',
+      title: 'Close coding duel — array methods',
+      content:
+        'Shared a replay from a 1v1 where both of us missed the optimal map/filter chain. Good learning moment — happy to get roasted in the comments.',
+      linkUrl: 'https://skillarena.com/replays/demo-coding-duel',
+      likeCount: 19,
+      commentCount: 3,
+    },
+    {
+      authorId,
+      postType: 'QUESTION',
+      category: 'DESIGN',
+      content:
+        'Anyone running a design study lounge this week? Looking for folks doing Figma + accessibility modules together before the seasonal bracket.',
+      likeCount: 8,
+      commentCount: 2,
+    },
+    {
+      authorId,
+      postType: 'EVENT',
+      category: 'GENERAL',
+      title: 'Community Challenge Week — sign-ups open',
+      content:
+        'Seasonal challenge week starts Monday. Squad up, complete daily drills, and earn limited badges. Drop your squad name below if you are LFG.',
+      likeCount: 34,
+      commentCount: 11,
+    },
+    {
+      authorId,
+      postType: 'RESOURCE',
+      category: 'CAREER',
+      title: 'Resume tips thread',
+      content:
+        'Just shipped my resume through the Skill Arena builder and got callbacks. Sharing the structure that helped — ask anything about projects vs certifications.',
+      likeCount: 15,
+      commentCount: 5,
+    },
+  ]);
+
+  console.log('- Community: sample posts created');
+}
 
 async function seed() {
   await connectDB();
 
+  const admin = await User.findOne({ role: 'STUDENT' }).sort({ createdAt: 1 });
+  const instructorId = admin?._id;
+
   const existingCourses = await Course.countDocuments();
   if (existingCourses > 0) {
+    await seedCommunityPosts(instructorId);
     console.log('Seed skipped — platform content already exists.');
     await mongoose.disconnect();
     return;
   }
-
-  const admin = await User.findOne({ role: 'STUDENT' }).sort({ createdAt: 1 });
-  const instructorId = admin?._id;
 
   if (!instructorId) {
     console.log('Seed skipped — create a user account first, then run npm run seed.');
@@ -227,7 +304,7 @@ async function seed() {
     },
   ]);
 
-  await Assessment.insertMany([
+  const practiceSets = await Assessment.insertMany([
     {
       title: 'JavaScript Quick Drill',
       description: 'Five fast multiple-choice questions to warm up.',
@@ -236,6 +313,7 @@ async function seed() {
       skillId: jsSkill._id,
       difficulty: 'EASY',
       xpReward: 30,
+      passingPercentage: 70,
       status: 'PUBLISHED',
       createdBy: instructorId,
     },
@@ -247,6 +325,7 @@ async function seed() {
       skillId: jsSkill._id,
       difficulty: 'MEDIUM',
       xpReward: 45,
+      passingPercentage: 75,
       status: 'PUBLISHED',
       createdBy: instructorId,
     },
@@ -258,10 +337,173 @@ async function seed() {
       skillId: reactSkill._id,
       difficulty: 'EASY',
       xpReward: 35,
+      passingPercentage: 70,
+      status: 'PUBLISHED',
+      createdBy: instructorId,
+    },
+    {
+      title: 'Build a Profile Card',
+      description: 'Create a responsive profile card with HTML, CSS, and JavaScript.',
+      type: 'PRACTICE',
+      mode: 'CODING',
+      skillId: jsSkill._id,
+      difficulty: 'MEDIUM',
+      xpReward: 50,
+      passingPercentage: 100,
       status: 'PUBLISHED',
       createdBy: instructorId,
     },
   ]);
+
+  const mcqBank = [
+    {
+      prompt: 'Which keyword declares a block-scoped variable in JavaScript?',
+      options: [
+        { optionId: 'opt-1', text: 'var' },
+        { optionId: 'opt-2', text: 'let' },
+        { optionId: 'opt-3', text: 'define' },
+        { optionId: 'opt-4', text: 'static' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: '`let` creates block-scoped variables, unlike `var`.',
+    },
+    {
+      prompt: 'What does `Array.prototype.map()` return?',
+      options: [
+        { optionId: 'opt-1', text: 'The original array mutated in place' },
+        { optionId: 'opt-2', text: 'A new array with transformed values' },
+        { optionId: 'opt-3', text: 'A boolean indicating success' },
+        { optionId: 'opt-4', text: 'The first matching element' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: '`map` always returns a new array without mutating the source array.',
+    },
+    {
+      prompt: 'Which method creates a shallow copy of an array?',
+      options: [
+        { optionId: 'opt-1', text: 'Array.push()' },
+        { optionId: 'opt-2', text: 'Array.slice()' },
+        { optionId: 'opt-3', text: 'Array.sort()' },
+        { optionId: 'opt-4', text: 'Array.pop()' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: '`slice()` returns a shallow copy; spread syntax `[...arr]` works too.',
+    },
+    {
+      prompt: 'What is JSX in React?',
+      options: [
+        { optionId: 'opt-1', text: 'A JavaScript database driver' },
+        { optionId: 'opt-2', text: 'A syntax extension that looks like HTML in JavaScript' },
+        { optionId: 'opt-3', text: 'A CSS preprocessor' },
+        { optionId: 'opt-4', text: 'A testing library' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: 'JSX is syntactic sugar compiled to `React.createElement` calls.',
+    },
+    {
+      prompt: 'In React, props are best described as…',
+      options: [
+        { optionId: 'opt-1', text: 'Internal mutable state' },
+        { optionId: 'opt-2', text: 'Read-only inputs passed from parent to child' },
+        { optionId: 'opt-3', text: 'Global variables on `window`' },
+        { optionId: 'opt-4', text: 'Database connection strings' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: 'Props flow down the component tree and should be treated as immutable.',
+    },
+    {
+      prompt: 'Which array method filters elements based on a predicate?',
+      options: [
+        { optionId: 'opt-1', text: 'reduce' },
+        { optionId: 'opt-2', text: 'filter' },
+        { optionId: 'opt-3', text: 'forEach' },
+        { optionId: 'opt-4', text: 'join' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: '`filter` returns all elements for which the callback returns a truthy value.',
+    },
+    {
+      prompt: 'What hook stores local component state in a function component?',
+      options: [
+        { optionId: 'opt-1', text: 'useMemo' },
+        { optionId: 'opt-2', text: 'useState' },
+        { optionId: 'opt-3', text: 'useRef' },
+        { optionId: 'opt-4', text: 'useContext' },
+      ],
+      correctOptionId: 'opt-2',
+      explanation: '`useState` returns a state value and an updater function.',
+    },
+  ];
+
+  async function attachMcqToAssessment(assessment, prompts, skillId) {
+    const entries = [];
+    for (let index = 0; index < prompts.length; index += 1) {
+      const item = prompts[index];
+      const question = await Question.create({
+        type: 'SINGLE_CHOICE',
+        skillId,
+        difficulty: assessment.difficulty,
+        prompt: item.prompt,
+        options: item.options,
+        status: 'PUBLISHED',
+        createdBy: instructorId,
+      });
+      await QuestionSolution.create({
+        questionId: question._id,
+        correctOptionIds: [item.correctOptionId],
+        explanation: item.explanation,
+      });
+      entries.push({ questionId: question._id, order: index, points: 10 });
+    }
+    assessment.questions = entries;
+    await assessment.save();
+  }
+
+  await attachMcqToAssessment(practiceSets[0], mcqBank.slice(0, 3), jsSkill._id);
+  await attachMcqToAssessment(practiceSets[1], mcqBank.slice(1, 5), jsSkill._id);
+  await attachMcqToAssessment(practiceSets[2], mcqBank.slice(3, 6), reactSkill._id);
+
+  const codingQuestion = await Question.create({
+    type: 'CODING',
+    skillId: jsSkill._id,
+    difficulty: 'MEDIUM',
+    title: 'Profile Card',
+    prompt: 'Build a profile card with a name, role, and a button that updates the greeting in the preview.',
+    codingDetails: {
+      supportedLanguages: ['HTML', 'CSS', 'JavaScript'],
+      starterCode: [
+        { language: 'HTML', code: '<div class="card">\n  <h1 id="name">Your Name</h1>\n  <p id="role">Your Role</p>\n  <button id="cta">Say hello</button>\n  <p id="greeting"></p>\n</div>' },
+        { language: 'CSS', code: '.card {\n  padding: 1rem;\n  border-radius: 0.75rem;\n  background: #fff;\n  max-width: 16rem;\n}\n\nbutton {\n  margin-top: 0.5rem;\n}' },
+        { language: 'JavaScript', code: "const button = document.querySelector('#cta');\nconst greeting = document.querySelector('#greeting');\n\nbutton.addEventListener('click', () => {\n  greeting.textContent = 'Hello from Skill Arena!';\n});" },
+      ],
+      instructions: 'Style the card and wire the button so the greeting appears when clicked.',
+      expectedOutputDescription: 'Clicking the button should set the greeting text.',
+      hints: ['Use querySelector to grab the button and greeting elements.'],
+      visibleTestCases: [
+        { type: 'dom', selector: '.card', label: 'Profile card container exists' },
+        { type: 'dom', selector: '#cta', label: 'Call-to-action button exists' },
+      ],
+      sampleTestCases: [
+        { type: 'dom', selector: '.card', label: 'Profile card container exists' },
+        { type: 'dom', selector: '#cta', label: 'Call-to-action button exists' },
+      ],
+    },
+    status: 'PUBLISHED',
+    createdBy: instructorId,
+  });
+
+  await QuestionSolution.create({
+    questionId: codingQuestion._id,
+    explanation: 'A valid solution renders a card, button, and updates greeting text on click.',
+    codingSolution: {
+      hiddenTestCases: [
+        { type: 'dom', selector: '#greeting', label: 'Greeting element exists' },
+      ],
+    },
+  });
+
+  practiceSets[3].questions = [{ questionId: codingQuestion._id, order: 0, points: 100 }];
+  await practiceSets[3].save();
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -306,6 +548,7 @@ async function seed() {
   console.log('Seed complete.');
   console.log(`- Courses: JavaScript Fundamentals, React for Beginners, Node.js Essentials`);
   console.log(`- JS lessons: ${jsLessons.length}`);
+  await seedCommunityPosts(instructorId);
   await mongoose.disconnect();
 }
 

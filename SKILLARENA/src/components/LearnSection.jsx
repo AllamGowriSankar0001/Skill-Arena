@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
+import { ROUTES } from '../routes'
 import './LearnSection.css'
 
 const LIBRARY_IMAGE = '/library.png'
@@ -27,9 +29,9 @@ const LearnSection = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={240}>
-            <a href="#learn" className="learn-link">
-              Learn more <span aria-hidden="true">→</span>
-            </a>
+            <Link to={ROUTES.learn} className="learn-link">
+              Explore courses <span aria-hidden="true">→</span>
+            </Link>
           </ScrollReveal>
         </div>
 

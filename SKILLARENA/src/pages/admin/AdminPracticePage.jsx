@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { adminApi } from '../../services/api'
+import { buildPreviewDocument, hasPreviewCode } from '../../utils/codingPreview'
 import './AdminPracticePage.css'
 
 const EMPTY_ASSESSMENT = {
@@ -21,6 +22,202 @@ const EMPTY_QUESTION = {
   optionD: '',
   correctOptionId: 'opt-1',
   explanation: '',
+}
+
+const EMPTY_AI_FORM = {
+  title: '',
+  description: '',
+  mode: 'QUIZ',
+  questionType: 'SINGLE_CHOICE',
+  assessmentId: '',
+}
+
+const QUESTION_TYPE_OPTIONS = [
+  { value: 'SINGLE_CHOICE', label: 'Single choice (4 options)' },
+  { value: 'MULTIPLE_CHOICE', label: 'Multiple choice (select all that apply)' },
+  { value: 'TRUE_FALSE', label: 'True / False' },
+]
+
+const QUESTION_TYPE_LABELS = {
+  SINGLE_CHOICE: 'Single choice',
+  MULTIPLE_CHOICE: 'Multiple choice',
+  TRUE_FALSE: 'True / False',
+  CODING: 'Coding',
+}
+
+const CodingExpectedPreview = ({ html, css, javascript }) => {
+  const srcDoc = useMemo(
+    () => buildPreviewDocument({
+      html: html || '',
+      css: css || '',
+      javascript: javascript || '',
+    }),
+    [html, css, javascript],
+  )
+
+  return (
+    <div className="admin-practice-coding-preview-wrap">
+      <iframe
+        className="admin-practice-coding-preview"
+        title="Expected output preview"
+        srcDoc={srcDoc}
+        sandbox="allow-scripts"
+      />
+    </div>
+  )
+}
+
+const getTestCaseExactValue = (testCase) => {
+  if (testCase?.expectedOutput) return String(testCase.expectedOutput)
+  if (testCase?.expected != null && testCase.expected !== '') return String(testCase.expected)
+  return null
+}
+
+const collectExactExpectedValues = (question) => {
+  const cases = [...(question.visibleTestCases || []), ...(question.hiddenTestCases || [])]
+  return cases
+    .map((testCase) => ({
+      label: testCase.label || testCase.type?.replace(/_/g, ' ').toLowerCase() || 'Expected value',
+      value: getTestCaseExactValue(testCase),
+    }))
+    .filter((item) => item.value)
+}
+
+const formatTestCaseSummary = (testCase) => {
+  const exact = getTestCaseExactValue(testCase)
+  if (testCase?.label && exact) return `${testCase.label} → "${exact}"`
+  if (exact) return `"${exact}"`
+  if (testCase?.label) return testCase.label
+
+  const parts = []
+  if (testCase?.type) parts.push(testCase.type.replace(/_/g, ' ').toLowerCase())
+  if (testCase?.selector) parts.push(`"${testCase.selector}"`)
+  return parts.length ? parts.join(' · ') : 'Test case'
+}
+
+const renderCodingQuestionDetails = (question) => {
+  const reference = {
+    html: question.referenceHtml,
+    css: question.referenceCss,
+    javascript: question.referenceJavascript,
+  }
+  const showPreview = hasPreviewCode(reference)
+  const exactValues = collectExactExpectedValues(question)
+
+  return (
+    <div className="admin-practice-coding-details">
+      {showPreview ? (
+        <div className="admin-practice-coding-block admin-practice-coding-block--expected">
+          <span className="admin-practice-coding-label">Expected output (live preview)</span>
+          <CodingExpectedPreview {...reference} />
+        </div>
+      ) : null}
+
+      {!showPreview && exactValues.length ? (
+        <div className="admin-practice-coding-block admin-practice-coding-block--expected">
+          <span className="admin-practice-coding-label">Exact expected values</span>
+          <ul className="admin-practice-coding-exact-list">
+            {exactValues.map((item, index) => (
+              <li key={`exact-${index}`}>
+                <span>{item.label}</span>
+                <code>{item.value}</code>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {question.instructions ? (
+        <div className="admin-practice-coding-block">
+          <span className="admin-practice-coding-label">Instructions</span>
+          <p>{question.instructions}</p>
+        </div>
+      ) : null}
+
+      {question.visibleTestCases?.length ? (
+        <div className="admin-practice-coding-block">
+          <span className="admin-practice-coding-label">Visible test checks</span>
+          <ul className="admin-practice-coding-test-list">
+            {question.visibleTestCases.map((testCase, index) => (
+              <li key={`visible-${index}`}>{formatTestCaseSummary(testCase)}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {question.hiddenTestCases?.length ? (
+        <div className="admin-practice-coding-block">
+          <span className="admin-practice-coding-label">Hidden test checks</span>
+          <ul className="admin-practice-coding-test-list">
+            {question.hiddenTestCases.map((testCase, index) => (
+              <li key={`hidden-${index}`}>{formatTestCaseSummary(testCase)}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {question.hints?.length ? (
+        <div className="admin-practice-coding-block">
+          <span className="admin-practice-coding-label">Hints</span>
+          <ul className="admin-practice-coding-test-list">
+            {question.hints.map((hint, index) => (
+              <li key={`hint-${index}`}>{hint}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {!showPreview
+        && !exactValues.length
+        && !question.instructions
+        && !question.visibleTestCases?.length
+        && !question.hiddenTestCases?.length ? (
+          <p className="admin-muted">
+            No reference preview stored. Regenerate this challenge with AI to capture the exact expected output.
+          </p>
+        ) : null}
+    </div>
+  )
+}
+
+const renderQuestionOptions = (question) => {
+  if (question.type === 'CODING') {
+    return renderCodingQuestionDetails(question)
+  }
+
+  if (!question.options?.length) {
+    return <p className="admin-muted">No options stored for this question.</p>
+  }
+
+  const correctIds = new Set(
+    question.correctOptionIds?.length
+      ? question.correctOptionIds
+      : question.correctOptionId
+        ? [question.correctOptionId]
+        : [],
+  )
+
+  return (
+    <ul className="admin-practice-question-options">
+      {question.options.map((option, optionIndex) => {
+        const isCorrect = correctIds.has(option.optionId)
+        return (
+          <li
+            key={option.optionId || `opt-${optionIndex}`}
+            className={`admin-practice-question-option${isCorrect ? ' admin-practice-question-option--correct' : ''}`}
+          >
+            <span className="admin-practice-question-option-label">
+              {String.fromCharCode(65 + optionIndex)}
+            </span>
+            <span className="admin-practice-question-option-text">{option.text}</span>
+            {isCorrect ? (
+              <span className="admin-practice-question-option-badge">Correct</span>
+            ) : null}
+          </li>
+        )
+      })}
+    </ul>
+  )
 }
 
 const STATUS_FILTERS = [
@@ -92,6 +289,8 @@ const AdminPracticePage = () => {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [questionContextAssessment, setQuestionContextAssessment] = useState(null)
+  const [aiForm, setAiForm] = useState(EMPTY_AI_FORM)
+  const [generatingAi, setGeneratingAi] = useState(false)
 
   const stats = useMemo(() => {
     const published = assessments.filter((item) => item.status === 'PUBLISHED').length
@@ -175,6 +374,8 @@ const AdminPracticePage = () => {
     setAssessmentDetail(null)
     setQuestionContextAssessment(null)
     setCustomSkillName('')
+    setAiForm(EMPTY_AI_FORM)
+    setGeneratingAi(false)
   }
 
   const loadAssessmentDetail = async (assessmentId) => {
@@ -259,6 +460,62 @@ const AdminPracticePage = () => {
       skillId: current.skillId || skills[0]?.id || '',
     }))
     setModal('create')
+  }
+
+  const openAiModal = (assessment = null) => {
+    setAiForm({
+      ...EMPTY_AI_FORM,
+      title: assessment?.title || '',
+      description: assessment?.description || '',
+      mode: assessment?.mode === 'CODING' ? 'CODING' : 'QUIZ',
+      assessmentId: assessment?.id || '',
+    })
+    setModal('ai')
+  }
+
+  const handleAiFormChange = (event) => {
+    const { name, value } = event.target
+    setAiForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
+
+  const handleGeneratePracticeWithAI = async (event) => {
+    event.preventDefault()
+    setGeneratingAi(true)
+    setMessage('')
+    setError('')
+
+    try {
+      const payload = {
+        title: aiForm.title.trim(),
+        description: aiForm.description.trim(),
+        mode: aiForm.assessmentId ? activeAssessment?.mode : aiForm.mode,
+        questionType: aiForm.questionType,
+        assessmentId: aiForm.assessmentId || undefined,
+      }
+      const result = await adminApi.generatePracticeWithAI(payload)
+      const addedCount = result.questionCount ?? 0
+      const planHint = result.plan?.mode === 'CODING' ? 'coding challenge' : `${addedCount} question${addedCount === 1 ? '' : 's'}`
+      const seriesHint = result.series?.isContinuation
+        ? ` Linked as part ${result.series.seriesPart} of "${result.series.seriesBaseTitle}" (${result.series.avoidedQuestionCount} prior question${result.series.avoidedQuestionCount === 1 ? '' : 's'} avoided).`
+        : ''
+      setMessage(
+        aiForm.assessmentId
+          ? `Added ${planHint} with AI.${seriesHint}`
+          : `Created "${result.assessment.title}" with ${planHint}.${seriesHint}`,
+      )
+      closeModal()
+      await loadData()
+      if (result.assessment?.id) {
+        await openViewModal(result.assessment)
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to generate practice set with AI')
+    } finally {
+      setGeneratingAi(false)
+    }
   }
 
   const openQuestionModal = (assessment) => {
@@ -588,6 +845,9 @@ const AdminPracticePage = () => {
           <button type="button" className="admin-btn admin-btn--ghost" onClick={openSkillsModal}>
             Manage skills
           </button>
+          <button type="button" className="admin-btn admin-btn--ghost" onClick={() => openAiModal()}>
+            Generate with AI
+          </button>
           <button
             type="button"
             className="admin-btn admin-btn--ghost"
@@ -693,6 +953,9 @@ const AdminPracticePage = () => {
                   {assessment.skillName ? (
                     <span className="admin-practice-skill">{assessment.skillName}</span>
                   ) : null}
+                  {assessment.seriesPart > 1 ? (
+                    <span className="admin-practice-series-badge">Part {assessment.seriesPart}</span>
+                  ) : null}
                   <h2>{assessment.title}</h2>
                 </div>
                 <span
@@ -706,6 +969,9 @@ const AdminPracticePage = () => {
                 <span>{assessment.questionCount ?? 0} questions</span>
                 <span>{assessment.difficulty}</span>
                 <span>{assessment.xpReward ?? 0} XP</span>
+                {assessment.seriesBaseTitle && assessment.seriesPart > 1 ? (
+                  <span>Series: {assessment.seriesBaseTitle}</span>
+                ) : null}
               </div>
             </button>
             <div className="admin-practice-card-actions">
@@ -785,6 +1051,131 @@ const AdminPracticePage = () => {
             <h4 className="admin-form-section-title">Set details</h4>
             {renderAssessmentFormFields(assessmentForm, handleAssessmentChange, 'create')}
           </div>
+        </form>
+      </AdminModal>
+
+      <AdminModal
+        open={modal === 'ai'}
+        title={aiForm.assessmentId ? 'Generate questions with AI' : 'Create practice set with AI'}
+        subtitle={
+          aiForm.assessmentId
+            ? 'Paste content — you choose the question type; AI writes questions with options from your material.'
+            : 'You choose quiz or coding and question type. AI plans the rest and generates questions with options.'
+        }
+        onClose={() => {
+          if (generatingAi) return
+          closeModal()
+        }}
+        footer={
+          <div className="admin-modal-action-row">
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost"
+              onClick={closeModal}
+              disabled={generatingAi}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="ai-practice-form"
+              className="admin-btn admin-btn--accent"
+              disabled={
+                generatingAi
+                || !aiForm.description.trim()
+                || (aiForm.assessmentId
+                  && activeAssessment?.mode === 'CODING'
+                  && (assessmentDetail?.questionCount ?? activeAssessment?.questionCount ?? 0) > 0)
+              }
+            >
+              {generatingAi ? 'Generating…' : 'Generate with AI'}
+            </button>
+          </div>
+        }
+      >
+        <form id="ai-practice-form" className="admin-form" onSubmit={handleGeneratePracticeWithAI}>
+          <div className="admin-info-panel admin-info-panel--ai">
+            <strong>How it works</strong>
+            <p>
+              {aiForm.assessmentId
+                ? 'You pick the question format. AI reads your content, decides how many questions fit, and generates each question with the correct options.'
+                : 'You pick quiz vs coding and the question format. Use titles like "Complete HTML Practice Set 2" to continue a series — AI links it to the earlier set and skips repeated questions.'}
+            </p>
+          </div>
+
+          {aiForm.assessmentId ? (
+            <div className="admin-selected-type">
+              <span className="admin-selected-type-label">
+                Adding to: {activeAssessment?.title || 'Practice set'}
+                {activeAssessment?.mode ? ` (${activeAssessment.mode})` : ''}
+              </span>
+            </div>
+          ) : (
+            <>
+              <label>
+                Title (optional)
+                <input
+                  name="title"
+                  value={aiForm.title}
+                  onChange={handleAiFormChange}
+                  placeholder="Leave blank — AI will choose from your content"
+                  disabled={generatingAi}
+                />
+              </label>
+              <div className="admin-form-row">
+                <label>
+                  Practice type
+                  <select
+                    name="mode"
+                    value={aiForm.mode}
+                    onChange={handleAiFormChange}
+                    disabled={generatingAi}
+                  >
+                    <option value="QUIZ">Quiz</option>
+                    <option value="CODING">Coding challenge</option>
+                  </select>
+                </label>
+              </div>
+            </>
+          )}
+
+          {(aiForm.assessmentId ? activeAssessment?.mode !== 'CODING' : aiForm.mode === 'QUIZ') ? (
+            <label>
+              Question type
+              <select
+                name="questionType"
+                value={aiForm.questionType}
+                onChange={handleAiFormChange}
+                disabled={generatingAi}
+              >
+                {QUESTION_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <label>
+            Content / topics for AI
+            <textarea
+              name="description"
+              value={aiForm.description}
+              onChange={handleAiFormChange}
+              className="admin-practice-ai-content"
+              placeholder="Paste syllabus, chapter notes, bullet topics, or interview question areas. Example:&#10;- JavaScript closures and scope&#10;- Array map/filter/reduce&#10;- Event loop basics&#10;- Common DOM manipulation patterns"
+              disabled={generatingAi}
+              required
+              rows={10}
+            />
+          </label>
+
+          {generatingAi ? (
+            <p className="admin-practice-ai-wait" aria-live="polite">
+              AI is planning your set and writing questions — this usually takes 20–45 seconds…
+            </p>
+          ) : null}
         </form>
       </AdminModal>
 
@@ -969,6 +1360,13 @@ const AdminPracticePage = () => {
               <button
                 type="button"
                 className="admin-btn admin-btn--ghost"
+                onClick={() => openAiModal(activeAssessment)}
+              >
+                Generate with AI
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost"
                 onClick={() => openEditModal(activeAssessment)}
               >
                 Edit set
@@ -1029,6 +1427,23 @@ const AdminPracticePage = () => {
                 <strong>{activeAssessment.xpReward ?? 0}</strong>
               </div>
             </div>
+            {assessmentDetail?.seriesParts?.length > 1 ? (
+              <div className="admin-practice-series-nav">
+                <span className="admin-practice-series-nav-label">Series parts</span>
+                <div className="admin-practice-series-nav-list">
+                  {assessmentDetail.seriesParts.map((part) => (
+                    <button
+                      key={part.id}
+                      type="button"
+                      className={`admin-practice-series-nav-item${part.id === activeAssessment.id ? ' is-active' : ''}`}
+                      onClick={() => openViewModal(part)}
+                    >
+                      Part {part.seriesPart}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <h3 className="admin-modal-section-title">Questions</h3>
             {loadingAssessmentDetail ? (
               <p className="admin-muted">Loading questions…</p>
@@ -1036,19 +1451,35 @@ const AdminPracticePage = () => {
               <div className="admin-practice-question-list">
                 {assessmentDetail.questions.map((question, index) => (
                   <div key={question.id} className="admin-practice-question-item">
-                    <div className="admin-practice-question-copy">
-                      <strong>
-                        Q{index + 1}. {question.prompt}
-                      </strong>
-                      <span>{question.points ?? 10} pts</span>
+                    <div className="admin-practice-question-main">
+                      <div className="admin-practice-question-head">
+                        <div className="admin-practice-question-copy">
+                          <strong>
+                            Q{index + 1}. {question.prompt}
+                          </strong>
+                          <div className="admin-practice-question-meta">
+                            <span>{question.points ?? 10} pts</span>
+                            {question.type ? (
+                              <span>{QUESTION_TYPE_LABELS[question.type] || question.type}</span>
+                            ) : null}
+                            {question.difficulty ? <span>{question.difficulty}</span> : null}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-link-btn admin-link-btn--danger"
+                          onClick={() => openDeleteQuestionModal(question, assessmentDetail.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      {renderQuestionOptions(question)}
+                      {question.explanation ? (
+                        <p className="admin-practice-question-explanation">
+                          <strong>Explanation:</strong> {question.explanation}
+                        </p>
+                      ) : null}
                     </div>
-                    <button
-                      type="button"
-                      className="admin-link-btn admin-link-btn--danger"
-                      onClick={() => openDeleteQuestionModal(question, assessmentDetail.id)}
-                    >
-                      Delete
-                    </button>
                   </div>
                 ))}
               </div>

@@ -83,6 +83,13 @@ body {
   color: #c45c26;
 }
 
+@media (max-width: 768px) {
+  :root {
+    --app-page-padding-x: 1rem;
+    --app-page-padding-y: 1rem;
+  }
+}
+
 @media (max-width: 640px) {
   .brand-logo,
   .navbar-logo-text {

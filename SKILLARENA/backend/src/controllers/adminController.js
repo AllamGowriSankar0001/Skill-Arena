@@ -302,6 +302,15 @@ const createPracticeAssessment = async (req, res, next) => {
   }
 };
 
+const generatePracticeWithAI = async (req, res, next) => {
+  try {
+    const result = await adminService.generatePracticeWithAI(req.user._id, req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    sendAiError(res, error);
+  }
+};
+
 const updateAssessment = async (req, res, next) => {
   try {
     const assessment = await adminService.updateAssessment(req.params.id, req.body);
@@ -479,6 +488,7 @@ module.exports = {
   listAssessments,
   getAssessment,
   createPracticeAssessment,
+  generatePracticeWithAI,
   updateAssessment,
   deleteAssessment,
   createQuestion,

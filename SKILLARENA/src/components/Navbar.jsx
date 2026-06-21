@@ -8,9 +8,9 @@ import './Navbar.css'
 
 const NAV_LINKS = [
   { label: 'FEATURES', mobileLabel: 'Features', to: `${ROUTES.home}#features` },
-  { label: 'BATTLES', mobileLabel: 'Battles', to: `${ROUTES.home}#battles` },
-  { label: 'LEARN', mobileLabel: 'Learn', to: `${ROUTES.home}#learn` },
-  { label: 'COMMUNITY', mobileLabel: 'Community', to: `${ROUTES.home}#community` },
+  { label: 'BATTLES', mobileLabel: 'Battles', to: ROUTES.battles },
+  { label: 'LEARN', mobileLabel: 'Learn', to: ROUTES.learn },
+  { label: 'COMMUNITY', mobileLabel: 'Community', to: ROUTES.community },
 ]
 
 const Navbar = ({ alwaysVisible = false }) => {

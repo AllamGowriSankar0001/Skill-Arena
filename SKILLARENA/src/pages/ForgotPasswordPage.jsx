@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
+import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import { authApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { trimValue } from '../utils/authValidation'
@@ -80,13 +81,9 @@ const ForgotPasswordPage = () => {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        {error ? (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthErrorAlert message={error} /> : null}
 
-        <div className="auth-field">
+        <div className={`auth-field${error ? ' auth-field--error' : ''}`}>
           <label htmlFor="forgot-email">Email</label>
           <input
             id="forgot-email"

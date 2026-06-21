@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
 import battleImage from '../assets/battle.png'
+import { ROUTES } from '../routes'
 import './BattlesSection.css'
 
 const BattlesSection = () => {
@@ -44,9 +46,9 @@ const BattlesSection = () => {
           </ScrollReveal>
 
           <ScrollReveal delay={320}>
-            <a href="#battles" className="battles-link">
-              Learn more <span aria-hidden="true">→</span>
-            </a>
+            <Link to={ROUTES.battles} className="battles-link">
+              Enter battles <span aria-hidden="true">→</span>
+            </Link>
           </ScrollReveal>
         </div>
       </div>

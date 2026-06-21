@@ -197,6 +197,8 @@ export const adminApi = {
   assessment: (id) => request(`/admin/assessments/${id}`),
   createAssessment: (payload) =>
     request('/admin/assessments', { method: 'POST', body: JSON.stringify(payload) }),
+  generatePracticeWithAI: (payload) =>
+    request('/admin/practice/generate-ai', { method: 'POST', body: JSON.stringify(payload) }),
   updateAssessment: (id, payload) =>
     request(`/admin/assessments/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteAssessment: (id) => request(`/admin/assessments/${id}`, { method: 'DELETE' }),
@@ -291,4 +293,68 @@ export const learningApi = {
       body: JSON.stringify(code),
     }),
   codingAttempts: (lessonId) => request(`/learning/lessons/${lessonId}/coding/attempts`),
+  listPractice: () => request('/learning/practice'),
+  getPractice: (assessmentId) => request(`/learning/practice/${assessmentId}`),
+  getPracticeQuiz: (assessmentId) => request(`/learning/practice/${assessmentId}/quiz`),
+  submitPracticeQuiz: (assessmentId, answers) =>
+    request(`/learning/practice/${assessmentId}/quiz/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    }),
+  practiceQuizAttempts: (assessmentId) =>
+    request(`/learning/practice/${assessmentId}/quiz/attempts`),
+  getPracticeCoding: (assessmentId) => request(`/learning/practice/${assessmentId}/coding`),
+  runPracticeCoding: (assessmentId, code) =>
+    request(`/learning/practice/${assessmentId}/coding/run`, {
+      method: 'POST',
+      body: JSON.stringify(code),
+    }),
+  submitPracticeCoding: (assessmentId, code) =>
+    request(`/learning/practice/${assessmentId}/coding/submit`, {
+      method: 'POST',
+      body: JSON.stringify(code),
+    }),
+  practiceCodingAttempts: (assessmentId) =>
+    request(`/learning/practice/${assessmentId}/coding/attempts`),
+  communityMeta: () => request('/learning/community/meta'),
+  communityFeed: ({ channel, search, page, limit } = {}) => {
+    const params = new URLSearchParams()
+    if (channel) params.set('channel', channel)
+    if (search) params.set('search', search)
+    if (page) params.set('page', String(page))
+    if (limit) params.set('limit', String(limit))
+    const suffix = params.toString() ? `?${params.toString()}` : ''
+    return request(`/learning/community/feed${suffix}`)
+  },
+  createCommunityPost: (payload) =>
+    request('/learning/community/posts', { method: 'POST', body: JSON.stringify(payload) }),
+  toggleCommunityLike: (postId) =>
+    request(`/learning/community/posts/${postId}/like`, { method: 'POST' }),
+  communityComments: (postId, { page, limit } = {}) => {
+    const params = new URLSearchParams()
+    if (page) params.set('page', String(page))
+    if (limit) params.set('limit', String(limit))
+    const suffix = params.toString() ? `?${params.toString()}` : ''
+    return request(`/learning/community/posts/${postId}/comments${suffix}`)
+  },
+  addCommunityComment: (postId, content) =>
+    request(`/learning/community/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+  deleteCommunityPost: (postId) =>
+    request(`/learning/community/posts/${postId}`, { method: 'DELETE' }),
+  createCommunityRoom: (payload) =>
+    request('/learning/community/rooms', { method: 'POST', body: JSON.stringify(payload) }),
+  joinCommunityRoom: (payload) =>
+    request('/learning/community/rooms/join', { method: 'POST', body: JSON.stringify(payload) }),
+  updateCommunityRoom: (roomId, payload) =>
+    request(`/learning/community/rooms/${roomId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  leaveCommunityRoom: (roomId) =>
+    request(`/learning/community/rooms/${roomId}/leave`, { method: 'POST' }),
+  deleteCommunityRoom: (roomId) =>
+    request(`/learning/community/rooms/${roomId}`, { method: 'DELETE' }),
 }

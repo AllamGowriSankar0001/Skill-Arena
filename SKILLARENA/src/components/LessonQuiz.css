@@ -54,6 +54,15 @@
   color: #c45c26;
 }
 
+.lesson-quiz-type-hint {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7a6d;
+}
+
 .lesson-quiz-options {
   display: grid;
   gap: 0.45rem;

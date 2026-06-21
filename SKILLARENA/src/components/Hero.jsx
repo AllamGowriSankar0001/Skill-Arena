@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
 import heroImage from '../assets/hero-image.png'
+import { ROUTES } from '../routes'
 import './Hero.css'
 
 const Hero = () => {
@@ -52,12 +54,12 @@ const Hero = () => {
 
           <ScrollReveal delay={400}>
             <div className="hero-actions">
-              <button type="button" className="hero-btn hero-btn-primary">
+              <Link to={ROUTES.signup} className="hero-btn hero-btn-primary">
                 Enter the Arena <span aria-hidden="true">→</span>
-              </button>
-              <button type="button" className="hero-btn hero-btn-secondary">
+              </Link>
+              <Link to={`${ROUTES.home}#features`} className="hero-btn hero-btn-secondary">
                 How it works
-              </button>
+              </Link>
             </div>
           </ScrollReveal>
         </div>

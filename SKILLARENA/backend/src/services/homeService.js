@@ -401,9 +401,26 @@ async function listPracticeAssessments() {
   const assessments = await Assessment.find({
     type: 'PRACTICE',
     status: 'PUBLISHED',
-  }).select('title description difficulty mode xpReward skillId');
+  })
+    .populate('skillId', 'name slug')
+    .sort({ updatedAt: -1 })
+    .select('title description difficulty mode xpReward skillId passingPercentage durationSeconds questions');
 
-  return assessments;
+  return assessments.map((assessment) => ({
+    _id: assessment._id.toString(),
+    id: assessment._id.toString(),
+    title: assessment.title,
+    description: assessment.description || '',
+    difficulty: assessment.difficulty,
+    mode: assessment.mode,
+    xpReward: assessment.xpReward,
+    passingPercentage: assessment.passingPercentage ?? 70,
+    durationSeconds: assessment.durationSeconds || null,
+    questionCount: assessment.questions?.length || 0,
+    skillId: assessment.skillId?._id?.toString() || null,
+    skillName: assessment.skillId?.name || null,
+    skillSlug: assessment.skillId?.slug || null,
+  }));
 }
 
 async function listUserBattles(userId) {

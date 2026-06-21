@@ -2,7 +2,30 @@ import { useEffect, useState } from 'react'
 import { learningApi } from '../services/api'
 import './LessonQuiz.css'
 
-const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward = 0 }) => {
+const QUESTION_TYPE_HINTS = {
+  MULTIPLE_CHOICE: 'Select all that apply',
+  TRUE_FALSE: 'True or false',
+  SINGLE_CHOICE: 'Choose one answer',
+}
+
+const isQuestionAnswered = (question, answers) => {
+  const value = answers[question.id]
+  if (question.type === 'MULTIPLE_CHOICE') {
+    return Array.isArray(value) && value.length > 0
+  }
+  return Boolean(value)
+}
+
+const LessonQuiz = ({
+  lessonId,
+  assessmentId,
+  contextType = 'lesson',
+  quiz,
+  progress,
+  onCompleted,
+  completionXpReward = 0,
+}) => {
+  const isPractice = contextType === 'practice'
   const questions = quiz?.questions || []
   const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -11,20 +34,27 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
   const [error, setError] = useState('')
 
   const passingPercentage = quiz?.passingPercentage ?? 70
-  const isCompleted = progress?.status === 'COMPLETED'
+  const isCompleted = !isPractice && progress?.status === 'COMPLETED'
+  const sessionId = isPractice ? assessmentId : lessonId
+
+  const loadAttempts = async () => {
+    if (!sessionId) return
+    try {
+      const data = isPractice
+        ? await learningApi.practiceQuizAttempts(sessionId)
+        : await learningApi.quizAttempts(sessionId)
+      setAttempts(data.attempts || [])
+      if (data.passed && !result) {
+        setResult({ passed: true, score: data.bestScore, passingPercentage })
+      }
+    } catch {
+      /* ignore attempt history errors */
+    }
+  }
 
   useEffect(() => {
-    if (!lessonId) return
-    learningApi
-      .quizAttempts(lessonId)
-      .then((data) => {
-        setAttempts(data.attempts || [])
-        if (data.passed && !result) {
-          setResult({ passed: true, score: data.bestScore, passingPercentage })
-        }
-      })
-      .catch(() => {})
-  }, [lessonId, passingPercentage, result])
+    loadAttempts()
+  }, [sessionId, passingPercentage, result, isPractice])
 
   if (!questions.length) {
     return (
@@ -39,13 +69,14 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
     setSubmitting(true)
     setError('')
     try {
-      const response = await learningApi.submitQuiz(lessonId, answers)
+      const response = isPractice
+        ? await learningApi.submitPracticeQuiz(sessionId, answers)
+        : await learningApi.submitQuiz(sessionId, answers)
       setResult(response)
-      if (response.lessonCompleted && onCompleted) {
+      if ((response.lessonCompleted || response.passed) && onCompleted) {
         onCompleted(response)
       }
-      const history = await learningApi.quizAttempts(lessonId)
-      setAttempts(history.attempts || [])
+      await loadAttempts()
     } catch (err) {
       setError(err.message || 'Failed to submit quiz')
     } finally {
@@ -60,11 +91,29 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
   }
 
   const showResults = Boolean(result)
+  const allAnswered = questions.every((question) => isQuestionAnswered(question, answers))
+
+  const handleSingleSelect = (questionId, optionId) => {
+    setAnswers((current) => ({
+      ...current,
+      [questionId]: optionId,
+    }))
+  }
+
+  const handleMultiSelect = (questionId, optionId) => {
+    setAnswers((current) => {
+      const existing = Array.isArray(current[questionId]) ? current[questionId] : []
+      const next = existing.includes(optionId)
+        ? existing.filter((id) => id !== optionId)
+        : [...existing, optionId]
+      return { ...current, [questionId]: next }
+    })
+  }
 
   return (
     <form className="lesson-quiz" onSubmit={handleSubmit}>
       <div className="lesson-quiz-head">
-        <h2>{quiz.title || 'Lesson quiz'}</h2>
+        <h2>{quiz.title || (isPractice ? 'Practice quiz' : 'Lesson quiz')}</h2>
         {quiz.description ? <p>{quiz.description}</p> : null}
         <p className="lesson-quiz-meta">Required score: {passingPercentage}%</p>
         {completionXpReward ? <span className="lesson-quiz-xp">{completionXpReward} XP</span> : null}
@@ -76,6 +125,8 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
             (item) => item.questionId === question.id,
           )
           const answeredCorrectly = explanation?.isCorrect
+          const isMultiple = question.type === 'MULTIPLE_CHOICE'
+          const typeHint = QUESTION_TYPE_HINTS[question.type] || QUESTION_TYPE_HINTS.SINGLE_CHOICE
 
           return (
             <li
@@ -91,11 +142,14 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
               <p className="lesson-quiz-prompt">
                 <span className="lesson-quiz-number">{index + 1}.</span> {question.prompt}
               </p>
+              <p className="lesson-quiz-type-hint">{typeHint}</p>
 
               <div className="lesson-quiz-options">
                 {question.options.map((option) => {
                   const inputId = `${question.id}-${option.optionId}`
-                  const isSelected = answers[question.id] === option.optionId
+                  const isSelected = isMultiple
+                    ? (answers[question.id] || []).includes(option.optionId)
+                    : answers[question.id] === option.optionId
 
                   return (
                     <label
@@ -105,16 +159,15 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
                     >
                       <input
                         id={inputId}
-                        type="radio"
-                        name={question.id}
+                        type={isMultiple ? 'checkbox' : 'radio'}
+                        name={isMultiple ? `${question.id}-${option.optionId}` : question.id}
                         value={option.optionId}
                         checked={isSelected}
                         disabled={showResults || isCompleted}
                         onChange={() =>
-                          setAnswers((current) => ({
-                            ...current,
-                            [question.id]: option.optionId,
-                          }))
+                          isMultiple
+                            ? handleMultiSelect(question.id, option.optionId)
+                            : handleSingleSelect(question.id, option.optionId)
                         }
                       />
                       <span>{option.text}</span>
@@ -137,35 +190,31 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
         <div className="lesson-quiz-summary" aria-live="polite">
           {result.passed ? (
             <>
-              <strong>Quiz Passed</strong>
-              <p>Lesson Completed ✓</p>
+              <strong>{isPractice ? 'Practice passed' : 'Quiz passed'}</strong>
+              <p>{isPractice ? 'Great work — you cleared this practice set.' : 'Lesson completed ✓'}</p>
               {result.xp?.earned ? (
                 <p>XP earned: +{result.xp.earned}</p>
               ) : completionXpReward && isCompleted ? (
                 <p>XP reward: {completionXpReward}</p>
               ) : completionXpReward ? (
-                <p>Complete to earn {completionXpReward} XP</p>
+                <p>Pass to earn {completionXpReward} XP</p>
               ) : null}
             </>
           ) : (
             <>
-              <strong>Quiz Not Passed</strong>
+              <strong>{isPractice ? 'Not passed yet' : 'Quiz not passed'}</strong>
               <p>
-                Your Score: {result.score}% — Required Score: {result.passingPercentage}%
+                Your score: {result.score}% — Required score: {result.passingPercentage}%
               </p>
               <button type="button" className="app-section-button" onClick={handleRetry}>
-                Try Again
+                Try again
               </button>
             </>
           )}
         </div>
       ) : (
         !isCompleted && (
-          <button
-            type="submit"
-            className="app-section-button"
-            disabled={submitting || Object.keys(answers).length < questions.length}
-          >
+          <button type="submit" className="app-section-button" disabled={submitting || !allAnswered}>
             {submitting ? 'Submitting…' : 'Submit answers'}
           </button>
         )

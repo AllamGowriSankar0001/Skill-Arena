@@ -17,11 +17,11 @@ const validateSignupFields = ({ name, email, password, confirmPassword }) => {
   const trimmedPassword = trimValue(password);
   const trimmedConfirm = trimValue(confirmPassword);
 
-  if (!trimmedName || !trimmedEmail || !trimmedPassword) {
+  if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirm) {
     return { ok: false, message: MSG.SIGNUP_FILL_REQUIRED };
   }
 
-  if (confirmPassword !== undefined && trimmedPassword !== trimmedConfirm) {
+  if (trimmedPassword !== trimmedConfirm) {
     return { ok: false, message: MSG.PASSWORDS_DO_NOT_MATCH };
   }
 

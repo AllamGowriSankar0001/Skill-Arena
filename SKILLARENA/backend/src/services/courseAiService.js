@@ -809,5 +809,7 @@ module.exports = {
   extractJsonObject,
   validateCoursePlan,
   normalizeQuizQuestion,
+  normalizeTestCases,
+  asArray,
   generateCoursePlanFromAi,
 };

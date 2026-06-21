@@ -15,6 +15,7 @@ import LearnAppPage from './pages/LearnAppPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import LessonPage from './pages/LessonPage'
 import PracticePage from './pages/PracticePage'
+import PracticeDetailPage from './pages/PracticeDetailPage'
 import BattlesAppPage from './pages/BattlesAppPage'
 import LeaderboardAppPage from './pages/LeaderboardAppPage'
 import ProfilePage from './pages/ProfilePage'
@@ -27,12 +28,13 @@ import AdminUsersPage from './pages/admin/AdminUsersPage'
 import ResumeMakerPage from './pages/ResumeMakerPage'
 import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
+import CommunityPage from './pages/CommunityPage'
 import ContentPage from './pages/ContentPage'
 import { CONTENT_PAGES, ROUTES } from './routes'
 import './App.css'
 
 const MARKETING_PAGES = CONTENT_PAGES.filter(
-  (page) => !['battles', 'courses', 'leaderboard', 'blog'].includes(page.contentKey),
+  (page) => !['battles', 'courses', 'leaderboard', 'blog', 'community'].includes(page.contentKey),
 )
 
 function App() {
@@ -79,8 +81,10 @@ function App() {
         <Route path={`${ROUTES.learn}/:courseId`} element={<CourseDetailPage />} />
         <Route path={`${ROUTES.learn}/:courseId/lessons/:lessonId`} element={<LessonPage />} />
         <Route path={ROUTES.practice} element={<PracticePage />} />
+        <Route path={`${ROUTES.practice}/:assessmentId`} element={<PracticeDetailPage />} />
         <Route path={ROUTES.battles} element={<BattlesAppPage />} />
         <Route path={ROUTES.leaderboard} element={<LeaderboardAppPage />} />
+        <Route path={ROUTES.community} element={<CommunityPage />} />
         <Route path={ROUTES.profile} element={<ProfilePage />} />
         <Route path={ROUTES.resume} element={<ResumeMakerPage />} />
       </Route>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
+import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import PasswordField from '../components/auth/PasswordField'
 import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
@@ -15,7 +16,15 @@ const SignupPage = () => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [errorField, setErrorField] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  const clearFieldError = (field) => {
+    if (errorField === field) {
+      setError('')
+      setErrorField('')
+    }
+  }
 
   useEffect(() => {
     if (!bootstrapping && isAuthenticated) {
@@ -40,10 +49,12 @@ const SignupPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+    setErrorField('')
 
     const validation = validateSignupForm({ name, email, password, confirmPassword })
     if (!validation.ok) {
       setError(validation.message)
+      setErrorField(validation.field || '')
       return
     }
 
@@ -53,7 +64,7 @@ const SignupPage = () => {
         name: validation.name,
         email: validation.email,
         password: validation.password,
-        confirmPassword,
+        confirmPassword: validation.password,
       })
       navigate(ROUTES.login, {
         replace: true,
@@ -61,6 +72,7 @@ const SignupPage = () => {
       })
     } catch (err) {
       setError(err.message || 'Signup failed')
+      setErrorField(err.message === 'This Email is already Existed' ? 'email' : '')
     } finally {
       setSubmitting(false)
     }
@@ -81,35 +93,39 @@ const SignupPage = () => {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        {error ? (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthErrorAlert message={error} field={errorField} /> : null}
 
-        <div className="auth-field">
+        <div className={`auth-field${errorField === 'name' ? ' auth-field--error' : ''}`}>
           <label htmlFor="signup-name">Full name</label>
           <input
             id="signup-name"
             type="text"
             placeholder="Your name"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => {
+              setName(event.target.value)
+              clearFieldError('name')
+            }}
             autoComplete="name"
             maxLength={FIELD_LIMITS.name}
+            aria-invalid={errorField === 'name' || undefined}
           />
         </div>
 
-        <div className="auth-field">
+        <div className={`auth-field${errorField === 'email' ? ' auth-field--error' : ''}`}>
           <label htmlFor="signup-email">Email</label>
           <input
             id="signup-email"
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              clearFieldError('email')
+            }}
             autoComplete="email"
             maxLength={FIELD_LIMITS.email}
+            aria-invalid={errorField === 'email' || undefined}
           />
         </div>
 
@@ -118,9 +134,13 @@ const SignupPage = () => {
           label="Password"
           placeholder="At least 6 characters"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event) => {
+            setPassword(event.target.value)
+            clearFieldError('password')
+          }}
           autoComplete="new-password"
           maxLength={FIELD_LIMITS.password}
+          hasError={errorField === 'password'}
         />
 
         <PasswordField
@@ -128,9 +148,13 @@ const SignupPage = () => {
           label="Confirm password"
           placeholder="Re-enter your password"
           value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
+          onChange={(event) => {
+            setConfirmPassword(event.target.value)
+            clearFieldError('confirmPassword')
+          }}
           autoComplete="new-password"
           maxLength={FIELD_LIMITS.password}
+          hasError={errorField === 'confirmPassword'}
         />
 
         <button type="submit" className="auth-submit" disabled={busy}>

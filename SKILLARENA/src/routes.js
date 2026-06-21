@@ -3,6 +3,7 @@ export const ROUTES = {
   dashboard: '/dashboard',
   learn: '/courses',
   practice: '/practice',
+  getPracticePath: (assessmentId) => `/practice/${assessmentId}`,
   battles: '/battles',
   leaderboard: '/leaderboard',
   profile: '/profile',

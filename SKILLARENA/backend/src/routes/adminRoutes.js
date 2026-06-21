@@ -35,6 +35,7 @@ router.post('/lessons/:id/coding', adminController.createLessonCoding);
 router.get('/lessons/:id/coding', adminController.getLessonCoding);
 router.patch('/lessons/:id/coding', adminController.updateLessonCoding);
 
+router.post('/practice/generate-ai', adminController.generatePracticeWithAI);
 router.get('/assessments', adminController.listAssessments);
 router.get('/assessments/:id', adminController.getAssessment);
 router.post('/assessments', adminController.createPracticeAssessment);

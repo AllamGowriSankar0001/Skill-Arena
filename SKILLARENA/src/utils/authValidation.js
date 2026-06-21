@@ -16,7 +16,11 @@ export const validateLoginForm = ({ email, password }) => {
   const trimmedPassword = trimValue(password)
 
   if (!trimmedEmail || !trimmedPassword) {
-    return { ok: false, message: AUTH_MESSAGES.FILL_REQUIRED_FIELDS }
+    return {
+      ok: false,
+      message: AUTH_MESSAGES.FILL_REQUIRED_FIELDS,
+      field: !trimmedEmail ? 'email' : 'password',
+    }
   }
 
   return {
@@ -33,43 +37,50 @@ export const validateSignupForm = ({ name, email, password, confirmPassword }) =
   const trimmedConfirm = trimValue(confirmPassword)
 
   if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirm) {
-    return { ok: false, message: AUTH_MESSAGES.SIGNUP_FILL_REQUIRED }
+    const field = !trimmedName
+      ? 'name'
+      : !trimmedEmail
+        ? 'email'
+        : !trimmedPassword
+          ? 'password'
+          : 'confirmPassword'
+    return { ok: false, message: AUTH_MESSAGES.SIGNUP_FILL_REQUIRED, field }
   }
 
   if (trimmedPassword !== trimmedConfirm) {
-    return { ok: false, message: AUTH_MESSAGES.PASSWORDS_DO_NOT_MATCH }
+    return { ok: false, message: AUTH_MESSAGES.PASSWORDS_DO_NOT_MATCH, field: 'confirmPassword' }
   }
 
   if (trimmedName.length > NAME_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH }
+    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'name' }
   }
 
   if (!NAME_PATTERN.test(trimmedName)) {
-    return { ok: false, message: AUTH_MESSAGES.NAME_ALPHABETS_ONLY }
+    return { ok: false, message: AUTH_MESSAGES.NAME_ALPHABETS_ONLY, field: 'name' }
   }
 
   if (trimmedEmail.length > EMAIL_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH }
+    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'email' }
   }
 
   if (!EMAIL_CHARS_PATTERN.test(trimmedEmail)) {
-    return { ok: false, message: AUTH_MESSAGES.EMAIL_SPECIAL_CHARS }
+    return { ok: false, message: AUTH_MESSAGES.EMAIL_SPECIAL_CHARS, field: 'email' }
   }
 
   if (!EMAIL_FORMAT_PATTERN.test(trimmedEmail)) {
-    return { ok: false, message: AUTH_MESSAGES.INVALID_EMAIL_FORMAT }
+    return { ok: false, message: AUTH_MESSAGES.INVALID_EMAIL_FORMAT, field: 'email' }
   }
 
   if (trimmedPassword.length > PASSWORD_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH }
+    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'password' }
   }
 
   if (!PASSWORD_CHARS_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: AUTH_MESSAGES.PASSWORD_SPECIAL_CHARS }
+    return { ok: false, message: AUTH_MESSAGES.PASSWORD_SPECIAL_CHARS, field: 'password' }
   }
 
   if (!PASSWORD_STRENGTH_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: AUTH_MESSAGES.WEAK_PASSWORD }
+    return { ok: false, message: AUTH_MESSAGES.WEAK_PASSWORD, field: 'password' }
   }
 
   return {

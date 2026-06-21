@@ -21,6 +21,17 @@ const { USER_ROLES, USER_STATUSES } = require('../constants/enums');
 const { rankFromLevel, calculateLevelProgress } = require('../utils/level');
 const lessonProgressService = require('./lessonProgressService');
 const { generateCoursePlanFromAi } = require('./courseAiService');
+const {
+  generatePracticePlanFromAi,
+  generatePracticeQuizQuestions,
+  generatePracticeCodingChallenge,
+} = require('./practiceAiService');
+const {
+  resolvePracticeSeriesForCreate,
+  applyPracticeSeriesToAssessment,
+  getPracticeSeriesParts,
+  collectQuestionPromptsFromAssessments,
+} = require('./practiceSeriesService');
 
 const formatCourse = (course) => ({
   id: course._id.toString(),
@@ -153,6 +164,9 @@ const formatAssessment = (assessment) => ({
   xpReward: assessment.xpReward,
   passingPercentage: assessment.passingPercentage ?? 70,
   status: assessment.status,
+  seriesRootId: assessment.seriesRootId?.toString() || null,
+  seriesPart: assessment.seriesPart || 1,
+  seriesBaseTitle: assessment.seriesBaseTitle || null,
   createdAt: assessment.createdAt,
   updatedAt: assessment.updatedAt,
 });
@@ -483,11 +497,22 @@ const listAssessments = async (type = 'PRACTICE') => {
 const createPracticeAssessment = async (adminId, payload) => {
   const { title, description, skillId, difficulty, mode, xpReward, status } = payload;
 
-  if (!title?.trim() || !skillId) {
-    throw new Error('Title and skill are required.');
+  if (!title?.trim()) {
+    throw new Error('Title is required.');
   }
 
-  const skill = await Skill.findById(skillId);
+  const seriesContext = await resolvePracticeSeriesForCreate(title.trim());
+  let resolvedSkillId = skillId;
+
+  if (!resolvedSkillId && seriesContext.rootAssessment?.skillId) {
+    resolvedSkillId = seriesContext.rootAssessment.skillId;
+  }
+
+  if (!resolvedSkillId) {
+    throw new Error('Skill is required.');
+  }
+
+  const skill = await Skill.findById(resolvedSkillId);
   if (!skill) {
     throw new Error('Skill not found.');
   }
@@ -496,13 +521,15 @@ const createPracticeAssessment = async (adminId, payload) => {
     title: title.trim(),
     description: description?.trim() || '',
     type: 'PRACTICE',
-    mode: mode || 'QUIZ',
-    skillId,
-    difficulty: difficulty || 'MIXED',
+    mode: mode || seriesContext.rootAssessment?.mode || 'QUIZ',
+    skillId: resolvedSkillId,
+    difficulty: difficulty || seriesContext.rootAssessment?.difficulty || 'MIXED',
     xpReward: xpReward || 25,
     status: status || 'DRAFT',
     createdBy: adminId,
   });
+
+  await applyPracticeSeriesToAssessment(assessment, seriesContext);
 
   const populated = await Assessment.findById(assessment._id).populate('skillId', 'name');
   return formatAssessment(populated);
@@ -529,9 +556,25 @@ const updateAssessment = async (assessmentId, payload) => {
 };
 
 const createQuestion = async (adminId, payload) => {
-  const { prompt, skillId, difficulty, options, correctOptionId, explanation } = payload;
+  const {
+    prompt,
+    skillId,
+    difficulty,
+    options,
+    correctOptionId,
+    correctOptionIds,
+    explanation,
+    type,
+  } = payload;
 
-  if (!prompt?.trim() || !skillId || !options?.length || !correctOptionId) {
+  const questionType = type || 'SINGLE_CHOICE';
+  const resolvedCorrectIds = Array.isArray(correctOptionIds) && correctOptionIds.length
+    ? correctOptionIds
+    : correctOptionId
+      ? [correctOptionId]
+      : [];
+
+  if (!prompt?.trim() || !skillId || !options?.length || !resolvedCorrectIds.length) {
     throw new Error('Prompt, skill, options, and correct answer are required.');
   }
 
@@ -541,7 +584,7 @@ const createQuestion = async (adminId, payload) => {
   }
 
   const question = await Question.create({
-    type: 'SINGLE_CHOICE',
+    type: questionType,
     skillId,
     difficulty: difficulty || 'EASY',
     prompt: prompt.trim(),
@@ -555,7 +598,7 @@ const createQuestion = async (adminId, payload) => {
 
   await QuestionSolution.create({
     questionId: question._id,
-    correctOptionIds: [correctOptionId],
+    correctOptionIds: resolvedCorrectIds,
     explanation: explanation?.trim() || '',
   });
 
@@ -564,6 +607,7 @@ const createQuestion = async (adminId, payload) => {
     prompt: question.prompt,
     skillId: question.skillId.toString(),
     difficulty: question.difficulty,
+    type: question.type,
     options: question.options,
     status: question.status,
   };
@@ -854,6 +898,19 @@ function buildReferenceSolutions(payload) {
     entries.push({ language: 'JavaScript', code: payload.referenceJavascript });
   }
   return entries;
+}
+
+function extractReferenceCode(referenceSolutions = []) {
+  return referenceSolutions.reduce(
+    (acc, item) => {
+      const key = item.language.toLowerCase();
+      if (key.includes('html')) acc.html = item.code;
+      else if (key.includes('css')) acc.css = item.code;
+      else if (key.includes('java')) acc.javascript = item.code;
+      return acc;
+    },
+    { html: '', css: '', javascript: '' },
+  );
 }
 
 async function validateCodingLessonForPublish(lesson) {
@@ -1216,16 +1273,42 @@ const getAssessment = async (assessmentId) => {
       const question = questionMap.get(entry.questionId.toString());
       if (!question) return null;
       const solution = solutionMap.get(entry.questionId.toString());
-      return {
+      const correctOptionIds = solution?.correctOptionIds || [];
+      const baseQuestion = {
         id: question._id.toString(),
+        type: question.type,
         prompt: question.prompt,
+        title: question.title || '',
         difficulty: question.difficulty,
-        options: question.options,
-        correctOptionId: solution?.correctOptionIds?.[0] || null,
+        options: question.options || [],
+        correctOptionId: correctOptionIds[0] || null,
+        correctOptionIds,
         explanation: solution?.explanation || '',
         points: entry.points,
         order: entry.order,
       };
+
+      if (question.type === 'CODING') {
+        const details = question.codingDetails || {};
+        const codingSolution = solution?.codingSolution || {};
+        const reference = extractReferenceCode(codingSolution.referenceSolutions || []);
+        return {
+          ...baseQuestion,
+          instructions: details.instructions || '',
+          expectedOutputDescription: details.expectedOutputDescription || '',
+          hints: details.hints || [],
+          visibleTestCases: details.visibleTestCases?.length
+            ? details.visibleTestCases
+            : details.sampleTestCases || [],
+          hiddenTestCases: codingSolution.hiddenTestCases || [],
+          starterCode: details.starterCode || [],
+          referenceHtml: reference.html,
+          referenceCss: reference.css,
+          referenceJavascript: reference.javascript,
+        };
+      }
+
+      return baseQuestion;
     })
     .filter(Boolean);
 
@@ -1235,6 +1318,7 @@ const getAssessment = async (assessmentId) => {
     moduleId: assessment.moduleId?.toString() || null,
     lessonId: assessment.lessonId?.toString() || null,
     questions: formattedQuestions,
+    seriesParts: await getPracticeSeriesParts(assessment),
   };
 };
 
@@ -1651,6 +1735,279 @@ async function materializeLesson(adminId, courseId, moduleId, skillId, lessonDef
   return lesson;
 }
 
+async function createPracticeCodingQuestion(adminId, assessmentId, payload) {
+  const assessment = await Assessment.findOne({ _id: assessmentId, type: 'PRACTICE' });
+  if (!assessment) {
+    throw new Error('Practice set not found.');
+  }
+
+  const skillId = payload.skillId || assessment.skillId;
+  const skill = await Skill.findById(skillId);
+  if (!skill) {
+    throw new Error('Skill not found.');
+  }
+
+  if (!payload.problemStatement?.trim()) {
+    throw new Error('Problem statement is required.');
+  }
+
+  const visibleTestCases = parseTestCases(payload.visibleTestCases || payload.sampleTestCases);
+  const hiddenTestCases = parseTestCases(payload.hiddenTestCases);
+  const starterCode = buildStarterCode(payload);
+
+  if (!starterCode.length) {
+    throw new Error('At least one starter code field is required.');
+  }
+
+  const question = await Question.create({
+    type: 'CODING',
+    skillId,
+    difficulty: payload.difficulty || assessment.difficulty || 'MEDIUM',
+    title: payload.problemTitle?.trim() || assessment.title,
+    prompt: payload.problemStatement.trim(),
+    codingDetails: {
+      supportedLanguages: CODING_LANGUAGES,
+      starterCode,
+      instructions: payload.instructions?.trim() || '',
+      expectedOutputDescription: payload.expectedOutputDescription?.trim() || '',
+      hints: (payload.hints || []).filter(Boolean),
+      visibleTestCases,
+      sampleTestCases: visibleTestCases,
+    },
+    status: 'PUBLISHED',
+    createdBy: adminId,
+  });
+
+  await QuestionSolution.create({
+    questionId: question._id,
+    explanation: payload.solutionExplanation?.trim() || '',
+    codingSolution: {
+      referenceSolutions: buildReferenceSolutions(payload),
+      hiddenTestCases,
+    },
+  });
+
+  assessment.questions.push({
+    questionId: question._id,
+    order: assessment.questions.length,
+    points: payload.points || 100,
+  });
+
+  if (payload.passingThreshold != null) {
+    assessment.passingPercentage = payload.passingThreshold;
+  }
+
+  await assessment.save();
+  const populated = await Assessment.findById(assessment._id).populate('skillId', 'name');
+  return formatAssessment(populated);
+}
+
+async function generatePracticeWithAI(adminId, payload) {
+  const briefInput = payload.description?.trim() || payload.brief?.trim() || payload.content?.trim();
+  const titleInput = payload.title?.trim();
+  const adminMode = String(payload.mode || 'QUIZ').toUpperCase();
+  const adminQuestionType = String(payload.questionType || 'SINGLE_CHOICE').toUpperCase();
+
+  if (!briefInput) {
+    throw new Error('Provide content or a brief for the AI to plan from.');
+  }
+
+  if (!payload.assessmentId && !['QUIZ', 'CODING'].includes(adminMode)) {
+    throw new Error('Select a practice type: Quiz or Coding.');
+  }
+
+  let assessmentRecord = null;
+
+  if (payload.assessmentId) {
+    assessmentRecord = await Assessment.findOne({
+      _id: payload.assessmentId,
+      type: 'PRACTICE',
+    });
+    if (!assessmentRecord) {
+      throw new Error('Practice set not found.');
+    }
+  }
+
+  const resolvedMode = assessmentRecord?.mode || adminMode;
+  const resolvedQuestionType = resolvedMode === 'QUIZ' ? adminQuestionType : null;
+
+  let seriesContext = null;
+  if (!assessmentRecord && titleInput) {
+    seriesContext = await resolvePracticeSeriesForCreate(titleInput);
+  }
+
+  let existingQuestionPrompts = [];
+  if (assessmentRecord) {
+    existingQuestionPrompts = await collectQuestionPromptsFromAssessments([assessmentRecord.toObject()]);
+  }
+
+  const skills = await Skill.find({ status: 'ACTIVE' }).select('name').lean();
+  const plan = await generatePracticePlanFromAi(
+    {
+      content: briefInput,
+      title: titleInput || assessmentRecord?.title,
+      skills,
+      addingToExisting: Boolean(assessmentRecord),
+      existingMode: assessmentRecord?.mode || adminMode,
+      existingQuestionCount: assessmentRecord?.questions?.length || 0,
+      adminMode: resolvedMode,
+      questionType: resolvedQuestionType,
+      seriesPart: seriesContext?.seriesPart,
+      seriesBaseTitle: seriesContext?.baseTitle,
+      isSeriesContinuation: seriesContext?.isContinuation,
+      existingQuestionPrompts: [
+        ...(seriesContext?.priorQuestionPrompts || []),
+        ...existingQuestionPrompts,
+      ],
+    },
+    adminId,
+  );
+
+  if (!assessmentRecord && !seriesContext) {
+    seriesContext = await resolvePracticeSeriesForCreate(titleInput || plan.title);
+  }
+
+  if (!assessmentRecord && seriesContext?.priorQuestionPrompts?.length) {
+    existingQuestionPrompts = seriesContext.priorQuestionPrompts;
+  }
+
+  let skillId = assessmentRecord?.skillId?.toString();
+  if (!skillId && seriesContext?.rootAssessment?.skillId) {
+    skillId = seriesContext.rootAssessment.skillId.toString();
+  }
+  if (!skillId) {
+    const skillResult = await createSkill({ name: plan.skillName });
+    skillId = skillResult.id;
+  }
+
+  const skill = await Skill.findById(skillId);
+  if (!skill) {
+    throw new Error('Could not resolve a skill for this practice set.');
+  }
+
+  const mode = resolvedMode;
+  const questionCountBefore = assessmentRecord?.questions?.length || 0;
+
+  if (!assessmentRecord) {
+    assessmentRecord = await Assessment.create({
+      title: titleInput || plan.title,
+      description: plan.description || briefInput,
+      type: 'PRACTICE',
+      mode: seriesContext?.rootAssessment?.mode || mode,
+      skillId: skill._id,
+      difficulty: plan.difficulty,
+      xpReward: plan.xpReward,
+      passingPercentage: plan.passingPercentage,
+      status: 'DRAFT',
+      createdBy: adminId,
+    });
+
+    if (seriesContext) {
+      await applyPracticeSeriesToAssessment(assessmentRecord, seriesContext);
+    } else {
+      await applyPracticeSeriesToAssessment(assessmentRecord, {
+        baseTitle: assessmentRecord.title,
+        seriesPart: 1,
+        seriesRootId: null,
+        isContinuation: false,
+        rootAssessment: null,
+      });
+    }
+  }
+
+  const aiPlan = {
+    ...plan,
+    title: assessmentRecord.title,
+    mode,
+    questionType: resolvedQuestionType,
+    questionCount: mode === 'CODING' ? 1 : plan.questionCount,
+    questionFocus: plan.questionFocus || briefInput,
+    skillName: skill.name,
+    seriesPart: assessmentRecord.seriesPart || seriesContext?.seriesPart || 1,
+    seriesBaseTitle: assessmentRecord.seriesBaseTitle || seriesContext?.baseTitle || null,
+    isSeriesContinuation: Boolean(seriesContext?.isContinuation),
+    existingQuestionPrompts,
+  };
+
+  if (mode === 'CODING') {
+    if (assessmentRecord.questions?.length) {
+      throw new Error('This practice set already has a coding challenge. Remove it first or create a new set.');
+    }
+
+    const coding = await generatePracticeCodingChallenge(aiPlan, adminId);
+    await createPracticeCodingQuestion(adminId, assessmentRecord._id, {
+      ...coding,
+      skillId: skill._id,
+      difficulty: aiPlan.difficulty === 'MIXED' ? 'MEDIUM' : aiPlan.difficulty,
+    });
+  } else {
+    const generatedQuestions = await generatePracticeQuizQuestions(aiPlan, adminId);
+    const questionDifficulty =
+      aiPlan.difficulty === 'MIXED' ? 'MEDIUM' : aiPlan.difficulty;
+    const questionType = aiPlan.questionType || 'SINGLE_CHOICE';
+
+    for (const questionDef of generatedQuestions) {
+      const optionLimit = questionType === 'MULTIPLE_CHOICE' ? 5 : questionType === 'TRUE_FALSE' ? 2 : 4;
+      const options = questionDef.options.slice(0, optionLimit).map((text, index) => ({
+        optionId: `opt-${index + 1}`,
+        text: String(text).trim(),
+      }));
+
+      let correctOptionIds = [];
+      if (questionType === 'MULTIPLE_CHOICE') {
+        correctOptionIds = (questionDef.correctIndices || [])
+          .map((index) => options[index]?.optionId)
+          .filter(Boolean);
+        if (correctOptionIds.length < 2 && options[0]) {
+          correctOptionIds = [options[0].optionId, options[1]?.optionId].filter(Boolean);
+        }
+      } else {
+        const correctIndex = Math.min(
+          Math.max(Number(questionDef.correctIndex) || 0, 0),
+          options.length - 1,
+        );
+        correctOptionIds = [options[correctIndex].optionId];
+      }
+
+      const question = await createQuestion(adminId, {
+        prompt: questionDef.prompt,
+        skillId: skill._id,
+        difficulty: questionDifficulty,
+        type: questionType,
+        options,
+        correctOptionIds,
+        explanation: questionDef.explanation || '',
+      });
+      await addQuestionToAssessment(assessmentRecord._id, { questionId: question.id });
+    }
+  }
+
+  const populated = await Assessment.findById(assessmentRecord._id).populate('skillId', 'name');
+  const totalQuestionCount = populated.questions.length;
+  const addedQuestionCount = totalQuestionCount - questionCountBefore;
+
+  return {
+    assessment: formatAssessment(populated),
+    questionCount: addedQuestionCount,
+    totalQuestionCount,
+    plan: {
+      title: aiPlan.title,
+      mode: aiPlan.mode,
+      questionType: aiPlan.questionType,
+      difficulty: aiPlan.difficulty,
+      questionCount: addedQuestionCount,
+    },
+    series: populated.seriesPart > 1 || seriesContext?.isContinuation
+      ? {
+          isContinuation: true,
+          seriesPart: populated.seriesPart,
+          seriesBaseTitle: populated.seriesBaseTitle,
+          avoidedQuestionCount: existingQuestionPrompts.length,
+        }
+      : null,
+  };
+}
+
 const generateCourseWithAI = async (adminId, payload, options = {}) => {
   const onProgress = options.onProgress;
   const titleInput = payload.title?.trim();
@@ -1793,6 +2150,8 @@ module.exports = {
   listAssessments,
   getAssessment,
   createPracticeAssessment,
+  generatePracticeWithAI,
+  createPracticeCodingQuestion,
   updateAssessment,
   deleteAssessment,
   createQuestion,

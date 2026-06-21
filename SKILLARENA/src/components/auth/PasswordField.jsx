@@ -27,11 +27,12 @@ export function PasswordField({
   minLength,
   maxLength,
   required = false,
+  hasError = false,
 }) {
   const [visible, setVisible] = useState(false)
 
   return (
-    <div className="auth-field">
+    <div className={`auth-field${hasError ? ' auth-field--error' : ''}`}>
       <label htmlFor={id}>{label}</label>
       <div className="auth-password-wrap">
         <input
@@ -44,6 +45,7 @@ export function PasswordField({
           minLength={minLength}
           maxLength={maxLength}
           required={required}
+          aria-invalid={hasError || undefined}
         />
         <button
           type="button"

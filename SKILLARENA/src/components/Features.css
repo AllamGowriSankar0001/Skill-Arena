@@ -144,6 +144,24 @@
   line-height: 1.65;
 }
 
+.deck-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.92;
+}
+
+.deck-card-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .deck-card-index {
   margin-top: 1.25rem;
   font-size: 0.75rem;

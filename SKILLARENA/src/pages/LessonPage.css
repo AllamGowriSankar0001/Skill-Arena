@@ -171,3 +171,40 @@
 .lesson-page-nav a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+  .lesson-page-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .lesson-page-title {
+    font-size: 1.55rem;
+  }
+
+  .lesson-page-lead {
+    font-size: 0.92rem;
+  }
+
+  .app-lesson-content--article {
+    padding: 1rem;
+  }
+
+  .lesson-page-nav {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .lesson-page-actions {
+    flex-direction: column;
+  }
+
+  .lesson-page-actions .app-section-button {
+    width: 100%;
+  }
+
+  .lesson-page-meta {
+    gap: 0.35rem;
+  }
+}

@@ -109,6 +109,19 @@ const assessmentSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    seriesRootId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+    },
+    seriesPart: {
+      type: Number,
+      min: 1,
+      default: 1,
+    },
+    seriesBaseTitle: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -120,6 +133,8 @@ assessmentSchema.index({ courseId: 1 });
 assessmentSchema.index({ lessonId: 1 });
 assessmentSchema.index({ skillId: 1 });
 assessmentSchema.index({ status: 1 });
+assessmentSchema.index({ seriesRootId: 1, seriesPart: 1 });
+assessmentSchema.index({ seriesBaseTitle: 1, type: 1 });
 
 const Assessment = mongoose.model('Assessment', assessmentSchema);
 

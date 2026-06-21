@@ -1,0 +1,19 @@
+.code-editor-shell {
+  min-height: 0;
+}
+
+.code-editor-shell--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.code-editor-shell .cm-scroller {
+  overflow: auto !important;
+}
+
+.code-editor-shell .cm-editor,
+.code-editor-shell .cm-theme-light {
+  max-height: 100%;
+}

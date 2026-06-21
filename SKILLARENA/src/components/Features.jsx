@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useCallback, useRef, useState } from 'react'
 import ScrollReveal from './ScrollReveal'
+import { ROUTES } from '../routes'
 import './Features.css'
 
 const FEATURES = [
@@ -11,6 +13,7 @@ const FEATURES = [
     title: '1v1 & 3v3 Battles',
     description:
       'Real-time skill duels. Pick a topic, drop into a match, and let your knowledge do the talking.',
+    to: ROUTES.battles,
   },
   {
     index: '02 / 06',
@@ -20,6 +23,7 @@ const FEATURES = [
     title: '500+ Free Courses',
     description:
       'Coding, design, languages, math, business — everything is free and built for momentum.',
+    to: ROUTES.learn,
   },
   {
     index: '03 / 06',
@@ -29,6 +33,7 @@ const FEATURES = [
     title: 'Play with Friends',
     description:
       'Invite friends, form squads, and run private tournaments with custom rules.',
+    to: ROUTES.tournaments,
   },
   {
     index: '04 / 06',
@@ -37,6 +42,7 @@ const FEATURES = [
     icon: 'chat',
     title: 'Live Chat & DMs',
     description: 'Talk strategy mid-match or just hang out in your study lounge.',
+    to: ROUTES.community,
   },
   {
     index: '05 / 06',
@@ -45,6 +51,7 @@ const FEATURES = [
     icon: 'trophy',
     title: 'Global Leaderboards',
     description: 'Climb seasonal ranks, earn badges, and showcase your arena profile.',
+    to: ROUTES.leaderboard,
   },
   {
     index: '06 / 06',
@@ -54,6 +61,7 @@ const FEATURES = [
     title: 'Fair Play, Always',
     description:
       'Anti-cheat, smart matchmaking and clean moderation — so every win is earned.',
+    to: ROUTES.security,
   },
 ]
 
@@ -203,6 +211,11 @@ const Features = () => {
                       <div className="deck-card-icon">{icons[feature.icon]}</div>
                       <h3 className="deck-card-title">{feature.title}</h3>
                       <p className="deck-card-description">{feature.description}</p>
+                      {offset === 0 ? (
+                        <Link to={feature.to} className="deck-card-link">
+                          Explore <span aria-hidden="true">→</span>
+                        </Link>
+                      ) : null}
                     </div>
                     <span className="deck-card-index">{feature.index}</span>
                   </article>

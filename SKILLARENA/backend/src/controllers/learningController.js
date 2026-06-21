@@ -2,6 +2,7 @@ const Lesson = require('../models/Lesson');
 const lessonProgressService = require('../services/lessonProgressService');
 const quizGradingService = require('../services/quizGradingService');
 const codingLessonService = require('../services/codingLessonService');
+const practiceService = require('../services/practiceService');
 const { withUserXp } = require('../utils/learningResponse');
 
 const isAdminUser = (user) => user?.role === 'ADMIN';
@@ -230,6 +231,113 @@ const getLessonAccess = async (req, res, next) => {
   }
 };
 
+const listPractice = async (req, res, next) => {
+  try {
+    const assessments = await practiceService.listPracticeForUser(req.user._id);
+    res.json({ assessments });
+  } catch (error) {
+    handleError(error, res, next);
+  }
+};
+
+const getPracticeDetail = async (req, res, next) => {
+  try {
+    const practice = await practiceService.getPracticeDetail(req.user._id, req.params.assessmentId);
+    res.json({ practice });
+  } catch (error) {
+    const status = error.message === 'Practice set not found.' ? 404 : 400;
+    res.status(status).json({ message: error.message });
+  }
+};
+
+const getPracticeQuiz = async (req, res, next) => {
+  try {
+    const quiz = await practiceService.getPracticeQuizPayload(req.user._id, req.params.assessmentId);
+    res.json({ quiz });
+  } catch (error) {
+    const status = error.message === 'Practice set not found.' ? 404 : 400;
+    res.status(status).json({ message: error.message });
+  }
+};
+
+const submitPracticeQuiz = async (req, res, next) => {
+  try {
+    const result = await practiceService.submitPracticeQuiz(
+      req.user._id,
+      req.params.assessmentId,
+      req.body.answers,
+    );
+    res.json(await withUserXp(req, result));
+  } catch (error) {
+    handleError(error, res, next);
+  }
+};
+
+const getPracticeQuizAttempts = async (req, res, next) => {
+  try {
+    const attempts = await practiceService.listPracticeQuizAttempts(
+      req.user._id,
+      req.params.assessmentId,
+    );
+    res.json(attempts);
+  } catch (error) {
+    const status = error.message === 'Practice set not found.' ? 404 : 400;
+    res.status(status).json({ message: error.message });
+  }
+};
+
+const getPracticeCoding = async (req, res, next) => {
+  try {
+    const payload = await practiceService.getPracticeCodingPayload(
+      req.user._id,
+      req.params.assessmentId,
+    );
+    res.json(payload);
+  } catch (error) {
+    const status = error.message === 'Practice set not found.' ? 404 : 400;
+    res.status(status).json({ message: error.message });
+  }
+};
+
+const runPracticeCoding = async (req, res, next) => {
+  try {
+    const result = await practiceService.runPracticeCodingTests(
+      req.user._id,
+      req.params.assessmentId,
+      req.body,
+    );
+    res.json(result);
+  } catch (error) {
+    handleError(error, res, next);
+  }
+};
+
+const submitPracticeCoding = async (req, res, next) => {
+  try {
+    const result = await practiceService.submitPracticeCoding(
+      req.user._id,
+      req.params.assessmentId,
+      req.body,
+    );
+    res.json(await withUserXp(req, result));
+  } catch (error) {
+    handleError(error, res, next);
+  }
+};
+
+const getPracticeCodingAttempts = async (req, res, next) => {
+  try {
+    const attempts = await practiceService.listPracticeCodingAttempts(
+      req.user._id,
+      req.params.assessmentId,
+    );
+    res.json({ attempts });
+  } catch (error) {
+    const status = error.message === 'Practice set not found.' ? 404 : 400;
+    res.status(status).json({ message: error.message });
+  }
+};
+
 module.exports = {
   enrollCourse,
   getCourseProgress,
@@ -247,4 +355,13 @@ module.exports = {
   submitCoding,
   getCodingAttempts,
   getLessonAccess,
+  listPractice,
+  getPracticeDetail,
+  getPracticeQuiz,
+  submitPracticeQuiz,
+  getPracticeQuizAttempts,
+  getPracticeCoding,
+  runPracticeCoding,
+  submitPracticeCoding,
+  getPracticeCodingAttempts,
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
+import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import PasswordField from '../components/auth/PasswordField'
 import { useAuth } from '../context/AuthContext'
 import { getHomeRouteForUser, ROUTES } from '../routes'
@@ -13,6 +14,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [errorField, setErrorField] = useState('')
   const successMessage = location.state?.signupSuccess
 
   const homeRoute = getHomeRouteForUser(user)
@@ -41,10 +43,12 @@ const LoginPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+    setErrorField('')
 
     const validation = validateLoginForm({ email, password })
     if (!validation.ok) {
       setError(validation.message)
+      setErrorField(validation.field || '')
       return
     }
 
@@ -54,6 +58,7 @@ const LoginPage = () => {
       navigate(destination, { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
+      setErrorField('')
     }
   }
 
@@ -75,21 +80,24 @@ const LoginPage = () => {
             {successMessage}
           </p>
         ) : null}
-        {error ? (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {error ? <AuthErrorAlert message={error} field={errorField} /> : null}
 
-        <div className="auth-field">
+        <div className={`auth-field${errorField === 'email' ? ' auth-field--error' : ''}`}>
           <label htmlFor="login-email">Email</label>
           <input
             id="login-email"
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              if (errorField === 'email') {
+                setError('')
+                setErrorField('')
+              }
+            }}
             autoComplete="email"
+            aria-invalid={errorField === 'email' || undefined}
           />
         </div>
 
@@ -98,8 +106,15 @@ const LoginPage = () => {
           label="Password"
           placeholder="Enter your password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event) => {
+            setPassword(event.target.value)
+            if (errorField === 'password') {
+              setError('')
+              setErrorField('')
+            }
+          }}
           autoComplete="current-password"
+          hasError={errorField === 'password'}
         />
 
         <div className="auth-field-row">

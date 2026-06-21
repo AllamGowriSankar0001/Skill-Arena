@@ -23,6 +23,11 @@ const Notification = require('./Notification');
 const LeaderboardEntry = require('./LeaderboardEntry');
 const BlogPost = require('./BlogPost');
 const Resume = require('./Resume');
+const CommunityPost = require('./CommunityPost');
+const CommunityLike = require('./CommunityLike');
+const CommunityComment = require('./CommunityComment');
+const CommunityRoom = require('./CommunityRoom');
+const CommunityMember = require('./CommunityMember');
 
 module.exports = {
   User,
@@ -50,4 +55,9 @@ module.exports = {
   LeaderboardEntry,
   BlogPost,
   Resume,
+  CommunityPost,
+  CommunityLike,
+  CommunityComment,
+  CommunityRoom,
+  CommunityMember,
 };
