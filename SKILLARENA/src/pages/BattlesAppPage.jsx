@@ -335,14 +335,16 @@ const BattlesAppPage = () => {
           className={`arena-mode-tab${playMode === 'ranked' ? ' is-active' : ''}`}
           onClick={() => setPlayMode('ranked')}
         >
-          Ranked queue
+          <span className="arena-mode-tab-text arena-mode-tab-text--long">Ranked queue</span>
+          <span className="arena-mode-tab-text arena-mode-tab-text--short">Ranked</span>
         </button>
         <button
           type="button"
           className={`arena-mode-tab${playMode === 'friends' ? ' is-active' : ''}`}
           onClick={() => setPlayMode('friends')}
         >
-          Play with friends
+          <span className="arena-mode-tab-text arena-mode-tab-text--long">Play with friends</span>
+          <span className="arena-mode-tab-text arena-mode-tab-text--short">Friends</span>
         </button>
       </div>
 
@@ -438,26 +440,49 @@ const BattlesAppPage = () => {
             </button>
           ) : (
             <div className="arena-friends-actions">
-              <button
-                type="button"
-                className="arena-btn arena-btn--queue"
-                disabled={searching || !settings.skillId}
-                onClick={handleCreateRoom}
-              >
-                Create room
-              </button>
-              <div className="arena-join-row">
-                <input
-                  className="arena-code-input"
-                  type="text"
-                  placeholder="ROOM CODE"
-                  value={friendCode}
-                  onChange={(event) => setFriendCode(event.target.value.toUpperCase())}
-                  maxLength={8}
-                />
-                <button type="button" className="arena-btn arena-btn--secondary" onClick={handleJoinRoom}>
-                  Join
+              <div className="arena-friends-block arena-friends-block--create">
+                <p className="arena-friends-lead">Host a private room and share the code with your squad.</p>
+                <button
+                  type="button"
+                  className="arena-btn arena-btn--queue"
+                  disabled={searching || !settings.skillId}
+                  onClick={handleCreateRoom}
+                >
+                  Create room
                 </button>
+              </div>
+
+              <div className="arena-friends-divider" aria-hidden="true">
+                <span>or</span>
+              </div>
+
+              <div className="arena-friends-block arena-friends-block--join">
+                <label className="arena-friends-label" htmlFor="arena-friend-code">
+                  Join with room code
+                </label>
+                <div className="arena-join-row">
+                  <input
+                    id="arena-friend-code"
+                    className="arena-code-input"
+                    type="text"
+                    inputMode="text"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    placeholder="Enter code"
+                    value={friendCode}
+                    onChange={(event) => setFriendCode(event.target.value.toUpperCase())}
+                    maxLength={8}
+                  />
+                  <button
+                    type="button"
+                    className="arena-btn arena-btn--secondary arena-btn--join"
+                    disabled={!friendCode.trim()}
+                    onClick={handleJoinRoom}
+                  >
+                    Join room
+                  </button>
+                </div>
               </div>
             </div>
           )}
