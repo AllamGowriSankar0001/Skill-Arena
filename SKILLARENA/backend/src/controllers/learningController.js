@@ -2,6 +2,7 @@ const Lesson = require('../models/Lesson');
 const lessonProgressService = require('../services/lessonProgressService');
 const quizGradingService = require('../services/quizGradingService');
 const codingLessonService = require('../services/codingLessonService');
+const { withUserXp } = require('../utils/learningResponse');
 
 const isAdminUser = (user) => user?.role === 'ADMIN';
 
@@ -34,6 +35,15 @@ const getCourseProgress = async (req, res, next) => {
   }
 };
 
+const listEnrollments = async (req, res, next) => {
+  try {
+    const enrollments = await lessonProgressService.listEnrollmentSummaries(req.user._id);
+    res.json({ enrollments });
+  } catch (error) {
+    handleError(error, res, next);
+  }
+};
+
 const startLesson = async (req, res, next) => {
   try {
     const progress = await lessonProgressService.startLesson(req.user._id, req.params.lessonId, {
@@ -59,12 +69,18 @@ const getLessonProgress = async (req, res, next) => {
 
 const completeLesson = async (req, res, next) => {
   try {
-    const progress = await lessonProgressService.markArticleComplete(
+    const result = await lessonProgressService.markArticleComplete(
       req.user._id,
       req.params.lessonId,
       { isAdmin: isAdminUser(req.user) },
     );
-    res.json({ progress, lessonCompleted: true });
+    res.json(
+      await withUserXp(req, {
+        progress: result.progress,
+        lessonCompleted: true,
+        xp: result.xp,
+      }),
+    );
   } catch (error) {
     handleError(error, res, next);
   }
@@ -72,11 +88,16 @@ const completeLesson = async (req, res, next) => {
 
 const markIncomplete = async (req, res, next) => {
   try {
-    const progress = await lessonProgressService.markArticleIncomplete(
+    const result = await lessonProgressService.markArticleIncomplete(
       req.user._id,
       req.params.lessonId,
     );
-    res.json({ progress });
+    res.json(
+      await withUserXp(req, {
+        progress: result.progress,
+        xp: result.xp,
+      }),
+    );
   } catch (error) {
     handleError(error, res, next);
   }
@@ -85,7 +106,7 @@ const markIncomplete = async (req, res, next) => {
 const updateVideoProgress = async (req, res, next) => {
   try {
     const { positionSeconds, durationSeconds, manualComplete } = req.body;
-    const progress = await lessonProgressService.updateVideoProgress(
+    const result = await lessonProgressService.updateVideoProgress(
       req.user._id,
       req.params.lessonId,
       {
@@ -95,10 +116,13 @@ const updateVideoProgress = async (req, res, next) => {
         isAdmin: isAdminUser(req.user),
       },
     );
-    res.json({
-      progress,
-      lessonCompleted: progress.status === 'COMPLETED',
-    });
+    res.json(
+      await withUserXp(req, {
+        progress: result.progress,
+        lessonCompleted: result.progress.status === 'COMPLETED',
+        xp: result.xp,
+      }),
+    );
   } catch (error) {
     handleError(error, res, next);
   }
@@ -112,7 +136,7 @@ const submitQuiz = async (req, res, next) => {
       req.body.answers,
       { isAdmin: isAdminUser(req.user) },
     );
-    res.json(result);
+    res.json(await withUserXp(req, result));
   } catch (error) {
     handleError(error, res, next);
   }
@@ -174,7 +198,7 @@ const submitCoding = async (req, res, next) => {
       req.body,
       { isAdmin: isAdminUser(req.user) },
     );
-    res.json(result);
+    res.json(await withUserXp(req, result));
   } catch (error) {
     handleError(error, res, next);
   }
@@ -209,6 +233,7 @@ const getLessonAccess = async (req, res, next) => {
 module.exports = {
   enrollCourse,
   getCourseProgress,
+  listEnrollments,
   startLesson,
   getLessonProgress,
   completeLesson,

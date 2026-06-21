@@ -245,8 +245,15 @@ export const resumeApi = {
 }
 
 export const learningApi = {
+  leaderboard: ({ scope = 'global', categoryId, courseId } = {}) => {
+    const params = new URLSearchParams({ scope })
+    if (categoryId) params.set('categoryId', categoryId)
+    if (courseId) params.set('courseId', courseId)
+    return request(`/learning/leaderboard?${params.toString()}`)
+  },
   enroll: (courseId) =>
     request(`/learning/courses/${courseId}/enroll`, { method: 'POST' }),
+  enrollments: () => request('/learning/courses/enrollments'),
   courseProgress: (courseId) => request(`/learning/courses/${courseId}/progress`),
   startLesson: (lessonId) =>
     request(`/learning/lessons/${lessonId}/start`, { method: 'POST' }),

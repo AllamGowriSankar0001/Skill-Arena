@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
 import CourseThumbnail from '../components/CourseThumbnail'
-import { platformApi } from '../services/api'
+import { getStoredUser, learningApi, platformApi } from '../services/api'
+import { getCourseCtaLabel } from '../utils/courseProgress'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './CoursesPage.css'
@@ -26,7 +27,9 @@ const CourseCardSkeleton = () => (
 )
 
 const LearnAppPage = () => {
+  const user = getStoredUser()
   const [courses, setCourses] = useState([])
+  const [enrollmentByCourseId, setEnrollmentByCourseId] = useState(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -37,6 +40,22 @@ const LearnAppPage = () => {
       .catch((err) => setError(err.message || 'Failed to load courses'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setEnrollmentByCourseId(new Map())
+      return
+    }
+
+    learningApi
+      .enrollments()
+      .then((data) => {
+        const map = new Map()
+        ;(data.enrollments || []).forEach((entry) => map.set(entry.courseId, entry))
+        setEnrollmentByCourseId(map)
+      })
+      .catch(() => {})
+  }, [user])
 
   return (
     <main className="courses-page">
@@ -67,7 +86,13 @@ const LearnAppPage = () => {
 
         {!loading && !error && courses.length ? (
           <div className="courses-grid">
-            {courses.map((course) => (
+            {courses.map((course) => {
+              const enrollment = enrollmentByCourseId.get(course.id)
+              const cardAction = enrollment?.hasStarted
+                ? getCourseCtaLabel(enrollment)
+                : 'View course'
+
+              return (
               <Link
                 key={course.id}
                 to={`${ROUTES.learn}/${course.id}`}
@@ -81,6 +106,12 @@ const LearnAppPage = () => {
                   />
                   {course.level ? (
                     <span className="course-card-badge">{formatLevel(course.level)}</span>
+                  ) : null}
+                  {enrollment?.hasStarted && enrollment.status !== 'COMPLETED' ? (
+                    <span className="course-card-badge course-card-badge--progress">In progress</span>
+                  ) : null}
+                  {enrollment?.status === 'COMPLETED' ? (
+                    <span className="course-card-badge course-card-badge--completed">Completed</span>
                   ) : null}
                 </div>
 
@@ -97,6 +128,9 @@ const LearnAppPage = () => {
                     {course.estimatedMinutes ? (
                       <span>{course.estimatedMinutes} min</span>
                     ) : null}
+                    {enrollment?.hasStarted ? (
+                      <span className="course-card-progress">{enrollment.progressPercentage}% complete</span>
+                    ) : null}
                     {course.ratingAverage ? (
                       <span className="course-card-rating">
                         ★ {Number(course.ratingAverage).toFixed(1)}
@@ -104,10 +138,11 @@ const LearnAppPage = () => {
                     ) : null}
                   </div>
 
-                  <span className="course-card-action">View course →</span>
+                  <span className="course-card-action">{cardAction} →</span>
                 </div>
               </Link>
-            ))}
+              )
+            })}
           </div>
         ) : null}
 

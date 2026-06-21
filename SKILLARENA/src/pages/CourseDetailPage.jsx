@@ -5,6 +5,7 @@ import CourseThumbnail from '../components/CourseThumbnail'
 import LessonTypeIcon from '../components/LessonTypeIcon'
 import { getStoredUser, learningApi, platformApi } from '../services/api'
 import { getLessonStateLabel } from '../utils/lessonProgress'
+import { getCourseCtaLabel, getCourseStatusLabel, hasStartedCourse } from '../utils/courseProgress'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './CoursesPage.css'
@@ -43,15 +44,28 @@ const CourseDetailPage = () => {
 
   useEffect(() => {
     if (!user || !courseId) return
-    learningApi
-      .enroll(courseId)
-      .catch(() => {})
-      .finally(() => {
-        learningApi
-          .courseProgress(courseId)
-          .then(setCourseProgress)
-          .catch(() => {})
-      })
+
+    learningApi.enroll(courseId).catch(() => {})
+  }, [user, courseId])
+
+  useEffect(() => {
+    if (!user || !courseId) return
+
+    const refreshProgress = () => {
+      learningApi
+        .courseProgress(courseId)
+        .then(setCourseProgress)
+        .catch(() => {})
+    }
+
+    refreshProgress()
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refreshProgress()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [user, courseId])
 
   const progressByLessonId = useMemo(() => {
@@ -80,6 +94,10 @@ const CourseDetailPage = () => {
   }, [modules])
 
   const enrollment = courseProgress?.enrollment
+  const lessons = courseProgress?.lessons || []
+  const courseStarted = hasStartedCourse(enrollment, lessons)
+  const courseStatusLabel = getCourseStatusLabel(enrollment, lessons)
+  const courseCtaLabel = getCourseCtaLabel(enrollment, lessons)
   const continueLessonId =
     enrollment?.currentLessonId ||
     courseProgress?.lessons?.find((lesson) => lesson.lockState !== 'LOCKED')?.id ||
@@ -143,7 +161,7 @@ const CourseDetailPage = () => {
                       to={lessonPath(courseId, continueLessonId)}
                       className="course-detail-cta course-detail-cta--mobile"
                     >
-                      {enrollment?.completedLessonCount ? 'Continue learning' : 'Start learning'}
+                      {courseCtaLabel}
                     </Link>
                   ) : null}
                 </div>
@@ -162,7 +180,16 @@ const CourseDetailPage = () => {
 
                 {enrollment ? (
                   <div className="course-detail-progress">
-                    <strong>Course Progress</strong>
+                    <div className="course-detail-progress-head">
+                      <strong>Course progress</strong>
+                      {courseStatusLabel ? (
+                        <span
+                          className={`course-detail-progress-status course-detail-progress-status--${courseStatusLabel.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          {courseStatusLabel}
+                        </span>
+                      ) : null}
+                    </div>
                     <p>
                       {enrollment.completedLessonCount} of {enrollment.totalLessons} lessons
                       completed — {enrollment.progressPercentage}%
@@ -280,8 +307,19 @@ const CourseDetailPage = () => {
                   ) : null}
                 </div>
 
-                <div className="course-sidebar-content">
+                  <div className="course-sidebar-content">
                   <p className="course-sidebar-label">Course overview</p>
+
+                  {courseStatusLabel && enrollment ? (
+                    <p
+                      className={`course-sidebar-enrollment course-sidebar-enrollment--${courseStatusLabel.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      {courseStatusLabel}
+                      {courseStarted && enrollment.status !== 'COMPLETED'
+                        ? ` · ${enrollment.progressPercentage}%`
+                        : ''}
+                    </p>
+                  ) : null}
 
                   <div className="course-sidebar-stat-grid">
                     {course.level ? (
@@ -325,7 +363,7 @@ const CourseDetailPage = () => {
                       to={lessonPath(courseId, continueLessonId)}
                       className="course-detail-cta"
                     >
-                      {enrollment?.completedLessonCount ? 'Continue learning' : 'Start learning'}
+                      {courseCtaLabel}
                     </Link>
                   ) : (
                     <span className="course-detail-cta course-detail-cta--disabled">

@@ -1,12 +1,16 @@
 const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const learningController = require('../controllers/learningController');
+const leaderboardController = require('../controllers/leaderboardController');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
+router.get('/leaderboard', leaderboardController.getLeaderboard);
+
 router.post('/courses/:courseId/enroll', learningController.enrollCourse);
+router.get('/courses/enrollments', learningController.listEnrollments);
 router.get('/courses/:courseId/progress', learningController.getCourseProgress);
 
 router.post('/lessons/:lessonId/start', learningController.startLesson);

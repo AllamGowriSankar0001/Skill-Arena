@@ -11,6 +11,7 @@ const {
   incrementAttemptCount,
   startLesson,
 } = require('./lessonProgressService');
+const { emptyXpDelta } = require('./xpService');
 const { runCodingTests } = require('./codingTestRunner');
 
 function getStarterCodeMap(question) {
@@ -168,8 +169,10 @@ async function submitCodingAnswer(userId, lessonId, code, { isAdmin = false } = 
     evaluatedAt: new Date(),
   });
 
+  let xp = emptyXpDelta();
   if (passed) {
-    await completeLesson(userId, lesson);
+    const completion = await completeLesson(userId, lesson);
+    xp = completion.xp || xp;
   }
 
   return {
@@ -184,6 +187,7 @@ async function submitCodingAnswer(userId, lessonId, code, { isAdmin = false } = 
     visibleResults: evaluation.results.filter((item) => !item.hidden),
     jsError: evaluation.jsError,
     lessonCompleted: passed,
+    xp,
   };
 }
 

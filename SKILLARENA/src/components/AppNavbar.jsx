@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../context/AuthContext'
 import { ROUTES } from '../routes'
+import { formatXpLabel } from '../utils/xpSync'
 import './AppNavbar.css'
 
-const APP_LINKS = [
-  { label: 'Dashboard', to: ROUTES.dashboard },
+const NAVBAR_LINKS = [{ label: 'Dashboard', to: ROUTES.dashboard }]
+
+const DROPDOWN_LINKS = [
   { label: 'Learn', to: ROUTES.learn },
   { label: 'Practice', to: ROUTES.practice },
-  { label: 'Battles', to: ROUTES.battles, comingSoon: true },
   { label: 'Leaderboard', to: ROUTES.leaderboard },
-  { label: 'Resume', to: ROUTES.resume, isNew: true },
+  { label: 'Resume', to: ROUTES.resume },
+  { label: 'Profile', to: ROUTES.profile },
 ]
+
+const MOBILE_EXTRA_LINKS = [{ label: 'Battles', to: ROUTES.battles, comingSoon: true }]
 
 const getInitials = (name = '') => {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -26,6 +30,8 @@ const AppNavbar = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef(null)
   const firstName = user?.name?.split(' ')[0] || 'User'
   const initials = getInitials(user?.name)
 
@@ -34,6 +40,7 @@ const AppNavbar = () => {
 
   useEffect(() => {
     setMenuOpen(false)
+    setUserMenuOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -43,16 +50,48 @@ const AppNavbar = () => {
     }
   }, [menuOpen])
 
+  useEffect(() => {
+    if (!userMenuOpen) return undefined
+
+    const handlePointerDown = (event) => {
+      if (!userMenuRef.current?.contains(event.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setUserMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [userMenuOpen])
+
   const closeMenu = () => setMenuOpen(false)
 
   const handleLogout = () => {
     closeMenu()
+    setUserMenuOpen(false)
     logout()
     navigate(ROUTES.login)
   }
 
-  const renderNavLink = (link, onNavigate) => {
-    const { label, to, comingSoon, isNew } = link
+  const renderNavLink = (link, onNavigate, { showTags = false } = {}) => {
+    const { label, to, comingSoon } = link
+
+    if (comingSoon) {
+      return (
+        <span key={label} className="app-navbar-link app-navbar-link--disabled" aria-disabled="true">
+          <span>{label}</span>
+          {showTags ? <span className="app-navbar-tag app-navbar-tag--soon">Soon</span> : null}
+        </span>
+      )
+    }
+
     return (
       <Link
         key={label}
@@ -61,11 +100,36 @@ const AppNavbar = () => {
         onClick={onNavigate}
       >
         <span>{label}</span>
-        {comingSoon ? <span className="app-navbar-tag app-navbar-tag--soon">Soon</span> : null}
-        {isNew ? <span className="app-navbar-tag app-navbar-tag--new">New</span> : null}
       </Link>
     )
   }
+
+  const renderDropdownLink = (link) => {
+    const { label, to, comingSoon } = link
+
+    if (comingSoon) {
+      return (
+        <span key={label} className="app-navbar-user-dropdown-link app-navbar-user-dropdown-link--disabled" aria-disabled="true">
+          {label}
+          <span className="app-navbar-tag app-navbar-tag--soon">Soon</span>
+        </span>
+      )
+    }
+
+    return (
+      <Link
+        key={label}
+        to={to}
+        className={`app-navbar-user-dropdown-link${isActive(to) ? ' app-navbar-user-dropdown-link--active' : ''}`}
+        role="menuitem"
+        onClick={() => setUserMenuOpen(false)}
+      >
+        {label}
+      </Link>
+    )
+  }
+
+  const mobileLinks = [...NAVBAR_LINKS, ...DROPDOWN_LINKS, ...MOBILE_EXTRA_LINKS]
 
   return (
     <>
@@ -75,28 +139,52 @@ const AppNavbar = () => {
             <BrandLogo />
           </Link>
 
-          <nav className="app-navbar-links app-navbar-links--desktop" aria-label="Main">
-            {APP_LINKS.map((link) => renderNavLink(link))}
-          </nav>
-
           <div className="app-navbar-actions app-navbar-actions--desktop">
-            <Link
-              to={ROUTES.profile}
-              className={`app-navbar-user${location.pathname === ROUTES.profile ? ' app-navbar-user--active' : ''}`}
-            >
-              <span className="app-navbar-avatar" aria-hidden="true">
-                {initials}
+            {NAVBAR_LINKS.map((link) => renderNavLink(link))}
+
+            {user?.level ? (
+              <span className="app-navbar-level-chip" title={user?.xp != null ? formatXpLabel(user.xp) : undefined}>
+                Lv {user.level}
               </span>
-              <span className="app-navbar-user-text">
-                <span className="app-navbar-user-name">{firstName}</span>
-                {user?.level ? (
-                  <span className="app-navbar-user-role">Lv {user.level}</span>
-                ) : null}
-              </span>
-            </Link>
-            <button type="button" className="app-navbar-logout" onClick={handleLogout}>
-              Sign out
-            </button>
+            ) : null}
+
+            <div className="app-navbar-user-menu" ref={userMenuRef}>
+              <button
+                type="button"
+                className={`app-navbar-user-trigger${userMenuOpen ? ' app-navbar-user-trigger--open' : ''}`}
+                aria-label="Account menu"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setUserMenuOpen((open) => !open)}
+              >
+                <span className="app-navbar-avatar" aria-hidden="true">
+                  {initials}
+                </span>
+              </button>
+
+              {userMenuOpen ? (
+                <div className="app-navbar-user-dropdown" role="menu">
+                  <div className="app-navbar-user-dropdown-head">
+                    <strong>{user?.name || firstName}</strong>
+                    <span>
+                      {user?.level ? `Level ${user.level}` : 'Student'}
+                      {user?.xp != null ? ` · ${formatXpLabel(user.xp)}` : ''}
+                    </span>
+                  </div>
+                  <div className="app-navbar-user-dropdown-links">
+                    {DROPDOWN_LINKS.map((link) => renderDropdownLink(link))}
+                  </div>
+                  <button
+                    type="button"
+                    className="app-navbar-user-dropdown-logout"
+                    role="menuitem"
+                    onClick={handleLogout}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <button
@@ -127,37 +215,24 @@ const AppNavbar = () => {
         className={`app-navbar-mobile${menuOpen ? ' app-navbar-mobile--open' : ''}`}
         aria-hidden={!menuOpen}
       >
-        <div className="app-navbar-mobile-head">
-          <p className="app-navbar-mobile-eyebrow">Navigation</p>
-          <p className="app-navbar-mobile-lead">Quick links across Skill Arena.</p>
+        <div className="app-navbar-mobile-account">
+          <span className="app-navbar-avatar app-navbar-avatar--large" aria-hidden="true">
+            {initials}
+          </span>
+          <div className="app-navbar-mobile-account-copy">
+            <strong>{user?.name || firstName}</strong>
+            <span>
+              {user?.level ? `Level ${user.level}` : 'Student'}
+              {user?.xp != null ? ` · ${formatXpLabel(user.xp)}` : ''}
+            </span>
+          </div>
         </div>
 
         <nav className="app-navbar-mobile-links" aria-label="Main">
-          {APP_LINKS.map((link) => renderNavLink(link, closeMenu))}
+          {mobileLinks.map((link) => renderNavLink(link, closeMenu, { showTags: true }))}
         </nav>
 
         <div className="app-navbar-mobile-foot">
-          <p className="app-navbar-mobile-foot-label">Your account</p>
-          <Link
-            to={ROUTES.profile}
-            className={`app-navbar-mobile-user${location.pathname === ROUTES.profile ? ' app-navbar-mobile-user--active' : ''}`}
-            onClick={closeMenu}
-          >
-            <span className="app-navbar-avatar" aria-hidden="true">
-              {initials}
-            </span>
-            <span className="app-navbar-user-text">
-              <span className="app-navbar-user-name">{user?.name || firstName}</span>
-              {user?.level ? (
-                <span className="app-navbar-user-role">Level {user.level}</span>
-              ) : (
-                <span className="app-navbar-user-role">View profile</span>
-              )}
-            </span>
-            <span className="app-navbar-mobile-user-arrow" aria-hidden="true">
-              →
-            </span>
-          </Link>
           <button type="button" className="app-navbar-mobile-logout" onClick={handleLogout}>
             Sign out
           </button>

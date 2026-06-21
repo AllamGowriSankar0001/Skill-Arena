@@ -183,7 +183,7 @@ const CodingPlayground = ({
       const result = await learningApi.submitCoding(lessonId, code)
       setSubmitResult(result)
       if (result.lessonCompleted && onProgressUpdate) {
-        onProgressUpdate()
+        onProgressUpdate(result)
       }
     } catch (err) {
       setLoadError(err.message || 'Submission failed')
@@ -347,6 +347,7 @@ const CodingPlayground = ({
             <>
               <strong>All test cases passed!</strong>
               <p>Lesson completed ✓</p>
+              {submitResult.xp?.earned ? <p>XP earned: +{submitResult.xp.earned}</p> : null}
               {nextLessonId ? (
                 <Link
                   to={`${coursePath}/lessons/${nextLessonId}`}

@@ -1,12 +1,21 @@
 .app-section {
   min-height: calc(100vh - var(--navbar-height, 4rem));
-  padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 4vw, 1.5rem) clamp(2.5rem, 6vw, 4rem);
+  padding: var(--app-page-padding-y) var(--app-page-padding-x) clamp(2rem, 4vw, 3rem);
   background: var(--app-bg, #f6f3ee);
 }
 
 .app-section-inner {
+  width: 100%;
   max-width: var(--app-max-width, 76rem);
   margin: 0 auto;
+}
+
+.app-section-inner--narrow {
+  max-width: var(--app-content-narrow, 56rem);
+}
+
+.app-section-inner--lesson {
+  max-width: var(--app-max-width, 76rem);
 }
 
 .app-section-eyebrow {
@@ -44,14 +53,11 @@
 }
 
 .app-lesson-content--article {
+  max-width: var(--app-content-reading, 42rem);
   padding: clamp(1rem, 3vw, 1.35rem);
   border-radius: 0.85rem;
   background: #fff;
   border: 1px solid rgba(26, 17, 10, 0.08);
-}
-
-.app-section-inner--lesson {
-  max-width: 48rem;
 }
 
 .app-section-card {

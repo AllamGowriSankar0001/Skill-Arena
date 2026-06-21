@@ -21,6 +21,10 @@
   --navbar-height: 4rem;
   --app-bg: #f6f3ee;
   --app-max-width: 76rem;
+  --app-content-narrow: 56rem;
+  --app-content-reading: 42rem;
+  --app-page-padding-x: clamp(1rem, 2.5vw, 1.5rem);
+  --app-page-padding-y: clamp(1.25rem, 2.5vw, 1.75rem);
   --app-surface: #fff;
   --app-border: rgba(26, 17, 10, 0.08);
   --app-text: #1a110a;

@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop'
 import PageLayout from './components/layout/PageLayout'
 import AuthLayout from './components/layout/AuthLayout'
 import AppLayout from './components/layout/AppLayout'
@@ -36,7 +37,9 @@ const MARKETING_PAGES = CONTENT_PAGES.filter(
 
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.signup} element={<SignupPage />} />
@@ -98,6 +101,7 @@ function App() {
         <Route path={ROUTES.adminUsers} element={<AdminUsersPage />} />
       </Route>
     </Routes>
+    </>
   )
 }
 

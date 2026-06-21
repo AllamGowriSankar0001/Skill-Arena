@@ -4,7 +4,7 @@ const {
   Lesson,
   LessonProgress,
 } = require('../models');
-const { awardXp } = require('./xpService');
+const { awardXp, emptyXpDelta, mergeXpDelta, revokeXpBySource } = require('./xpService');
 const {
   getPublishedLessonsForCourse,
   getNextLesson,
@@ -57,8 +57,9 @@ async function getProgressMap(userId, courseId) {
 
 async function recalculateEnrollment(userId, courseId) {
   const enrollment = await Enrollment.findOne({ userId, courseId });
-  if (!enrollment) return null;
+  if (!enrollment) return { enrollment: null, xp: emptyXpDelta() };
 
+  const xp = emptyXpDelta();
   const orderedLessons = await getPublishedLessonsForCourse(courseId);
   const progressMap = await getProgressMap(userId, courseId);
 
@@ -90,23 +91,31 @@ async function recalculateEnrollment(userId, courseId) {
 
     const course = await Course.findById(courseId);
     if (course?.completionXpReward) {
-      await awardXp({
+      const awardResult = await awardXp({
         userId,
         sourceType: 'COURSE_COMPLETION',
         sourceId: courseId,
         amount: course.completionXpReward,
         description: `Completed course: ${course.title}`,
       });
+      mergeXpDelta(xp, awardResult.delta);
     }
 
     await Course.updateOne({ _id: courseId }, { $inc: { 'stats.completionCount': 1 } });
   } else if (enrollment.status === 'COMPLETED' && completedCount < total) {
+    const revokeResult = await revokeXpBySource({
+      userId,
+      sourceType: 'COURSE_COMPLETION',
+      sourceId: courseId,
+      description: 'Course marked incomplete after lesson update',
+    });
+    mergeXpDelta(xp, revokeResult.delta);
     enrollment.status = 'ACTIVE';
     enrollment.completedAt = undefined;
   }
 
   await enrollment.save();
-  return enrollment;
+  return { enrollment, xp };
 }
 
 async function canAccessLesson(userId, lesson, { isAdmin = false } = {}) {
@@ -206,6 +215,7 @@ async function completeLesson(userId, lesson, { skipXp = false } = {}) {
   const progress = await getLessonProgressRecord(userId, lesson);
   const wasCompleted = progress.status === 'COMPLETED';
   const now = new Date();
+  const xp = emptyXpDelta();
 
   progress.status = 'COMPLETED';
   progress.progressPercentage = 100;
@@ -214,17 +224,20 @@ async function completeLesson(userId, lesson, { skipXp = false } = {}) {
   await progress.save();
 
   if (!wasCompleted && !skipXp && lesson.completionXpReward) {
-    await awardXp({
+    const awardResult = await awardXp({
       userId,
       sourceType: 'LESSON_COMPLETION',
       sourceId: lesson._id,
       amount: lesson.completionXpReward,
       description: `Completed lesson: ${lesson.title}`,
     });
+    mergeXpDelta(xp, awardResult.delta);
   }
 
-  await recalculateEnrollment(userId, lesson.courseId);
-  return progress;
+  const enrollmentResult = await recalculateEnrollment(userId, lesson.courseId);
+  mergeXpDelta(xp, enrollmentResult?.xp);
+
+  return { progress, xp };
 }
 
 async function markArticleComplete(userId, lessonId, { isAdmin = false } = {}) {
@@ -249,14 +262,29 @@ async function markArticleIncomplete(userId, lessonId) {
   if (lesson.type !== 'ARTICLE') throw new Error('Only article lessons can be marked incomplete.');
 
   const progress = await getLessonProgressRecord(userId, lesson);
+  const wasCompleted = progress.status === 'COMPLETED';
+  const xp = emptyXpDelta();
+
   progress.status = 'IN_PROGRESS';
   progress.progressPercentage = 0;
   progress.completedAt = undefined;
   progress.lastAccessedAt = new Date();
   await progress.save();
 
-  await recalculateEnrollment(userId, lesson.courseId);
-  return progress;
+  if (wasCompleted) {
+    const revokeResult = await revokeXpBySource({
+      userId,
+      sourceType: 'LESSON_COMPLETION',
+      sourceId: lesson._id,
+      description: `Marked incomplete: ${lesson.title}`,
+    });
+    mergeXpDelta(xp, revokeResult.delta);
+  }
+
+  const enrollmentResult = await recalculateEnrollment(userId, lesson.courseId);
+  mergeXpDelta(xp, enrollmentResult?.xp);
+
+  return { progress, xp };
 }
 
 async function updateVideoProgress(userId, lessonId, { positionSeconds = 0, durationSeconds = 0, manualComplete = false, isAdmin = false } = {}) {
@@ -295,7 +323,7 @@ async function updateVideoProgress(userId, lessonId, { positionSeconds = 0, dura
     return completeLesson(userId, lesson);
   }
 
-  return progress;
+  return { progress, xp: emptyXpDelta() };
 }
 
 async function getCourseProgress(userId, courseId) {
@@ -401,6 +429,44 @@ async function saveCodingDraft(userId, lessonId, draft) {
   return progress.codingDraft;
 }
 
+async function listEnrollmentSummaries(userId) {
+  const enrollments = await Enrollment.find({ userId }).lean();
+  if (!enrollments.length) return [];
+
+  const courseIds = enrollments.map((enrollment) => enrollment.courseId);
+  const startedCounts = await LessonProgress.aggregate([
+    {
+      $match: {
+        userId,
+        courseId: { $in: courseIds },
+        status: { $in: ['IN_PROGRESS', 'COMPLETED'] },
+      },
+    },
+    { $group: { _id: '$courseId', startedCount: { $sum: 1 } } },
+  ]);
+
+  const startedMap = new Map(
+    startedCounts.map((entry) => [entry._id.toString(), entry.startedCount]),
+  );
+
+  return enrollments.map((enrollment) => {
+    const courseId = enrollment.courseId.toString();
+    const startedCount = startedMap.get(courseId) || 0;
+    const hasStarted =
+      startedCount > 0 || enrollment.completedLessonCount > 0 || enrollment.progressPercentage > 0;
+
+    return {
+      courseId,
+      status: enrollment.status,
+      completedLessonCount: enrollment.completedLessonCount,
+      totalLessons: enrollment.totalLessons,
+      progressPercentage: enrollment.progressPercentage,
+      currentLessonId: enrollment.currentLessonId?.toString() || null,
+      hasStarted,
+    };
+  });
+}
+
 module.exports = {
   VIDEO_AUTO_COMPLETE_PERCENT,
   enrollUser,
@@ -414,6 +480,7 @@ module.exports = {
   updateVideoProgress,
   getCourseProgress,
   getLessonProgressDetail,
+  listEnrollmentSummaries,
   incrementAttemptCount,
   saveCodingDraft,
   getPublishedLessonsForCourse,

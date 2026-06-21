@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import BlogImage from './BlogImage'
-import { preprocessBlogMarkdown } from '../utils/blogMarkdown'
+import { preprocessBlogMarkdown, stripRedundantLessonHeading } from '../utils/blogMarkdown'
 import '../pages/Blog.css'
 
 const markdownComponents = {
@@ -28,10 +28,25 @@ const markdownComponents = {
     </a>
   ),
   p: ({ children }) => <p className="blog-article-paragraph">{children}</p>,
+  pre: ({ children }) => <pre>{children}</pre>,
+  code: ({ className, children, ...props }) => {
+    const isBlock = Boolean(className)
+    if (isBlock) {
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      )
+    }
+    return <code {...props}>{children}</code>
+  },
 }
 
-const BlogContent = ({ content }) => {
-  const markdown = useMemo(() => preprocessBlogMarkdown(content), [content])
+const BlogContent = ({ content, courseTitle }) => {
+  const markdown = useMemo(() => {
+    const stripped = courseTitle ? stripRedundantLessonHeading(content, courseTitle) : content
+    return preprocessBlogMarkdown(stripped)
+  }, [content, courseTitle])
 
   if (!markdown.trim()) {
     return <p className="blog-article-empty">No content yet.</p>

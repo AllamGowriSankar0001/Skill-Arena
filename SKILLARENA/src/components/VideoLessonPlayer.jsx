@@ -23,8 +23,12 @@ const VideoLessonPlayer = ({ lessonId, url, title, progress, onCompleted }) => {
           manualComplete,
         })
         if (result.lessonCompleted && onCompleted) {
-          onCompleted(result.progress)
-          setFeedback('Lesson completed ✓')
+          onCompleted(result)
+          setFeedback(
+            result.xp?.earned
+              ? `Lesson completed ✓ · +${result.xp.earned} XP`
+              : 'Lesson completed ✓',
+          )
         } else if (manualComplete) {
           setFeedback('Progress saved')
         }

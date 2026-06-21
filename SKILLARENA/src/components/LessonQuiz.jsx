@@ -139,7 +139,13 @@ const LessonQuiz = ({ lessonId, quiz, progress, onCompleted, completionXpReward 
             <>
               <strong>Quiz Passed</strong>
               <p>Lesson Completed ✓</p>
-              {completionXpReward ? <p>XP Earned: {completionXpReward}</p> : null}
+              {result.xp?.earned ? (
+                <p>XP earned: +{result.xp.earned}</p>
+              ) : completionXpReward && isCompleted ? (
+                <p>XP reward: {completionXpReward}</p>
+              ) : completionXpReward ? (
+                <p>Complete to earn {completionXpReward} XP</p>
+              ) : null}
             </>
           ) : (
             <>

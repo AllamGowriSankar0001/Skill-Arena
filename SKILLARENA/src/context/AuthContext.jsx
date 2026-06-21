@@ -66,6 +66,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null)
   }
 
+  const updateUser = useCallback((nextUser) => {
+    const token = localStorage.getItem('skillarena_token')
+    if (!token || !nextUser) return
+    setAuth(token, nextUser)
+    setUser(nextUser)
+  }, [])
+
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem('skillarena_token')
     if (!token) {
@@ -87,8 +94,9 @@ export const AuthProvider = ({ children }) => {
       signup,
       logout,
       refreshUser,
+      updateUser,
     }),
-    [user, loading, bootstrapping, refreshUser],
+    [user, loading, bootstrapping, refreshUser, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

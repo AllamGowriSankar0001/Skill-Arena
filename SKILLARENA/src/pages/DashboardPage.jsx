@@ -1,52 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import CourseThumbnail from '../components/CourseThumbnail'
 import { useAuth } from '../context/AuthContext'
 import { homeApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { getResumeProfileCompletion } from '../utils/userProfile'
+import { formatXpLabel } from '../utils/xpSync'
 import './DashboardPage.css'
 
-const PLATFORM_CARDS = [
-  {
-    id: 'learn',
-    eyebrow: 'Learn',
-    title: 'Structured courses',
-    copy: 'Browse published courses, modules, and lessons.',
-    to: ROUTES.learn,
-    available: true,
-    cta: 'Browse courses',
-    dark: false,
-  },
-  {
-    id: 'practice',
-    eyebrow: 'Practice',
-    title: 'Sharpen skills',
-    copy: 'Quizzes, MCQs, and coding challenges to earn XP.',
-    to: ROUTES.practice,
-    available: true,
-    cta: 'View practice',
-    dark: false,
-  },
-  {
-    id: 'battle',
-    eyebrow: 'Battle',
-    title: 'Compete live',
-    copy: '1v1 and team skill battles are on the roadmap.',
-    available: false,
-    dark: true,
-  },
-]
-
-const STAT_ITEMS = [
-  { key: 'totalXp', label: 'Total XP', icon: '⚡', format: (stats, user) => (stats?.totalXp ?? user?.xp ?? 0).toLocaleString() },
-  { key: 'level', label: 'Level', icon: '▲', format: (stats, user) => stats?.level ?? user?.level ?? 1 },
-  {
-    key: 'streak',
-    label: 'Streak',
-    icon: '🔥',
-    format: (stats) => `${stats?.currentStreak ?? 0} days`,
-  },
-  { key: 'rank', label: 'Rank', icon: '◆', format: (stats, user) => stats?.rank ?? user?.rank ?? 'Bronze' },
+const QUICK_LINKS = [
+  { label: 'Browse courses', to: ROUTES.learn, description: 'Structured learning paths' },
+  { label: 'Practice', to: ROUTES.practice, description: 'Quizzes and coding drills' },
+  { label: 'Resume builder', to: ROUTES.resume, description: 'AI-tailored PDF resume' },
+  { label: 'Leaderboard', to: ROUTES.leaderboard, description: 'Weekly XP rankings' },
 ]
 
 const DashboardPage = () => {
@@ -68,181 +34,245 @@ const DashboardPage = () => {
   const profileCompletion = useMemo(() => getResumeProfileCompletion(user), [user])
   const showGamification = user?.role !== 'ADMIN'
 
+  const totalXp = stats?.totalXp ?? user?.xp ?? 0
+  const level = stats?.level ?? user?.level ?? 1
+  const levelProgress = stats
+    ? Math.min(100, Math.round((stats.currentLevelXp / Math.max(stats.nextLevelXp, 1)) * 100))
+    : user?.currentLevelXp != null && user?.nextLevelXp
+      ? Math.min(100, Math.round((user.currentLevelXp / Math.max(user.nextLevelXp, 1)) * 100))
+      : 0
+
+  const continueLearning = home?.continueLearning
+  const continueLessonId = continueLearning?.currentLesson?.id
+  const continueHref = continueLearning?.course?.id
+    ? continueLessonId
+      ? `${ROUTES.learn}/${continueLearning.course.id}/lessons/${continueLessonId}`
+      : `${ROUTES.learn}/${continueLearning.course.id}`
+    : ROUTES.learn
+
+  const recommendedCourses = home?.recommendedCourses || []
+  const leaderboard = home?.weeklyLeaderboard
+
   return (
     <main className="dashboard">
       <div className="dashboard-inner">
-        <header className="dashboard-header">
+        <header className="dashboard-topbar">
           <div>
-            <p className="dashboard-eyebrow">Dashboard</p>
+            <p className="dashboard-kicker">Dashboard</p>
             <h1 className="dashboard-title">Welcome back, {firstName}</h1>
-            <p className="dashboard-subtitle">Your arena hub — explore courses, practice sets, and build your resume.</p>
+            <p className="dashboard-subtitle">
+              Pick up where you left off, track your progress, and keep building skills.
+            </p>
           </div>
-          <Link to={ROUTES.profile} className="dashboard-profile-link">
-            View profile
-          </Link>
+          {showGamification ? (
+            <div className="dashboard-topbar-stats" aria-label="Your level and XP">
+              <span className="dashboard-level-pill">Level {level}</span>
+              <span className="dashboard-xp-pill">{formatXpLabel(totalXp)}</span>
+            </div>
+          ) : null}
         </header>
 
-        <section className="dashboard-feature">
-          <div className="dashboard-feature-content">
-            <div className="dashboard-feature-head">
-              <div>
-                <p className="dashboard-card-eyebrow">Featured tool</p>
-                <h2>AI Resume Builder</h2>
-              </div>
-              <span className="dashboard-feature-badge">Available now</span>
-            </div>
-            <p className="dashboard-card-copy">
-              Generate a tailored, ATS-friendly resume from your profile and any job description. Preview and download as PDF.
-            </p>
-            {!profileCompletion.isComplete ? (
-              <div className="dashboard-feature-profile">
-                <div className="dashboard-feature-profile-top">
-                  <span>Profile {profileCompletion.percent}% complete</span>
-                  <Link to={ROUTES.profile}>Fill profile for better resume</Link>
-                </div>
-                <div className="dashboard-feature-profile-track" aria-hidden="true">
-                  <div
-                    className="dashboard-feature-profile-fill"
-                    style={{ width: `${profileCompletion.percent}%` }}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-          <Link to={ROUTES.resume} className="dashboard-btn dashboard-btn--primary dashboard-feature-cta">
-            Open resume builder
-          </Link>
-        </section>
-
         {error ? <p className="dashboard-alert dashboard-alert--error">{error}</p> : null}
-        {loading ? <p className="dashboard-alert">Loading your arena data…</p> : null}
+        {loading ? <p className="dashboard-alert">Loading your dashboard…</p> : null}
 
-        {showGamification ? (
-          <section className="dashboard-section">
-            <div className="dashboard-section-head">
-              <h2 className="dashboard-section-title">Your progress</h2>
-              <p className="dashboard-section-copy">Track your arena growth at a glance.</p>
-            </div>
-            <div className="dashboard-stats" aria-label="Your stats">
-              {STAT_ITEMS.map((item) => (
-                <article key={item.key} className={`dashboard-stat dashboard-stat--${item.key}`}>
-                  <div className="dashboard-stat-top">
-                    <span className="dashboard-stat-icon" aria-hidden="true">
-                      {item.icon}
-                    </span>
-                    <p className="dashboard-stat-label">{item.label}</p>
-                  </div>
-                  <p className="dashboard-stat-value">{item.format(stats, user)}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <section className="dashboard-section">
-          <div className="dashboard-section-head">
-            <h2 className="dashboard-section-title">Platform areas</h2>
-            <p className="dashboard-section-copy">Learn and Practice are live. Battles are still on the way.</p>
-          </div>
-          <div className="dashboard-quick" aria-label="Platform areas">
-            {PLATFORM_CARDS.map((card) => {
-              const cardClassName = `dashboard-card${card.available ? ' dashboard-card--available' : ' dashboard-card--soon'}${card.dark ? ' dashboard-card--dark' : ''}`
-
-              const body = (
-                <>
-                  <span
-                    className={`dashboard-status${card.available ? ' dashboard-status--live' : ''}${card.dark ? ' dashboard-status--light' : ''}`}
-                  >
-                    {card.available ? 'Available' : 'Coming soon'}
-                  </span>
-                  <div className="dashboard-card-body">
-                    <p className="dashboard-card-eyebrow">{card.eyebrow}</p>
-                    <h2>{card.title}</h2>
-                    <p className="dashboard-card-copy">{card.copy}</p>
-                  </div>
-                  <div className="dashboard-card-foot">
-                    {card.available ? (
-                      <span className="dashboard-btn dashboard-btn--ghost">{card.cta}</span>
+        {!loading ? (
+          <div className="dashboard-layout">
+            <div className="dashboard-main">
+              {showGamification ? (
+                <section className="dashboard-continue" aria-labelledby="dashboard-continue-title">
+                  <div className="dashboard-continue-copy">
+                    <p className="dashboard-kicker">Continue learning</p>
+                    <h2 id="dashboard-continue-title">
+                      {continueLearning?.course?.title || 'Start your next course'}
+                    </h2>
+                    {continueLearning?.currentLesson?.title ? (
+                      <p className="dashboard-continue-lesson">{continueLearning.currentLesson.title}</p>
                     ) : (
-                      <span
-                        className={`dashboard-btn dashboard-btn--disabled${card.dark ? ' dashboard-btn--disabled-light' : ''}`}
-                      >
-                        Coming soon
-                      </span>
+                      <p className="dashboard-continue-lesson">
+                        Explore published courses and begin your learning path.
+                      </p>
                     )}
+                    {continueLearning?.progressPercentage != null ? (
+                      <div className="dashboard-continue-progress">
+                        <div className="dashboard-continue-progress-meta">
+                          <span>Course progress</span>
+                          <strong>{continueLearning.progressPercentage}%</strong>
+                        </div>
+                        <div
+                          className="dashboard-progress-track"
+                          role="progressbar"
+                          aria-valuenow={continueLearning.progressPercentage}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <span style={{ width: `${continueLearning.progressPercentage}%` }} />
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
-                </>
-              )
-
-              if (card.available) {
-                return (
-                  <Link key={card.id} to={card.to} className={cardClassName}>
-                    {body}
+                  <Link to={continueHref} className="dashboard-btn dashboard-btn--primary">
+                    {continueLearning ? 'Continue course' : 'Browse courses'}
                   </Link>
-                )
-              }
-
-              return (
-                <article key={card.id} className={cardClassName}>
-                  {body}
-                </article>
-              )
-            })}
-          </div>
-        </section>
-
-        {home?.weeklyLeaderboard?.entries?.length ? (
-          <section className="dashboard-card dashboard-card--leaderboard">
-            <div className="dashboard-leaderboard-head">
-              <div>
-                <p className="dashboard-card-eyebrow">This week</p>
-                <h2>Leaderboard</h2>
-                <p className="dashboard-leaderboard-lead">Top performers climbing the arena this week.</p>
-              </div>
-              {home.weeklyLeaderboard.yourRank ? (
-                <div className="dashboard-leaderboard-you">
-                  <span>Your rank</span>
-                  <strong>#{home.weeklyLeaderboard.yourRank}</strong>
-                </div>
+                </section>
               ) : null}
+
+              {showGamification ? (
+                <section className="dashboard-metrics" aria-label="Learning stats">
+                  <article className="dashboard-metric">
+                    <span className="dashboard-metric-label">Total XP</span>
+                    <strong>{totalXp.toLocaleString()}</strong>
+                  </article>
+                  <article className="dashboard-metric">
+                    <span className="dashboard-metric-label">Lessons done</span>
+                    <strong>{stats?.lessonsCompleted ?? 0}</strong>
+                  </article>
+                  <article className="dashboard-metric">
+                    <span className="dashboard-metric-label">Courses done</span>
+                    <strong>{stats?.coursesCompleted ?? 0}</strong>
+                  </article>
+                  <article className="dashboard-metric">
+                    <span className="dashboard-metric-label">Streak</span>
+                    <strong>{stats?.currentStreak ?? 0} days</strong>
+                  </article>
+                </section>
+              ) : null}
+
+              {recommendedCourses.length ? (
+                <section className="dashboard-panel" aria-labelledby="dashboard-courses-title">
+                  <div className="dashboard-panel-head">
+                    <div>
+                      <h2 id="dashboard-courses-title">Recommended for you</h2>
+                      <p>Popular and skill-matched courses to explore next.</p>
+                    </div>
+                    <Link to={ROUTES.learn} className="dashboard-panel-link">
+                      View all
+                    </Link>
+                  </div>
+                  <div className="dashboard-course-grid">
+                    {recommendedCourses.map((course) => (
+                      <Link
+                        key={course.id}
+                        to={`${ROUTES.learn}/${course.id}`}
+                        className="dashboard-course-card"
+                      >
+                        <div className="dashboard-course-thumb">
+                          <CourseThumbnail
+                            src={course.thumbnailUrl}
+                            alt=""
+                            placeholderLabel={course.title?.slice(0, 1) || 'C'}
+                          />
+                        </div>
+                        <div className="dashboard-course-copy">
+                          <strong>{course.title}</strong>
+                          <span>
+                            {course.lessonCount ? `${course.lessonCount} lessons` : 'Course'}
+                            {course.estimatedMinutes ? ` · ${course.estimatedMinutes} min` : ''}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              <section className="dashboard-panel" aria-labelledby="dashboard-quick-title">
+                <div className="dashboard-panel-head">
+                  <div>
+                    <h2 id="dashboard-quick-title">Quick access</h2>
+                    <p>Jump straight into the areas you use most.</p>
+                  </div>
+                </div>
+                <div className="dashboard-quick-grid">
+                  {QUICK_LINKS.map((item) => (
+                    <Link key={item.to} to={item.to} className="dashboard-quick-card">
+                      <strong>{item.label}</strong>
+                      <span>{item.description}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
             </div>
 
-            <div className="dashboard-leaderboard-panel">
-              <div className="dashboard-leaderboard-columns" aria-hidden="true">
-                <span>Rank</span>
-                <span>Player</span>
-                <span>XP</span>
-              </div>
-              <ol className="dashboard-leaderboard">
-                {home.weeklyLeaderboard.entries.map((entry) => {
-                  const isYou =
-                    entry.rank === home.weeklyLeaderboard.yourRank || entry.name === user?.name
+            <aside className="dashboard-sidebar">
+              {showGamification ? (
+                <section className="dashboard-side-card">
+                  <h2>Level progress</h2>
+                  <p className="dashboard-side-lead">
+                    Level {level} · {stats?.rank ?? user?.rank ?? 'Bronze'}
+                  </p>
+                  <div
+                    className="dashboard-progress-track dashboard-progress-track--large"
+                    role="progressbar"
+                    aria-valuenow={levelProgress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <span style={{ width: `${levelProgress}%` }} />
+                  </div>
+                  <p className="dashboard-side-meta">
+                    {stats?.currentLevelXp ?? user?.currentLevelXp ?? 0} /{' '}
+                    {stats?.nextLevelXp ?? user?.nextLevelXp ?? 100} XP to next level
+                  </p>
+                </section>
+              ) : null}
 
-                  return (
-                    <li
-                      key={entry.rank}
-                      className={`dashboard-leaderboard-row${isYou ? ' dashboard-leaderboard-row--you' : ''}${entry.rank <= 3 ? ` dashboard-leaderboard-row--top-${entry.rank}` : ''}`}
-                    >
-                      <span className="dashboard-leaderboard-rank">
-                        <span className="dashboard-leaderboard-rank-badge">{entry.rank}</span>
-                      </span>
-                      <span className="dashboard-leaderboard-name">
-                        {entry.name}
-                        {isYou ? <span className="dashboard-leaderboard-you-tag">You</span> : null}
-                      </span>
-                      <span className="dashboard-leaderboard-xp">{entry.xp.toLocaleString()} XP</span>
-                    </li>
-                  )
-                })}
-              </ol>
-            </div>
+              {!profileCompletion.isComplete ? (
+                <section className="dashboard-side-card dashboard-side-card--accent">
+                  <h2>Complete your profile</h2>
+                  <p className="dashboard-side-lead">
+                    {profileCompletion.percent}% complete — better profile data improves resume quality.
+                  </p>
+                  <div className="dashboard-progress-track">
+                    <span style={{ width: `${profileCompletion.percent}%` }} />
+                  </div>
+                  <Link to={ROUTES.profile} className="dashboard-btn dashboard-btn--ghost dashboard-btn--block">
+                    Update profile
+                  </Link>
+                </section>
+              ) : null}
 
-            <div className="dashboard-leaderboard-foot">
-              <Link to={ROUTES.leaderboard} className="dashboard-btn dashboard-btn--ghost dashboard-leaderboard-link">
-                View full leaderboard
+              <section className="dashboard-side-card">
+                <h2>Resume builder</h2>
+                <p className="dashboard-side-lead">
+                  Generate an ATS-friendly resume tailored to any job description.
+                </p>
+                <Link to={ROUTES.resume} className="dashboard-btn dashboard-btn--primary dashboard-btn--block">
+                  Open resume builder
+                </Link>
+              </section>
+
+              {leaderboard?.entries?.length ? (
+                <section className="dashboard-side-card">
+                  <div className="dashboard-panel-head dashboard-panel-head--compact">
+                    <div>
+                      <h2>Weekly leaderboard</h2>
+                      {leaderboard.yourRank ? (
+                        <p>Your rank: #{leaderboard.yourRank}</p>
+                      ) : (
+                        <p>Top learners this week</p>
+                      )}
+                    </div>
+                  </div>
+                  <ol className="dashboard-mini-leaderboard">
+                    {leaderboard.entries.map((entry) => (
+                      <li key={entry.rank}>
+                        <span className="dashboard-mini-rank">#{entry.rank}</span>
+                        <span className="dashboard-mini-name">{entry.name}</span>
+                        <span className="dashboard-mini-xp">{entry.xp.toLocaleString()}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <Link to={ROUTES.leaderboard} className="dashboard-panel-link dashboard-panel-link--block">
+                    View full leaderboard
+                  </Link>
+                </section>
+              ) : null}
+
+              <Link to={ROUTES.profile} className="dashboard-profile-link">
+                View profile settings
               </Link>
-            </div>
-          </section>
+            </aside>
+          </div>
         ) : null}
       </div>
     </main>

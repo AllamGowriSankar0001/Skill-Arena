@@ -48,24 +48,70 @@ function dedentIfFullyIndented(content) {
     .join('\n')
 }
 
-export function preprocessBlogMarkdown(content) {
-  if (!content?.trim()) return ''
+function unescapeStoredNewlines(content) {
+  if (!content.includes('\\n')) return content
 
-  let normalized = content.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
-  normalized = unwrapMarkdownFences(normalized)
-  normalized = dedentIfFullyIndented(normalized)
+  const literalCount = (content.match(/\\n/g) || []).length
+  const actualCount = (content.match(/\n/g) || []).length
+  if (literalCount <= actualCount) return content
 
-  return normalized
-    .split(/\n{2,}/)
-    .map((block) => {
-      const trimmed = block.trim()
-      if (!trimmed) return ''
+  return content.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\"/g, '"')
+}
 
+function injectStandaloneImageUrls(content) {
+  const lines = content.split('\n')
+  let inFence = false
+
+  return lines
+    .map((line) => {
+      const trimmed = line.trim()
+      if (/^```/.test(trimmed)) {
+        inFence = !inFence
+        return line
+      }
+      if (inFence) return line
       if (/^https?:\/\/\S+$/i.test(trimmed) && isDisplayableImageUrl(trimmed)) {
         return `![](${trimmed})`
       }
-
-      return block.trim()
+      return line
     })
-    .join('\n\n')
+    .join('\n')
+}
+
+export function preprocessBlogMarkdown(content) {
+  if (!content?.trim()) return ''
+
+  let normalized = unescapeStoredNewlines(content)
+  normalized = normalized.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
+  normalized = unwrapMarkdownFences(normalized)
+  normalized = dedentIfFullyIndented(normalized)
+  normalized = injectStandaloneImageUrls(normalized)
+
+  return normalized.trim()
+}
+
+const normalizeHeading = (value = '') =>
+  value
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+export function stripRedundantLessonHeading(content, courseTitle) {
+  if (!content?.trim() || !courseTitle?.trim()) return content
+
+  const lines = content.trim().split('\n')
+  const firstLine = lines[0]?.trim() || ''
+  const headingMatch = firstLine.match(/^#{1,2}\s+(.+)$/)
+  if (!headingMatch) return content
+
+  const heading = normalizeHeading(headingMatch[1])
+  const course = normalizeHeading(courseTitle)
+  if (!heading || !course) return content
+
+  if (heading === course || heading.startsWith(course.slice(0, Math.min(course.length, 24)))) {
+    return lines.slice(1).join('\n').trim()
+  }
+
+  return content
 }

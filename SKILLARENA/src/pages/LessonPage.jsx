@@ -4,7 +4,10 @@ import AppEmptyState from '../components/AppEmptyState'
 import BlogContent from '../components/BlogContent'
 import LessonQuiz from '../components/LessonQuiz'
 import VideoLessonPlayer from '../components/VideoLessonPlayer'
-import { getStoredUser, learningApi, platformApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
+import { learningApi, platformApi } from '../services/api'
+import { applyXpUpdate } from '../utils/xpSync'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './LessonPage.css'
@@ -26,7 +29,8 @@ const statusLabel = (status) => {
 
 const LessonPage = () => {
   const { courseId, lessonId } = useParams()
-  const user = getStoredUser()
+  const { user, updateUser } = useAuth()
+  const { showSuccess } = useToast()
   const [lesson, setLesson] = useState(null)
   const [progressDetail, setProgressDetail] = useState(null)
   const [courseProgress, setCourseProgress] = useState(null)
@@ -117,11 +121,19 @@ const LessonPage = () => {
       .catch((err) => setError(err.message || 'Failed to load coding lesson'))
   }, [user, lessonId, lesson?.type, lockedMessage])
 
+  const syncXp = useCallback(
+    (response) => {
+      applyXpUpdate(response, { updateUser, showSuccess })
+    },
+    [updateUser, showSuccess],
+  )
+
   const handleArticleComplete = async () => {
     setActionLoading(true)
     setError('')
     try {
-      await learningApi.completeLesson(lessonId)
+      const response = await learningApi.completeLesson(lessonId)
+      syncXp(response)
       await refreshProgress()
     } catch (err) {
       setError(err.message || 'Failed to mark lesson complete')
@@ -134,7 +146,8 @@ const LessonPage = () => {
     setActionLoading(true)
     setError('')
     try {
-      await learningApi.markIncomplete(lessonId)
+      const response = await learningApi.markIncomplete(lessonId)
+      syncXp(response)
       await refreshProgress()
     } catch (err) {
       setError(err.message || 'Failed to update lesson')
@@ -142,6 +155,16 @@ const LessonPage = () => {
       setActionLoading(false)
     }
   }
+
+  const handleLessonCompleted = useCallback(
+    async (response) => {
+      if (response?.user || response?.xp) {
+        syncXp(response)
+      }
+      await refreshProgress()
+    },
+    [refreshProgress, syncXp],
+  )
 
   const renderArticleActions = () => {
     const completed = progressDetail?.status === 'COMPLETED'
@@ -192,7 +215,7 @@ const LessonPage = () => {
           url={lesson.content?.videoUrl}
           title={lesson.title}
           progress={progressDetail}
-          onCompleted={refreshProgress}
+          onCompleted={handleLessonCompleted}
         />
       )
     }
@@ -204,7 +227,7 @@ const LessonPage = () => {
           quiz={lesson.quiz}
           progress={progressDetail}
           completionXpReward={lesson.completionXpReward}
-          onCompleted={refreshProgress}
+          onCompleted={handleLessonCompleted}
         />
       )
     }
@@ -225,7 +248,7 @@ const LessonPage = () => {
             lessonId={lessonId}
             payload={codingPayload}
             progress={progressDetail}
-            onProgressUpdate={refreshProgress}
+            onProgressUpdate={handleLessonCompleted}
             nextLessonId={progressDetail?.nextLessonId}
             coursePath={coursePath}
           />
@@ -236,7 +259,7 @@ const LessonPage = () => {
     return (
       <>
         <div className="app-lesson-content app-lesson-content--article">
-          <BlogContent content={lesson.content?.articleHtml || ''} />
+          <BlogContent content={lesson.content?.articleHtml || ''} courseTitle={lesson.courseTitle} />
         </div>
         {user ? renderArticleActions() : null}
       </>
@@ -248,12 +271,8 @@ const LessonPage = () => {
   return (
     <main className="app-section">
       <div className="app-section-inner app-section-inner--lesson">
-        <Link to={coursePath} className="app-section-back">
-          ← Back to course
-        </Link>
-
-        {loading || progressLoading ? (
-          <p className="app-section-meta" aria-live="polite">
+        {loading && !lesson ? (
+          <p className="lesson-page-loading" aria-live="polite">
             Loading lesson…
           </p>
         ) : null}
@@ -261,36 +280,55 @@ const LessonPage = () => {
 
         {!loading && !error && lesson ? (
           <>
-            <p className="app-section-eyebrow">
-              {lesson.courseTitle}
-              {lesson.moduleTitle ? ` • ${lesson.moduleTitle}` : ''}
-            </p>
-            <h1>{lesson.title}</h1>
-            {lesson.description ? <p className="app-section-lead">{lesson.description}</p> : null}
-            <p className="app-section-meta">
-              {formatLabel(lesson.type)}
-              {lesson.durationMinutes ? ` • ${lesson.durationMinutes} min` : ''}
-              {progressDetail ? ` • ${statusLabel(progressDetail.status)}` : ''}
-            </p>
-
-            {enrollment ? (
-              <div className="lesson-page-course-progress">
-                <strong>Course Progress</strong>
-                <p>
-                  {enrollment.completedLessonCount} of {enrollment.totalLessons} lessons completed —{' '}
-                  {enrollment.progressPercentage}%
-                </p>
-                <div
-                  className="lesson-page-progress-bar"
-                  role="progressbar"
-                  aria-valuenow={enrollment.progressPercentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                >
-                  <span style={{ width: `${enrollment.progressPercentage}%` }} />
-                </div>
+            <header className="lesson-page-header">
+              <p className="lesson-page-eyebrow">
+                {lesson.courseTitle}
+                {lesson.moduleTitle ? (
+                  <>
+                    <span className="lesson-page-eyebrow-sep" aria-hidden="true">
+                      /
+                    </span>
+                    {lesson.moduleTitle}
+                  </>
+                ) : null}
+              </p>
+              <h1 className="lesson-page-title">{lesson.title}</h1>
+              {lesson.description ? <p className="lesson-page-lead">{lesson.description}</p> : null}
+              <div className="lesson-page-meta">
+                <span className="lesson-page-badge">{formatLabel(lesson.type)}</span>
+                {lesson.durationMinutes ? (
+                  <span className="lesson-page-meta-item">{lesson.durationMinutes} min read</span>
+                ) : null}
+                {progressDetail ? (
+                  <span
+                    className={`lesson-page-badge lesson-page-badge--status lesson-page-badge--${progressDetail.status.toLowerCase()}`}
+                  >
+                    {statusLabel(progressDetail.status)}
+                  </span>
+                ) : progressLoading ? (
+                  <span className="lesson-page-meta-item lesson-page-meta-item--muted">Syncing progress…</span>
+                ) : null}
               </div>
-            ) : null}
+              {enrollment ? (
+                <div className="lesson-page-course-progress">
+                  <div className="lesson-page-course-progress-label">
+                    <span>Course progress</span>
+                    <strong>
+                      {enrollment.completedLessonCount}/{enrollment.totalLessons} · {enrollment.progressPercentage}%
+                    </strong>
+                  </div>
+                  <div
+                    className="lesson-page-progress-bar"
+                    role="progressbar"
+                    aria-valuenow={enrollment.progressPercentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <span style={{ width: `${enrollment.progressPercentage}%` }} />
+                  </div>
+                </div>
+              ) : null}
+            </header>
 
             {lockedMessage ? (
               <AppEmptyState

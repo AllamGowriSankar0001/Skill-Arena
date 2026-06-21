@@ -11,6 +11,7 @@ const {
   incrementAttemptCount,
   startLesson,
 } = require('./lessonProgressService');
+const { emptyXpDelta } = require('./xpService');
 
 async function getQuizQuestionsForLesson(lesson, { includeAnswers = false } = {}) {
   if (!lesson.assessmentId) return null;
@@ -135,8 +136,10 @@ async function submitQuiz(userId, lessonId, answers, { isAdmin = false } = {}) {
     evaluatedAt: new Date(),
   });
 
+  let xp = emptyXpDelta();
   if (passed) {
-    await completeLesson(userId, lesson);
+    const completion = await completeLesson(userId, lesson);
+    xp = completion.xp || xp;
   }
 
   const explanations = passed
@@ -161,6 +164,7 @@ async function submitQuiz(userId, lessonId, answers, { isAdmin = false } = {}) {
     maxScore,
     explanations,
     lessonCompleted: passed,
+    xp,
   };
 }
 
