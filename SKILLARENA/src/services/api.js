@@ -373,10 +373,22 @@ export const battleApi = {
   startFriendBattle: (battleId) =>
     request(`/battles/${battleId}/start`, { method: 'POST' }),
   getBattle: (battleId) => request(`/battles/${battleId}`),
+  leaveBattle: (battleId) =>
+    request(`/battles/${battleId}/leave`, { method: 'POST' }),
   getQuiz: (battleId) => request(`/battles/${battleId}/quiz`),
   submitQuiz: (battleId, answers) =>
     request(`/battles/${battleId}/submit`, {
       method: 'POST',
       body: JSON.stringify({ answers }),
+    }),
+  runCoding: (battleId, code) =>
+    request(`/battles/${battleId}/coding/run`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+  submitCoding: (battleId, code) =>
+    request(`/battles/${battleId}/coding/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     }),
 }

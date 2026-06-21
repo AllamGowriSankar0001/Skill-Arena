@@ -1,0 +1,35 @@
+.skeleton-preview-page {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 3vw, 2rem) 3rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.skeleton-preview-title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.skeleton-preview-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.skeleton-preview-section h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b5f54;
+}
+
+.skeleton-preview-grid {
+  max-width: 22rem;
+}
+
+.skeleton-preview-messages {
+  max-width: 42rem;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  background: #f6f3ee;
+}

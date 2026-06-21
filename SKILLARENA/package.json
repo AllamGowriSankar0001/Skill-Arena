@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "bones:build": "boneyard-js build http://localhost:5173/skeleton-preview",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview"
@@ -15,6 +16,7 @@
     "@codemirror/lang-html": "^6.4.11",
     "@codemirror/lang-javascript": "^6.2.5",
     "@uiw/react-codemirror": "^4.25.10",
+    "boneyard-js": "^1.8.1",
     "jspdf": "^4.2.1",
     "pdfjs-dist": "^5.6.205",
     "react": "^19.2.6",

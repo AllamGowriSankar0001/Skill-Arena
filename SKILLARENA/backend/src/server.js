@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const routes = require('./routes');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const { tryMatchWaitingTickets, expireStaleTickets, startBattleIfReady } = require('./services/matchmakingService');
+const { finalizeBattleIfNeeded } = require('./services/battleService');
 const { Battle } = require('./models');
 
 const app = express();
@@ -65,6 +66,10 @@ const start = async () => {
         const startingBattles = await Battle.find({ status: { $in: ['STARTING', 'IN_PROGRESS'] } });
         for (const battle of startingBattles) {
           await startBattleIfReady(battle._id);
+        }
+        const inProgressBattles = await Battle.find({ status: 'IN_PROGRESS' });
+        for (const battle of inProgressBattles) {
+          await finalizeBattleIfNeeded(battle._id);
         }
       } catch (error) {
         console.error('Battle scheduler error:', error.message);

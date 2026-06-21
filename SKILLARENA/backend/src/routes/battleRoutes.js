@@ -18,7 +18,10 @@ router.post('/friends/join', battleController.joinFriendBattle);
 router.post('/:battleId/start', battleController.startFriendBattle);
 
 router.get('/:battleId', battleController.getBattle);
+router.post('/:battleId/leave', battleController.leaveBattle);
 router.get('/:battleId/quiz', battleController.getBattleQuiz);
+router.post('/:battleId/coding/run', battleController.runBattleCoding);
+router.post('/:battleId/coding/submit', battleController.submitBattleCoding);
 router.post('/:battleId/submit', battleController.submitBattleQuiz);
 
 module.exports = router;

@@ -9,8 +9,30 @@ const {
 } = require('../models');
 const { awardXp } = require('./xpService');
 const { getUserStats } = require('./userStatsService');
+const { runCodingTests } = require('./codingTestRunner');
 const { startBattleIfReady, prepareBattleContent } = require('./matchmakingService');
 const { BATTLE_XP } = require('../constants/battleConstants');
+
+function getVisibleTests(question) {
+  const details = question.codingDetails || {};
+  return details.visibleTestCases?.length ? details.visibleTestCases : details.sampleTestCases || [];
+}
+
+function getCompletionTimeMs(participant, battleStartedAt) {
+  if (!participant?.completedAt) return Number.POSITIVE_INFINITY;
+  if (battleStartedAt) {
+    return participant.completedAt.getTime() - battleStartedAt.getTime();
+  }
+  return participant.completedAt.getTime();
+}
+
+function pickWinnerByTime(playerA, playerB, battleStartedAt) {
+  const timeA = getCompletionTimeMs(playerA, battleStartedAt);
+  const timeB = getCompletionTimeMs(playerB, battleStartedAt);
+  if (timeA < timeB) return playerA;
+  if (timeB < timeA) return playerB;
+  return null;
+}
 
 const QUIZ_TYPES = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE'];
 
@@ -63,6 +85,13 @@ async function loadQuestionsForAssessment(assessment) {
     .filter(Boolean);
 }
 
+function serializeTimer(timer) {
+  return {
+    ...timer,
+    endsAt: timer.endsAt ? new Date(timer.endsAt).toISOString() : null,
+  };
+}
+
 function getTimerInfo(battle, assessment) {
   if (!battle.startedAt || !assessment?.durationSeconds) {
     return { remainingSeconds: null, expired: false, endsAt: null };
@@ -79,19 +108,33 @@ function getTimerInfo(battle, assessment) {
   };
 }
 
-async function formatParticipant(participant, currentUserId) {
-  const user = await User.findById(participant.userId).select('name');
-  return {
-    userId: participant.userId.toString(),
-    name: user?.name || 'Player',
-    team: participant.team,
-    status: participant.status,
-    score: participant.score,
-    correctAnswers: participant.correctAnswers,
-    wrongAnswers: participant.wrongAnswers,
-    isYou: participant.userId.toString() === currentUserId.toString(),
-    submitted: Boolean(participant.completedAt),
-  };
+async function formatParticipants(participants, currentUserId, battleStartedAt) {
+  const userIds = participants.map((participant) => participant.userId);
+  const users = await User.find({ _id: { $in: userIds } }).select('name').lean();
+  const nameMap = new Map(users.map((user) => [user._id.toString(), user.name]));
+
+  return participants.map((participant) => {
+    const timeTakenSeconds =
+      participant.completedAt && battleStartedAt
+        ? Math.max(
+            0,
+            Math.round((participant.completedAt.getTime() - battleStartedAt.getTime()) / 1000),
+          )
+        : null;
+
+    return {
+      userId: participant.userId.toString(),
+      name: nameMap.get(participant.userId.toString()) || 'Player',
+      team: participant.team,
+      status: participant.status,
+      score: participant.score,
+      correctAnswers: participant.correctAnswers,
+      wrongAnswers: participant.wrongAnswers,
+      isYou: participant.userId.toString() === currentUserId.toString(),
+      submitted: Boolean(participant.completedAt),
+      timeTakenSeconds,
+    };
+  });
 }
 
 async function getBattleForUser(battleId, userId) {
@@ -116,8 +159,10 @@ async function getBattleForUser(battleId, userId) {
   }
 
   if (battle.status === 'IN_PROGRESS') {
-    const assessment = battle.assessmentId ? await loadBattleAssessment(battle.assessmentId) : null;
-    const timer = getTimerInfo(battle, assessment);
+    const assessmentForTimer = battle.assessmentId
+      ? await loadBattleAssessment(battle.assessmentId)
+      : null;
+    const timer = getTimerInfo(battle, assessmentForTimer);
     if (timer.expired) {
       await finalizeBattleIfNeeded(battle._id);
       battle = await Battle.findById(battleId).populate('skillId', 'name slug');
@@ -126,9 +171,7 @@ async function getBattleForUser(battleId, userId) {
 
   const assessment = battle.assessmentId ? await loadBattleAssessment(battle.assessmentId) : null;
   const timer = getTimerInfo(battle, assessment);
-  const participants = await Promise.all(
-    battle.participants.map((participant) => formatParticipant(participant, userId)),
-  );
+  const participants = await formatParticipants(battle.participants, userId, battle.startedAt);
 
   const countdownSeconds =
     battle.status === 'STARTING' && battle.scheduledAt
@@ -150,7 +193,7 @@ async function getBattleForUser(battleId, userId) {
     participantCount: battle.participants.length,
     participants,
     assessmentId: battle.assessmentId?.toString() || null,
-    timer,
+    timer: serializeTimer(timer),
     countdownSeconds,
     startedAt: battle.startedAt,
     endedAt: battle.endedAt,
@@ -177,7 +220,10 @@ async function getBattleQuizPayload(battleId, userId) {
   if (!assessment) throw new Error('Battle questions are not ready.');
 
   const timer = getTimerInfo(battle, assessment);
-  if (timer.expired) {
+  const participant = battle.participants.find(
+    (entry) => entry.userId.toString() === userId.toString(),
+  );
+  if (timer.expired && participant?.completedAt) {
     throw new Error('Time is up for this battle.');
   }
 
@@ -190,7 +236,7 @@ async function getBattleQuizPayload(battleId, userId) {
       mode: 'CODING',
       assessmentId: assessment._id.toString(),
       durationSeconds: assessment.durationSeconds,
-      timer,
+      timer: serializeTimer(timer),
       challenge: {
         id: coding.question._id.toString(),
         title: coding.question.title || assessment.title,
@@ -225,7 +271,7 @@ async function getBattleQuizPayload(battleId, userId) {
     mode: 'QUIZ',
     assessmentId: assessment._id.toString(),
     durationSeconds: assessment.durationSeconds,
-    timer,
+    timer: serializeTimer(timer),
     questions,
   };
 }
@@ -260,7 +306,13 @@ async function finalizeBattleIfNeeded(battleId) {
         battle.winnerType = 'USER';
         battle.winnerUserId = playerB.userId;
       } else {
-        battle.winnerType = 'DRAW';
+        const fasterPlayer = pickWinnerByTime(playerA, playerB, battle.startedAt);
+        if (fasterPlayer) {
+          battle.winnerType = 'USER';
+          battle.winnerUserId = fasterPlayer.userId;
+        } else {
+          battle.winnerType = 'DRAW';
+        }
       }
     }
   } else {
@@ -276,7 +328,23 @@ async function finalizeBattleIfNeeded(battleId) {
       battle.winnerType = 'TEAM';
       battle.winnerTeam = 'B';
     } else {
-      battle.winnerType = 'DRAW';
+      const teamATime = teamA.reduce(
+        (sum, participant) => sum + getCompletionTimeMs(participant, battle.startedAt),
+        0,
+      );
+      const teamBTime = teamB.reduce(
+        (sum, participant) => sum + getCompletionTimeMs(participant, battle.startedAt),
+        0,
+      );
+      if (teamATime < teamBTime) {
+        battle.winnerType = 'TEAM';
+        battle.winnerTeam = 'A';
+      } else if (teamBTime < teamATime) {
+        battle.winnerType = 'TEAM';
+        battle.winnerTeam = 'B';
+      } else {
+        battle.winnerType = 'DRAW';
+      }
     }
   }
 
@@ -347,8 +415,7 @@ async function submitBattleQuiz(battleId, userId, answers = {}) {
 
   const assessment = await loadBattleAssessment(battle.assessmentId);
   const timer = getTimerInfo(battle, assessment);
-  if (timer.expired) {
-    await finalizeBattleIfNeeded(battleId);
+  if (timer.expired && battle.participants[participantIndex].completedAt) {
     throw new Error('Time is up for this battle.');
   }
 
@@ -421,6 +488,163 @@ async function submitBattleQuiz(battleId, userId, answers = {}) {
   };
 }
 
+async function leaveBattle(battleId, userId) {
+  const battle = await Battle.findById(battleId);
+  if (!battle) throw new Error('Battle not found.');
+
+  const participantIndex = battle.participants.findIndex(
+    (participant) => participant.userId.toString() === userId.toString(),
+  );
+  if (participantIndex < 0) throw new Error('You are not part of this battle.');
+
+  const participant = battle.participants[participantIndex];
+
+  if (['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(battle.status)) {
+    return getBattleForUser(battleId, userId);
+  }
+
+  if (participant.status === 'COMPLETED') {
+    return getBattleForUser(battleId, userId);
+  }
+
+  if (['PLAYING', 'JOINED', 'READY', 'INVITED'].includes(participant.status)) {
+    battle.participants[participantIndex].status = 'LEFT';
+    await battle.save();
+    await finalizeBattleIfNeeded(battleId);
+  }
+
+  return getBattleForUser(battleId, userId);
+}
+
+async function runBattleCoding(battleId, userId, code = {}) {
+  const battle = await Battle.findById(battleId);
+  if (!battle) throw new Error('Battle not found.');
+  if (battle.status !== 'IN_PROGRESS') throw new Error('Battle is not in progress.');
+
+  const isParticipant = battle.participants.some(
+    (participant) => participant.userId.toString() === userId.toString(),
+  );
+  if (!isParticipant) throw new Error('You are not part of this battle.');
+
+  const assessment = await loadBattleAssessment(battle.assessmentId);
+  if (!assessment || assessment.mode !== 'CODING') {
+    throw new Error('This battle is not a coding challenge.');
+  }
+
+  const items = await loadQuestionsForAssessment(assessment);
+  const coding = items[0];
+  if (!coding) throw new Error('Coding challenge not found.');
+
+  const visibleTests = getVisibleTests(coding.question);
+  const result = runCodingTests(code, visibleTests);
+
+  return {
+    ...result,
+    results: result.results.map((item) => ({
+      ...item,
+      expected: undefined,
+    })),
+  };
+}
+
+async function submitBattleCoding(battleId, userId, code = {}) {
+  const battle = await Battle.findById(battleId);
+  if (!battle) throw new Error('Battle not found.');
+  if (battle.status !== 'IN_PROGRESS') throw new Error('Battle is not in progress.');
+
+  const participantIndex = battle.participants.findIndex(
+    (participant) => participant.userId.toString() === userId.toString(),
+  );
+  if (participantIndex < 0) throw new Error('You are not part of this battle.');
+  if (battle.participants[participantIndex].completedAt) {
+    throw new Error('You already submitted your solution.');
+  }
+
+  const assessment = await loadBattleAssessment(battle.assessmentId);
+  if (!assessment || assessment.mode !== 'CODING') {
+    throw new Error('This battle is not a coding challenge.');
+  }
+
+  const timer = getTimerInfo(battle, assessment);
+  if (timer.expired && battle.participants[participantIndex].completedAt) {
+    throw new Error('Time is up for this battle.');
+  }
+
+  const items = await loadQuestionsForAssessment(assessment);
+  const coding = items[0];
+  if (!coding) throw new Error('Coding challenge not found.');
+
+  const { question, solution, entry } = coding;
+  const visibleTests = getVisibleTests(question);
+  const hiddenTests = solution?.codingSolution?.hiddenTestCases || [];
+  const allTests = [
+    ...visibleTests.map((test) => ({ ...test, hidden: false })),
+    ...hiddenTests.map((test) => ({ ...test, hidden: true })),
+  ];
+
+  const evaluation = runCodingTests(code, allTests);
+  const points = entry.points || 100;
+  const totalScore = Math.round((evaluation.score / 100) * points);
+  const passedCount = evaluation.passedCount;
+  const failedCount = Math.max(0, evaluation.totalCount - passedCount);
+
+  const attempt = await AssessmentAttempt.create({
+    userId,
+    assessmentId: assessment._id,
+    contextType: 'BATTLE',
+    contextId: battle._id,
+    status: 'EVALUATED',
+    answers: [
+      {
+        questionId: question._id,
+        codeAnswer: {
+          language: 'html-css-js',
+          code: JSON.stringify(code),
+        },
+        isCorrect: evaluation.score >= 100,
+        score: totalScore,
+        maxScore: points,
+        executionResult: {
+          passedTestCases: passedCount,
+          totalTestCases: evaluation.totalCount,
+        },
+        answeredAt: new Date(),
+      },
+    ],
+    correctAnswerCount: passedCount,
+    wrongAnswerCount: failedCount,
+    score: totalScore,
+    maximumScore: points,
+    percentage: evaluation.score,
+    passed: evaluation.score >= 100,
+    submittedAt: new Date(),
+    evaluatedAt: new Date(),
+  });
+
+  battle.participants[participantIndex].score = totalScore;
+  battle.participants[participantIndex].correctAnswers = passedCount;
+  battle.participants[participantIndex].wrongAnswers = failedCount;
+  battle.participants[participantIndex].status = 'COMPLETED';
+  battle.participants[participantIndex].completedAt = new Date();
+  battle.participants[participantIndex].assessmentAttemptId = attempt._id;
+  await battle.save();
+
+  await finalizeBattleIfNeeded(battleId);
+
+  const updatedBattle = await getBattleForUser(battleId, userId);
+
+  return {
+    score: totalScore,
+    maxScore: points,
+    percentage: evaluation.score,
+    correctCount: passedCount,
+    wrongCount: failedCount,
+    passedCount,
+    totalCount: evaluation.totalCount,
+    battle: updatedBattle,
+  };
+}
+
 async function getBattleMeta() {
   const skills = await Skill.find({ status: 'ACTIVE' })
     .populate('categoryId', 'name slug')
@@ -479,6 +703,9 @@ module.exports = {
   getBattleForUser,
   getBattleQuizPayload,
   submitBattleQuiz,
+  runBattleCoding,
+  submitBattleCoding,
+  leaveBattle,
   finalizeBattleIfNeeded,
   listUserBattles,
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { battleApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -46,7 +46,7 @@ const formatElapsed = (seconds) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
-const ArenaSlot = ({ label, filled = false, isYou = false, pulse = false }) => (
+const ArenaSlot = memo(({ label, filled = false, isYou = false, pulse = false }) => (
   <div
     className={`arena-slot${filled ? ' arena-slot--filled' : ''}${isYou ? ' arena-slot--you' : ''}${
       pulse ? ' arena-slot--pulse' : ''
@@ -55,9 +55,9 @@ const ArenaSlot = ({ label, filled = false, isYou = false, pulse = false }) => (
     <span className="arena-slot-avatar">{filled ? (isYou ? 'YOU' : '?') : '—'}</span>
     <span className="arena-slot-label">{label}</span>
   </div>
-)
+))
 
-const ArenaRoster = ({ format, searching }) => {
+const ArenaRoster = memo(({ format, searching }) => {
   const config = FORMAT_OPTIONS.find((item) => item.id === format) || FORMAT_OPTIONS[0]
   const teamA = Array.from({ length: config.teamSize }, (_, index) => ({
     key: `a-${index}`,
@@ -96,9 +96,9 @@ const ArenaRoster = ({ format, searching }) => {
       </div>
     </div>
   )
-}
+})
 
-const MatchmakingOverlay = ({ settings, meta, elapsed, onCancel }) => {
+const MatchmakingOverlay = memo(({ settings, meta, elapsed, onCancel }) => {
   const format = FORMAT_OPTIONS.find((item) => item.id === settings.format)
   const mode = MODE_OPTIONS.find((item) => item.id === settings.mode)
   const skill = meta?.skills?.find((item) => item.id === settings.skillId)
@@ -132,7 +132,7 @@ const MatchmakingOverlay = ({ settings, meta, elapsed, onCancel }) => {
       </div>
     </div>
   )
-}
+})
 
 const BattlesAppPage = () => {
   const navigate = useNavigate()
@@ -195,7 +195,11 @@ const BattlesAppPage = () => {
     pollRef.current = setInterval(async () => {
       try {
         const status = await battleApi.queueStatus()
-        setQueueStatus(status)
+        setQueueStatus((current) =>
+          current.status === status.status && current.battleId === status.battleId
+            ? current
+            : status,
+        )
         if (status.status === 'MATCHED' && status.battleId) {
           clearInterval(pollRef.current)
           navigate(ROUTES.getBattlePath(status.battleId))
@@ -206,7 +210,7 @@ const BattlesAppPage = () => {
       } catch {
         /* ignore */
       }
-    }, 2000)
+    }, 3000)
 
     return () => {
       clearInterval(pollRef.current)
@@ -229,11 +233,11 @@ const BattlesAppPage = () => {
     }
   }
 
-  const handleCancelSearch = async () => {
+  const handleCancelSearch = useCallback(async () => {
     await battleApi.leaveQueue()
     setQueueStatus({ status: 'IDLE' })
     setSearchElapsed(0)
-  }
+  }, [])
 
   const handleCreateRoom = async () => {
     setError('')
@@ -286,6 +290,8 @@ const BattlesAppPage = () => {
         />
       ) : null}
 
+      {!searching ? (
+        <>
       <div className="arena-bg" aria-hidden="true">
         <span className="arena-bg-glow arena-bg-glow--left" />
         <span className="arena-bg-glow arena-bg-glow--right" />
@@ -487,7 +493,7 @@ const BattlesAppPage = () => {
           <ul className="arena-rules">
             <li>Matched players share identical AI-generated questions.</li>
             <li>Global timer starts for everyone at once.</li>
-            <li>Highest score wins — accuracy breaks ties.</li>
+            <li>Highest score wins — accuracy breaks ties, then fastest time.</li>
           </ul>
 
           {history.length ? (
@@ -509,6 +515,8 @@ const BattlesAppPage = () => {
           ) : null}
         </aside>
       </div>
+        </>
+      ) : null}
     </div>
   )
 }

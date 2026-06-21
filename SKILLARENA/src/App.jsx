@@ -31,6 +31,7 @@ import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
 import CommunityPage from './pages/CommunityPage'
 import ContentPage from './pages/ContentPage'
+import SkeletonPreviewPage from './pages/SkeletonPreviewPage'
 import { CONTENT_PAGES, ROUTES } from './routes'
 import './App.css'
 
@@ -54,6 +55,7 @@ function App() {
         <Route path={ROUTES.home} element={<LandingPage />} />
         <Route path={ROUTES.blog} element={<BlogPage />} />
         <Route path={`${ROUTES.blog}/:slug`} element={<BlogPostPage />} />
+        <Route path="/skeleton-preview" element={<SkeletonPreviewPage />} />
         {MARKETING_PAGES.map((page) => (
           <Route
             key={page.path}

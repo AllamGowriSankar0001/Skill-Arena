@@ -270,7 +270,14 @@
   text-underline-offset: 3px;
 }
 
-/* Skeleton loading */
+.course-card-skeleton-wrap,
+.practice-card-skeleton-wrap,
+.disc-message-skeleton-wrap {
+  display: block;
+  min-height: 0;
+}
+
+/* Legacy skeleton styles kept as fallback until bones are generated */
 .course-card--skeleton {
   pointer-events: none;
 }

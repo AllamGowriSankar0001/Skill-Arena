@@ -1,19 +1,62 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import BattleCoding from '../components/BattleCoding'
 import BattleQuiz from '../components/BattleQuiz'
 import CodingViewportGate from '../components/CodingViewportGate'
 import { battleApi } from '../services/api'
 import { ROUTES } from '../routes'
+import { getBattleFingerprint, getPollIntervalMs } from '../utils/battleState'
 import './BattleRoomPage.css'
+
+const formatDuration = (seconds) => {
+  if (seconds == null) return '—'
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+}
+
+const BattlePlayerSidebar = memo(({ participants = [] }) => (
+  <aside className="battle-room-sidebar">
+    <h2 className="battle-room-sidebar-title">Players</h2>
+    <ul className="battle-player-list">
+      {participants.map((participant) => (
+        <li
+          key={participant.userId}
+          className={`battle-player${participant.isYou ? ' is-you' : ''}${
+            participant.submitted ? ' is-done' : ''
+          }`}
+        >
+          <span className="battle-player-team">Team {participant.team}</span>
+          <span className="battle-player-name">
+            {participant.name}
+            {participant.isYou ? ' (You)' : ''}
+          </span>
+          <span className="battle-player-score">
+            {participant.submitted
+              ? `${participant.score} pts · ${formatDuration(participant.timeTakenSeconds)}`
+              : participant.status}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </aside>
+))
+
+BattlePlayerSidebar.displayName = 'BattlePlayerSidebar'
 
 const BattleRoomPage = () => {
   const { battleId } = useParams()
   const navigate = useNavigate()
   const pollRef = useRef(null)
+  const codingCodeRef = useRef({ html: '', css: '', javascript: '' })
+  const exitCalledRef = useRef(false)
+  const battleFingerprintRef = useRef('')
+  const battleStatusRef = useRef(null)
+  const payloadLoadedRef = useRef(false)
+  const submittedRef = useRef(false)
 
   const [battle, setBattle] = useState(null)
-  const [quiz, setQuiz] = useState(null)
-  const [remainingSeconds, setRemainingSeconds] = useState(null)
+  const [payload, setPayload] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState(null)
   const [error, setError] = useState('')
@@ -21,44 +64,123 @@ const BattleRoomPage = () => {
 
   const you = battle?.participants?.find((participant) => participant.isYou)
   const submitted = Boolean(you?.submitted || submitResult)
+  submittedRef.current = submitted
+  const isCoding = battle?.mode === 'CODING'
+  const timerEndsAt = payload?.timer?.endsAt || battle?.timer?.endsAt || null
 
-  const handleSubmit = useCallback(
+  useEffect(() => {
+    battleFingerprintRef.current = ''
+    battleStatusRef.current = null
+    payloadLoadedRef.current = false
+    exitCalledRef.current = false
+    submittedRef.current = false
+    setPayload(null)
+    setSubmitResult(null)
+    setBattle(null)
+    setLoading(true)
+  }, [battleId])
+
+  const applyBattle = useCallback((nextBattle) => {
+    const fingerprint = getBattleFingerprint(nextBattle)
+    if (fingerprint === battleFingerprintRef.current) return nextBattle
+    battleFingerprintRef.current = fingerprint
+    battleStatusRef.current = nextBattle?.status ?? null
+    setBattle(nextBattle)
+    return nextBattle
+  }, [])
+
+  const leaveRoom = useCallback(async () => {
+    if (exitCalledRef.current) return
+    exitCalledRef.current = true
+    try {
+      await battleApi.leaveBattle(battleId)
+    } catch {
+      /* best effort */
+    }
+  }, [battleId])
+
+  const handleExit = useCallback(async () => {
+    await leaveRoom()
+    navigate(ROUTES.battles)
+  }, [leaveRoom, navigate])
+
+  const handleSubmitQuiz = useCallback(
     async (answers) => {
-      if (submitting || submitted) return
+      if (submitting || submittedRef.current) return
       setSubmitting(true)
       setError('')
       try {
         const result = await battleApi.submitQuiz(battleId, answers)
         setSubmitResult(result)
-        setBattle(result.battle)
+        applyBattle(result.battle)
       } catch (err) {
         setError(err.message || 'Submit failed')
       } finally {
         setSubmitting(false)
       }
     },
-    [battleId, submitting, submitted],
+    [battleId, submitting, applyBattle],
+  )
+
+  const handleRunCoding = useCallback(
+    async (code) => {
+      codingCodeRef.current = code
+      return battleApi.runCoding(battleId, code)
+    },
+    [battleId],
+  )
+
+  const handleSubmitCoding = useCallback(
+    async (code) => {
+      if (submitting || submittedRef.current) return
+      setSubmitting(true)
+      setError('')
+      try {
+        codingCodeRef.current = code
+        const result = await battleApi.submitCoding(battleId, code)
+        setSubmitResult(result)
+        applyBattle(result.battle)
+      } catch (err) {
+        setError(err.message || 'Submit failed')
+        throw err
+      } finally {
+        setSubmitting(false)
+      }
+    },
+    [battleId, submitting, applyBattle],
+  )
+
+  const handleQuizTimeUp = useCallback(
+    (answers) => {
+      handleSubmitQuiz(answers || {})
+    },
+    [handleSubmitQuiz],
+  )
+
+  const handleCodingTimeUp = useCallback(
+    (code) => {
+      handleSubmitCoding(code || codingCodeRef.current)
+    },
+    [handleSubmitCoding],
   )
 
   const loadBattle = useCallback(async () => {
     const data = await battleApi.getBattle(battleId)
-    setBattle(data.battle)
-    if (data.battle?.timer?.remainingSeconds != null) {
-      setRemainingSeconds(data.battle.timer.remainingSeconds)
-    }
-    return data.battle
-  }, [battleId])
+    return applyBattle(data.battle)
+  }, [battleId, applyBattle])
 
-  const loadQuiz = useCallback(async () => {
+  const loadPayload = useCallback(async () => {
+    if (payloadLoadedRef.current) return
     try {
-      const payload = await battleApi.getQuiz(battleId)
-      setQuiz(payload)
-      if (payload.timer?.remainingSeconds != null) {
-        setRemainingSeconds(payload.timer.remainingSeconds)
+      const nextPayload = await battleApi.getQuiz(battleId)
+      payloadLoadedRef.current = true
+      setPayload(nextPayload)
+      if (nextPayload.mode === 'CODING' && nextPayload.challenge?.starterCode) {
+        codingCodeRef.current = nextPayload.challenge.starterCode
       }
     } catch (err) {
       if (err.status !== 400) {
-        setError(err.message || 'Unable to load battle questions')
+        setError(err.message || 'Unable to load battle content')
       }
     }
   }, [battleId])
@@ -70,8 +192,8 @@ const BattleRoomPage = () => {
       try {
         const current = await loadBattle()
         if (!mounted) return
-        if (current?.status === 'IN_PROGRESS' && current.mode === 'QUIZ') {
-          await loadQuiz()
+        if (current?.status === 'IN_PROGRESS') {
+          await loadPayload()
         }
       } catch (err) {
         if (mounted) setError(err.message || 'Battle not found')
@@ -84,42 +206,45 @@ const BattleRoomPage = () => {
     return () => {
       mounted = false
     }
-  }, [loadBattle, loadQuiz])
+  }, [loadBattle, loadPayload])
 
   useEffect(() => {
-    pollRef.current = setInterval(async () => {
+    const poll = async () => {
       try {
         const current = await loadBattle()
-        if (current?.status === 'IN_PROGRESS' && current.mode === 'QUIZ' && !quiz) {
-          await loadQuiz()
+        if (!current) return
+
+        if (current.status === 'IN_PROGRESS' && !payloadLoadedRef.current) {
+          await loadPayload()
         }
-        if (current?.status === 'COMPLETED') {
+
+        if (current.status === 'COMPLETED') {
           clearInterval(pollRef.current)
         }
       } catch {
         /* ignore poll errors */
       }
-    }, 2000)
-
-    return () => clearInterval(pollRef.current)
-  }, [loadBattle, loadQuiz, quiz])
-
-  useEffect(() => {
-    if (remainingSeconds == null || remainingSeconds <= 0 || submitted) return undefined
-
-    const tick = setInterval(() => {
-      setRemainingSeconds((current) => (current != null && current > 0 ? current - 1 : 0))
-    }, 1000)
-
-    return () => clearInterval(tick)
-  }, [remainingSeconds, submitted])
-
-  useEffect(() => {
-    if (remainingSeconds !== 0 || battle?.status !== 'IN_PROGRESS' || submitted || !quiz) {
-      return
     }
-    handleSubmit({})
-  }, [remainingSeconds, battle?.status, submitted, quiz, handleSubmit])
+
+    poll()
+
+    const schedule = () => {
+      clearInterval(pollRef.current)
+      const intervalMs = getPollIntervalMs(battleStatusRef.current)
+      if (!intervalMs) return
+      pollRef.current = setInterval(poll, intervalMs)
+    }
+
+    schedule()
+    return () => clearInterval(pollRef.current)
+  }, [loadBattle, loadPayload, battle?.status])
+
+  useEffect(
+    () => () => {
+      leaveRoom()
+    },
+    [leaveRoom],
+  )
 
   if (loading) {
     return (
@@ -136,9 +261,9 @@ const BattleRoomPage = () => {
     return (
       <div className="battle-room-page">
         <div className="battle-room-error">{error}</div>
-        <Link to={ROUTES.battles} className="battle-room-back">
+        <button type="button" className="battle-room-back" onClick={handleExit}>
           Back to battles
-        </Link>
+        </button>
       </div>
     )
   }
@@ -161,46 +286,26 @@ const BattleRoomPage = () => {
             {battle?.format === 'THREE_V_THREE' ? '3v3 Squad Battle' : '1v1 Duel'}
           </h1>
           <p className="battle-room-meta">
-            {battle?.difficulty} · Room {battle?.battleCode} · <span className={`battle-status battle-status--${battle?.status?.toLowerCase()}`}>{statusLabel}</span>
+            {battle?.difficulty} · Room {battle?.battleCode} ·{' '}
+            <span className={`battle-status battle-status--${battle?.status?.toLowerCase()}`}>{statusLabel}</span>
           </p>
         </div>
-        <Link to={ROUTES.battles} className="battle-room-back">
+        <button type="button" className="battle-room-back" onClick={handleExit}>
           Exit
-        </Link>
+        </button>
       </header>
 
       {error ? <p className="battle-room-banner battle-room-banner--error">{error}</p> : null}
 
       <div className="battle-room-grid">
-        <aside className="battle-room-sidebar">
-          <h2 className="battle-room-sidebar-title">Players</h2>
-          <ul className="battle-player-list">
-            {(battle?.participants || []).map((participant) => (
-              <li
-                key={participant.userId}
-                className={`battle-player${participant.isYou ? ' is-you' : ''}${
-                  participant.submitted ? ' is-done' : ''
-                }`}
-              >
-                <span className="battle-player-team">Team {participant.team}</span>
-                <span className="battle-player-name">
-                  {participant.name}
-                  {participant.isYou ? ' (You)' : ''}
-                </span>
-                <span className="battle-player-score">
-                  {participant.submitted ? `${participant.score} pts` : participant.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </aside>
+        <BattlePlayerSidebar participants={battle?.participants || []} />
 
         <section className="battle-room-main">
           {battle?.status === 'STARTING' && battle.countdownSeconds > 0 ? (
             <div className="battle-countdown">
               <p className="battle-countdown-label">Match locked in</p>
               <p className="battle-countdown-value">{battle.countdownSeconds}</p>
-              <p className="battle-countdown-hint">Same questions · Shared timer · Fight!</p>
+              <p className="battle-countdown-hint">Same challenge · Shared timer · Fight!</p>
             </div>
           ) : null}
 
@@ -232,28 +337,35 @@ const BattleRoomPage = () => {
             </div>
           ) : null}
 
-          {battle?.status === 'IN_PROGRESS' && battle.mode === 'QUIZ' && quiz ? (
+          {battle?.status === 'IN_PROGRESS' && battle.mode === 'QUIZ' && payload?.mode === 'QUIZ' ? (
             <BattleQuiz
-              questions={quiz.questions || []}
-              remainingSeconds={remainingSeconds}
-              onSubmit={handleSubmit}
+              questions={payload.questions || []}
+              timerEndsAt={timerEndsAt}
+              onSubmit={handleSubmitQuiz}
+              onTimeUp={handleQuizTimeUp}
               submitting={submitting}
               submitted={submitted}
               result={submitResult}
             />
           ) : null}
 
-          {battle?.status === 'IN_PROGRESS' && battle.mode === 'CODING' ? (
+          {battle?.status === 'IN_PROGRESS' && isCoding && payload?.mode === 'CODING' ? (
             <CodingViewportGate
               action="start"
               contextLabel="coding battle"
               backTo={ROUTES.battles}
               backLabel="← Back to battles"
             >
-              <div className="battle-waiting">
-                <p className="battle-waiting-title">Coding battle arena</p>
-                <p className="battle-waiting-meta">Coding battle UI is launching in the next update.</p>
-              </div>
+              <BattleCoding
+                challenge={payload.challenge}
+                timerEndsAt={timerEndsAt}
+                onRun={handleRunCoding}
+                onSubmit={handleSubmitCoding}
+                onTimeUp={handleCodingTimeUp}
+                submitting={submitting}
+                submitted={submitted}
+                result={submitResult}
+              />
             </CodingViewportGate>
           ) : null}
 
@@ -268,18 +380,31 @@ const BattleRoomPage = () => {
                       ? 'Your team won!'
                       : 'Battle complete'}
               </h2>
+              <p className="battle-results-note">
+                Ties on score are broken by accuracy, then fastest completion time.
+              </p>
               <ul className="battle-results-list">
                 {(battle.participants || [])
                   .slice()
-                  .sort((a, b) => b.score - a.score)
+                  .sort(
+                    (a, b) =>
+                      b.score - a.score ||
+                      (a.timeTakenSeconds ?? 9999) - (b.timeTakenSeconds ?? 9999),
+                  )
                   .map((participant) => (
                     <li key={participant.userId} className="battle-results-row">
-                      <span>{participant.name}{participant.isYou ? ' (You)' : ''}</span>
-                      <span>{participant.correctAnswers} correct · {participant.score} pts</span>
+                      <span>
+                        {participant.name}
+                        {participant.isYou ? ' (You)' : ''}
+                      </span>
+                      <span>
+                        {participant.correctAnswers} correct · {participant.score} pts ·{' '}
+                        {formatDuration(participant.timeTakenSeconds)}
+                      </span>
                     </li>
                   ))}
               </ul>
-              <button type="button" className="battle-start-btn" onClick={() => navigate(ROUTES.battles)}>
+              <button type="button" className="battle-start-btn" onClick={handleExit}>
                 Find another match
               </button>
             </div>

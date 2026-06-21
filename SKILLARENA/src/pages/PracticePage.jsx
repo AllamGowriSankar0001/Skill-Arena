@@ -1,30 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
+import BoneyardSkeleton from '../components/BoneyardSkeleton'
+import PracticeCard from '../components/PracticeCard'
+import { MOCK_PRACTICE } from '../fixtures/skeletonFixtures'
 import { learningApi } from '../services/api'
-import { ROUTES } from '../routes'
-import { getPracticeModeMeta } from '../utils/practiceMode'
 import useCodingViewportAllowed from '../hooks/useCodingViewportAllowed'
 import './PracticePage.css'
 
-const formatLabel = (value = '') =>
-  value
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-
-const PracticeCardSkeleton = () => (
-  <div className="practice-card practice-card--skeleton" aria-hidden="true">
-    <div className="practice-card-top">
-      <div className="practice-skeleton-line practice-skeleton-line--badge" />
-      <div className="practice-skeleton-line practice-skeleton-line--badge" />
-    </div>
-    <div className="practice-skeleton-line practice-skeleton-line--title" />
-    <div className="practice-skeleton-line practice-skeleton-line--copy" />
-    <div className="practice-skeleton-line practice-skeleton-line--meta" />
-  </div>
-)
+const PRACTICE_CARD_FIXTURE = <PracticeCard assessment={MOCK_PRACTICE} asLink={false} />
+const SKELETON_COUNT = 6
 
 const PracticePage = () => {
   const codingViewportAllowed = useCodingViewportAllowed()
@@ -125,61 +109,27 @@ const PracticePage = () => {
 
         {loading ? (
           <div className="practice-grid" aria-busy="true" aria-label="Loading practice sets">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <PracticeCardSkeleton key={index} />
+            {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+              <BoneyardSkeleton
+                key={index}
+                name="practice-card"
+                loading
+                fixture={PRACTICE_CARD_FIXTURE}
+                className="practice-card-skeleton-wrap"
+              />
             ))}
           </div>
         ) : null}
 
         {!loading && !error && filteredAssessments.length ? (
           <div className="practice-grid">
-            {filteredAssessments.map((assessment) => {
-              const modeMeta = getPracticeModeMeta(assessment)
-              return (
-                <Link
-                  key={assessment.id}
-                  to={ROUTES.getPracticePath(assessment.id)}
-                  className="practice-card"
-                >
-                  <div className="practice-card-top">
-                    {assessment.skillName ? (
-                      <span className="practice-badge practice-badge--skill">{assessment.skillName}</span>
-                    ) : null}
-                    {assessment.seriesPart > 1 ? (
-                      <span className="practice-badge practice-badge--series">Part {assessment.seriesPart}</span>
-                    ) : null}
-                    <span className={`practice-badge practice-badge--difficulty practice-badge--${assessment.difficulty?.toLowerCase()}`}>
-                      {formatLabel(assessment.difficulty)}
-                    </span>
-                  </div>
-                  <div className="practice-card-heading">
-                    <div className="practice-card-icon" aria-hidden="true">
-                      {modeMeta.icon}
-                    </div>
-                    <h2>{assessment.title}</h2>
-                  </div>
-                  {assessment.description ? <p>{assessment.description}</p> : null}
-                  <div className="practice-card-meta">
-                    <span>{modeMeta.label}</span>
-                    {assessment.mode === 'CODING' && !codingViewportAllowed ? (
-                      <span className="practice-badge practice-badge--desktop">Laptop / tablet</span>
-                    ) : null}
-                    <span>{assessment.questionCount || 0} question{(assessment.questionCount || 0) === 1 ? '' : 's'}</span>
-                    {assessment.xpReward ? <span>{assessment.xpReward} XP</span> : null}
-                  </div>
-                  <div className="practice-card-foot">
-                    {assessment.passed ? (
-                      <span className="practice-status practice-status--passed">Passed · Best {assessment.bestScore}%</span>
-                    ) : assessment.bestScore != null ? (
-                      <span className="practice-status">Best score {assessment.bestScore}%</span>
-                    ) : (
-                      <span className="practice-status practice-status--new">Not started</span>
-                    )}
-                    <span className="practice-card-cta">Start practice →</span>
-                  </div>
-                </Link>
-              )
-            })}
+            {filteredAssessments.map((assessment) => (
+              <PracticeCard
+                key={assessment.id}
+                assessment={assessment}
+                showDesktopBadge={assessment.mode === 'CODING' && !codingViewportAllowed}
+              />
+            ))}
           </div>
         ) : null}
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, memo } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
@@ -88,4 +88,4 @@ const CodeEditor = ({ language, value, onChange, height = '320px' }) => {
   )
 }
 
-export default CodeEditor
+export default memo(CodeEditor)

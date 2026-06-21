@@ -1,30 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
-import CourseThumbnail from '../components/CourseThumbnail'
+import BoneyardSkeleton from '../components/BoneyardSkeleton'
+import CourseCard from '../components/CourseCard'
+import { MOCK_COURSE } from '../fixtures/skeletonFixtures'
 import { getStoredUser, learningApi, platformApi } from '../services/api'
-import { getCourseCtaLabel } from '../utils/courseProgress'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './CoursesPage.css'
 
-const formatLevel = (level = '') =>
-  level
-    .toLowerCase()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-
-const CourseCardSkeleton = () => (
-  <div className="course-card course-card--skeleton" aria-hidden="true">
-    <div className="course-card-media course-card-media--skeleton" />
-    <div className="course-card-body">
-      <div className="courses-skeleton-line courses-skeleton-line--title" />
-      <div className="courses-skeleton-line courses-skeleton-line--copy" />
-      <div className="courses-skeleton-line courses-skeleton-line--meta" />
-    </div>
-  </div>
-)
+const COURSE_CARD_FIXTURE = <CourseCard course={MOCK_COURSE} asLink={false} />
+const SKELETON_COUNT = 6
 
 const LearnAppPage = () => {
   const user = getStoredUser()
@@ -78,71 +64,27 @@ const LearnAppPage = () => {
 
         {loading ? (
           <div className="courses-grid" aria-busy="true" aria-label="Loading courses">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <CourseCardSkeleton key={index} />
+            {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+              <BoneyardSkeleton
+                key={index}
+                name="learn-course-card"
+                loading
+                fixture={COURSE_CARD_FIXTURE}
+                className="course-card-skeleton-wrap"
+              />
             ))}
           </div>
         ) : null}
 
         {!loading && !error && courses.length ? (
           <div className="courses-grid">
-            {courses.map((course) => {
-              const enrollment = enrollmentByCourseId.get(course.id)
-              const cardAction = enrollment?.hasStarted
-                ? getCourseCtaLabel(enrollment)
-                : 'View course'
-
-              return (
-              <Link
+            {courses.map((course) => (
+              <CourseCard
                 key={course.id}
-                to={`${ROUTES.learn}/${course.id}`}
-                className="course-card"
-              >
-                <div className="course-card-media">
-                  <CourseThumbnail
-                    src={course.thumbnailUrl}
-                    alt=""
-                    placeholderLabel={course.title?.slice(0, 1) || 'C'}
-                  />
-                  {course.level ? (
-                    <span className="course-card-badge">{formatLevel(course.level)}</span>
-                  ) : null}
-                  {enrollment?.hasStarted && enrollment.status !== 'COMPLETED' ? (
-                    <span className="course-card-badge course-card-badge--progress">In progress</span>
-                  ) : null}
-                  {enrollment?.status === 'COMPLETED' ? (
-                    <span className="course-card-badge course-card-badge--completed">Completed</span>
-                  ) : null}
-                </div>
-
-                <div className="course-card-body">
-                  <h2>{course.title}</h2>
-                  {course.shortDescription ? (
-                    <p className="course-card-desc">{course.shortDescription}</p>
-                  ) : null}
-
-                  <div className="course-card-meta">
-                    {course.lessonCount != null ? (
-                      <span>{course.lessonCount} lessons</span>
-                    ) : null}
-                    {course.estimatedMinutes ? (
-                      <span>{course.estimatedMinutes} min</span>
-                    ) : null}
-                    {enrollment?.hasStarted ? (
-                      <span className="course-card-progress">{enrollment.progressPercentage}% complete</span>
-                    ) : null}
-                    {course.ratingAverage ? (
-                      <span className="course-card-rating">
-                        ★ {Number(course.ratingAverage).toFixed(1)}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <span className="course-card-action">{cardAction} →</span>
-                </div>
-              </Link>
-              )
-            })}
+                course={course}
+                enrollment={enrollmentByCourseId.get(course.id)}
+              />
+            ))}
           </div>
         ) : null}
 

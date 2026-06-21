@@ -110,6 +110,41 @@ const submitBattleQuiz = async (req, res, next) => {
   }
 };
 
+const runBattleCoding = async (req, res, next) => {
+  try {
+    const result = await battleService.runBattleCoding(
+      req.params.battleId,
+      req.user._id,
+      req.body.code || {},
+    );
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const submitBattleCoding = async (req, res, next) => {
+  try {
+    const result = await battleService.submitBattleCoding(
+      req.params.battleId,
+      req.user._id,
+      req.body.code || {},
+    );
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const leaveBattle = async (req, res, next) => {
+  try {
+    const battle = await battleService.leaveBattle(req.params.battleId, req.user._id);
+    res.json({ battle });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const listBattles = async (req, res, next) => {
   try {
     const battles = await battleService.listUserBattles(req.user._id);
@@ -130,5 +165,8 @@ module.exports = {
   getBattle,
   getBattleQuiz,
   submitBattleQuiz,
+  runBattleCoding,
+  submitBattleCoding,
+  leaveBattle,
   listBattles,
 };

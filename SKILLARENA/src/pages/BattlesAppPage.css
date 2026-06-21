@@ -15,6 +15,7 @@
   padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 2rem) 3rem;
   color: var(--arena-text);
   overflow: hidden;
+  contain: layout style;
 }
 
 .arena-bg {
@@ -29,8 +30,9 @@
   width: 28rem;
   height: 28rem;
   border-radius: 999px;
-  filter: blur(80px);
-  opacity: 0.35;
+  filter: blur(48px);
+  opacity: 0.28;
+  will-change: transform;
 }
 
 .arena-bg-glow--left {
@@ -232,8 +234,9 @@
   border-radius: 1rem;
   border: 1px solid var(--arena-border);
   background: var(--arena-surface);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  contain: layout paint;
 }
 
 .arena-panel--config {
@@ -798,5 +801,15 @@
 
   .arena-vs {
     margin: 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-page *,
+  .arena-page *::before,
+  .arena-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

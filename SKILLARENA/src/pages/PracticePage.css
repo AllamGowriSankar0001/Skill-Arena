@@ -261,6 +261,10 @@
   color: #4338ca;
 }
 
+.practice-card-skeleton-wrap {
+  display: block;
+}
+
 .practice-card--skeleton {
   pointer-events: none;
 }

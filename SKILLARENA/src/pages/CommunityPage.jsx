@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AppEmptyState from '../components/AppEmptyState'
+import BoneyardSkeleton from '../components/BoneyardSkeleton'
+import CommunityMessagePreview from '../components/CommunityMessagePreview'
+import { MOCK_COMMUNITY_MESSAGE } from '../fixtures/skeletonFixtures'
 import { useAuth } from '../context/AuthContext'
 import { learningApi } from '../services/api'
 import {
@@ -350,14 +353,8 @@ const JoinCommunityModal = ({ onClose, onJoined }) => {
   )
 }
 
-const MessageSkeleton = () => (
-  <div className="disc-message disc-message--skeleton" aria-hidden="true">
-    <div className="disc-skeleton disc-skeleton--avatar" />
-    <div className="disc-skeleton-lines">
-      <div className="disc-skeleton disc-skeleton--line short" />
-      <div className="disc-skeleton disc-skeleton--line" />
-    </div>
-  </div>
+const COMMUNITY_MESSAGE_FIXTURE = (
+  <CommunityMessagePreview message={MOCK_COMMUNITY_MESSAGE} />
 )
 
 const ThreadReplies = ({ messageId, commentCount, onCountChange }) => {
@@ -1020,9 +1017,15 @@ const CommunityPage = ({ adminLayout = false }) => {
             <div className="disc-messages-inner">
               {loading ? (
                 <div className="disc-messages">
-                  <MessageSkeleton />
-                  <MessageSkeleton />
-                  <MessageSkeleton />
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <BoneyardSkeleton
+                      key={index}
+                      name="community-message"
+                      loading
+                      fixture={COMMUNITY_MESSAGE_FIXTURE}
+                      className="disc-message-skeleton-wrap"
+                    />
+                  ))}
                 </div>
               ) : null}
 

@@ -1,24 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useRef, useState } from 'react'
+import BattleTimer from './BattleTimer'
 import './BattleQuiz.css'
 
 const isQuestionAnswered = (question, answers) => Boolean(answers[question.id])
 
-const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${String(secs).padStart(2, '0')}`
-}
-
 const BattleQuiz = ({
   questions = [],
-  remainingSeconds,
+  timerEndsAt,
   onSubmit,
+  onTimeUp,
   submitting = false,
   submitted = false,
   result = null,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
+  const answersRef = useRef(answers)
+  answersRef.current = answers
 
   const currentQuestion = questions[currentIndex]
   const answeredCount = useMemo(
@@ -26,18 +24,24 @@ const BattleQuiz = ({
     [questions, answers],
   )
   const allAnswered = answeredCount === questions.length && questions.length > 0
-  const timerClass =
-    remainingSeconds != null && remainingSeconds <= 30 ? ' battle-timer--urgent' : ''
 
-  const handleSelect = (questionId, optionId) => {
+  const handleTimeUp = useCallback(() => {
     if (submitted || submitting) return
-    setAnswers((current) => ({ ...current, [questionId]: optionId }))
-  }
+    onTimeUp?.(answersRef.current)
+  }, [submitted, submitting, onTimeUp])
 
-  const handleSubmit = () => {
+  const handleSelect = useCallback(
+    (questionId, optionId) => {
+      if (submitted || submitting) return
+      setAnswers((current) => ({ ...current, [questionId]: optionId }))
+    },
+    [submitted, submitting],
+  )
+
+  const handleSubmit = useCallback(() => {
     if (!allAnswered || submitted || submitting) return
     onSubmit(answers)
-  }
+  }, [allAnswered, submitted, submitting, onSubmit, answers])
 
   if (submitted && result) {
     return (
@@ -62,12 +66,7 @@ const BattleQuiz = ({
   return (
     <div className="battle-quiz">
       <div className="battle-quiz-header">
-        <div className={`battle-timer${timerClass}`} aria-live="polite">
-          <span className="battle-timer-label">Time left</span>
-          <span className="battle-timer-value">
-            {remainingSeconds != null ? formatTime(remainingSeconds) : '--:--'}
-          </span>
-        </div>
+        <BattleTimer endsAt={timerEndsAt} onExpire={handleTimeUp} />
         <div className="battle-quiz-progress">
           {answeredCount}/{questions.length} answered
         </div>
@@ -141,4 +140,4 @@ const BattleQuiz = ({
   )
 }
 
-export default BattleQuiz
+export default memo(BattleQuiz)

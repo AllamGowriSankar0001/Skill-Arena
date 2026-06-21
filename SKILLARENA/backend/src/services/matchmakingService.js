@@ -198,8 +198,13 @@ async function joinQueue(userId, payload) {
   }
 
   const activeBattle = await Battle.findOne({
-    'participants.userId': userId,
     status: { $in: ['MATCHED', 'STARTING', 'IN_PROGRESS'] },
+    participants: {
+      $elemMatch: {
+        userId,
+        status: { $in: ['INVITED', 'JOINED', 'READY', 'PLAYING'] },
+      },
+    },
   });
   if (activeBattle) {
     throw new Error('You are already in an active battle.');
