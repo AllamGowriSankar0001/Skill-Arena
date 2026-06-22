@@ -442,6 +442,15 @@ const getUser = async (req, res, next) => {
   }
 };
 
+const getUserXpHistory = async (req, res, next) => {
+  try {
+    const history = await adminService.getUserXpHistory(req.params.id);
+    res.json(history);
+  } catch (error) {
+    sendError(res, error, 404);
+  }
+};
+
 const updateUser = async (req, res, next) => {
   try {
     const user = await adminService.updateUser(req.params.id, req.user._id, req.body);
@@ -503,6 +512,7 @@ module.exports = {
   deleteResume,
   listUsers,
   getUser,
+  getUserXpHistory,
   updateUser,
   deleteUser,
 };

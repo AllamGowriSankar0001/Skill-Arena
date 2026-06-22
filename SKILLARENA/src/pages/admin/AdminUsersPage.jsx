@@ -101,6 +101,9 @@ const AdminUsersPage = () => {
   const [deletingId, setDeletingId] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', role: 'STUDENT', status: 'ACTIVE' })
+  const [xpHistory, setXpHistory] = useState(null)
+  const [xpLoading, setXpLoading] = useState(false)
+  const [xpError, setXpError] = useState('')
 
   const stats = useMemo(() => {
     const active = users.filter((user) => user.status === 'ACTIVE').length
@@ -178,6 +181,32 @@ const AdminUsersPage = () => {
     setModal('none')
     setActiveUser(null)
     setDetailLoading(false)
+    setXpHistory(null)
+    setXpError('')
+  }
+
+  const openXpHistoryModal = async () => {
+    if (!activeUser?.id || activeUser.role === 'ADMIN') return
+
+    setModal('xp')
+    setXpLoading(true)
+    setXpError('')
+    setXpHistory(null)
+
+    try {
+      const data = await adminApi.userXpHistory(activeUser.id)
+      setXpHistory(data)
+    } catch (err) {
+      setXpError(err.message || 'Failed to load XP history')
+    } finally {
+      setXpLoading(false)
+    }
+  }
+
+  const closeXpHistoryModal = () => {
+    setModal('detail')
+    setXpHistory(null)
+    setXpError('')
   }
 
   const openDeleteModal = (user) => {
@@ -547,7 +576,16 @@ const AdminUsersPage = () => {
                   </div>
                   <div>
                     <span>Total XP</span>
-                    <strong>{activeUser.stats.totalXp}</strong>
+                    <div className="admin-users-xp-head">
+                      <strong>{activeUser.stats.totalXp}</strong>
+                      <button
+                        type="button"
+                        className="admin-btn admin-btn--compact admin-btn--ghost"
+                        onClick={openXpHistoryModal}
+                      >
+                        View XP details
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <span>Current streak</span>
@@ -584,6 +622,104 @@ const AdminUsersPage = () => {
                 </div>
               </section>
             ) : null}
+          </div>
+        ) : null}
+      </AdminModal>
+
+      <AdminModal
+        open={modal === 'xp' && Boolean(activeUser)}
+        title={`XP breakdown — ${activeUser?.name || 'User'}`}
+        subtitle={`Total XP: ${xpHistory?.totalXp ?? activeUser?.stats?.totalXp ?? 0}`}
+        onClose={closeXpHistoryModal}
+        size="wide"
+        footer={
+          <div className="admin-modal-action-row">
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={closeXpHistoryModal}>
+              Back to user
+            </button>
+          </div>
+        }
+      >
+        {xpLoading ? <p className="admin-users-loading">Loading XP history…</p> : null}
+        {xpError ? <p className="admin-users-xp-error">{xpError}</p> : null}
+
+        {!xpLoading && !xpError && xpHistory ? (
+          <div className="admin-users-xp-detail">
+            <section className="admin-users-xp-section">
+              <h3>XP by source</h3>
+              {xpHistory.summaryBySource?.length ? (
+                <div className="admin-users-xp-table-wrap">
+                  <table className="admin-users-xp-table">
+                    <thead>
+                      <tr>
+                        <th>Source</th>
+                        <th>Events</th>
+                        <th>Earned</th>
+                        <th>Reversed</th>
+                        <th>Net XP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {xpHistory.summaryBySource.map((row) => (
+                        <tr key={row.sourceType}>
+                          <td>{row.sourceLabel}</td>
+                          <td>{row.count}</td>
+                          <td className="admin-users-xp-positive">+{row.earned}</td>
+                          <td className="admin-users-xp-negative">
+                            {row.reversed ? `-${row.reversed}` : '—'}
+                          </td>
+                          <td>
+                            <strong>{row.net > 0 ? `+${row.net}` : row.net}</strong>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="admin-users-xp-empty">No XP activity recorded yet.</p>
+              )}
+            </section>
+
+            <section className="admin-users-xp-section">
+              <h3>Full XP ledger</h3>
+              {xpHistory.entries?.length ? (
+                <div className="admin-users-xp-table-wrap admin-users-xp-table-wrap--ledger">
+                  <table className="admin-users-xp-table admin-users-xp-table--ledger">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Source</th>
+                        <th>Details</th>
+                        <th>XP</th>
+                        <th>Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {xpHistory.entries.map((entry) => (
+                        <tr key={entry.id}>
+                          <td>{formatDateTime(entry.date)}</td>
+                          <td>{entry.sourceLabel}</td>
+                          <td>{entry.description || '—'}</td>
+                          <td
+                            className={
+                              entry.amount >= 0
+                                ? 'admin-users-xp-positive'
+                                : 'admin-users-xp-negative'
+                            }
+                          >
+                            {entry.amount > 0 ? `+${entry.amount}` : entry.amount}
+                          </td>
+                          <td>{entry.balanceAfter}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="admin-users-xp-empty">No XP transactions yet.</p>
+              )}
+            </section>
           </div>
         ) : null}
       </AdminModal>

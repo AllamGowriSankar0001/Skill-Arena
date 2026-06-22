@@ -10,6 +10,7 @@ const AssessmentAttempt = require('../models/AssessmentAttempt');
 const BlogPost = require('../models/BlogPost');
 const User = require('../models/User');
 const UserStats = require('../models/UserStats');
+const XPTransaction = require('../models/XPTransaction');
 const Resume = require('../models/Resume');
 const Enrollment = require('../models/Enrollment');
 const LessonProgress = require('../models/LessonProgress');
@@ -1510,6 +1511,19 @@ const listUsers = async (query = {}) => {
   return users.map((user) => formatAdminUserSummary(user, statsMap.get(user._id.toString())));
 };
 
+const XP_SOURCE_LABELS = {
+  LESSON_COMPLETION: 'Lesson completion',
+  COURSE_COMPLETION: 'Course completion',
+  QUIZ: 'Quiz',
+  PRACTICE: 'Practice',
+  DAILY_CHALLENGE: 'Daily challenge',
+  BATTLE_WIN: 'Battle victory',
+  BATTLE_PARTICIPATION: 'Battle participation',
+  STREAK: 'Streak bonus',
+  ACHIEVEMENT: 'Achievement',
+  ADMIN: 'Admin adjustment',
+};
+
 const getUser = async (userId) => {
   const user = await User.findById(userId).select(
     'name email avatarUrl role status learningGoal onboardingCompleted lastActiveAt createdAt updatedAt',
@@ -1552,6 +1566,72 @@ const getUser = async (userId) => {
           assessmentsCompleted: stats.assessmentsCompleted,
         }
       : null,
+  };
+};
+
+const getUserXpHistory = async (userId) => {
+  const user = await User.findById(userId).select('name email role');
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (user.role === 'ADMIN') {
+    return {
+      userId: user._id.toString(),
+      userName: user.name,
+      totalXp: 0,
+      summaryBySource: [],
+      entries: [],
+    };
+  }
+
+  const [stats, transactions] = await Promise.all([
+    UserStats.findOne({ userId: user._id }),
+    XPTransaction.find({ userId: user._id }).sort({ createdAt: -1 }).limit(500).lean(),
+  ]);
+
+  const summaryMap = new Map();
+
+  for (const transaction of transactions) {
+    const key = transaction.sourceType;
+    const current = summaryMap.get(key) || {
+      sourceType: key,
+      sourceLabel: XP_SOURCE_LABELS[key] || key,
+      earned: 0,
+      reversed: 0,
+      net: 0,
+      count: 0,
+    };
+
+    if (transaction.transactionType === 'EARN' || transaction.amount > 0) {
+      current.earned += Math.max(0, transaction.amount);
+    } else {
+      current.reversed += Math.abs(transaction.amount);
+    }
+    current.net += transaction.amount;
+    current.count += 1;
+    summaryMap.set(key, current);
+  }
+
+  const summaryBySource = [...summaryMap.values()]
+    .filter((row) => row.net !== 0 || row.count > 0)
+    .sort((a, b) => b.net - a.net);
+
+  return {
+    userId: user._id.toString(),
+    userName: user.name,
+    totalXp: stats?.totalXp ?? 0,
+    summaryBySource,
+    entries: transactions.map((transaction) => ({
+      id: transaction._id.toString(),
+      date: transaction.createdAt,
+      transactionType: transaction.transactionType,
+      sourceType: transaction.sourceType,
+      sourceLabel: XP_SOURCE_LABELS[transaction.sourceType] || transaction.sourceType,
+      amount: transaction.amount,
+      balanceAfter: transaction.balanceAfter,
+      description: transaction.description || '',
+    })),
   };
 };
 
@@ -2164,6 +2244,7 @@ module.exports = {
   deleteBlogPost,
   listUsers,
   getUser,
+  getUserXpHistory,
   updateUser,
   deleteUser,
 };

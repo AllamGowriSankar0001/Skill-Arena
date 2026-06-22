@@ -56,6 +56,7 @@ router.get('/resumes', adminController.listResumes);
 router.delete('/resumes/:id', adminController.deleteResume);
 
 router.get('/users', adminController.listUsers);
+router.get('/users/:id/xp-history', adminController.getUserXpHistory);
 router.get('/users/:id', adminController.getUser);
 router.patch('/users/:id', adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);

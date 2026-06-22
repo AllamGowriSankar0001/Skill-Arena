@@ -532,6 +532,104 @@
   border: 0;
 }
 
+.admin-users-xp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.admin-users-xp-head strong {
+  font-size: 1.1rem;
+}
+
+.admin-users-xp-detail {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-users-xp-section h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b5f54;
+}
+
+.admin-users-xp-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(26, 17, 10, 0.08);
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.admin-users-xp-table-wrap--ledger {
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.admin-users-xp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.admin-users-xp-table th,
+.admin-users-xp-table td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(26, 17, 10, 0.06);
+  vertical-align: top;
+}
+
+.admin-users-xp-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f6f3ee;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b5f54;
+}
+
+.admin-users-xp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-users-xp-table--ledger td:nth-child(3) {
+  min-width: 12rem;
+  max-width: 18rem;
+  word-break: break-word;
+}
+
+.admin-users-xp-positive {
+  color: #2f6b3f;
+  font-weight: 700;
+}
+
+.admin-users-xp-negative {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.admin-users-xp-empty,
+.admin-users-xp-error {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  background: rgba(26, 17, 10, 0.04);
+  color: #6b5f54;
+  font-size: 0.9rem;
+}
+
+.admin-users-xp-error {
+  background: rgba(185, 28, 28, 0.08);
+  color: #b91c1c;
+}
+
 @media (max-width: 900px) {
   .admin-users-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -555,6 +653,20 @@
 
   .admin-users-filters select {
     flex: 1;
+  }
+
+  .admin-users-xp-table {
+    font-size: 0.8rem;
+  }
+
+  .admin-users-xp-table th,
+  .admin-users-xp-table td {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .admin-users-xp-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

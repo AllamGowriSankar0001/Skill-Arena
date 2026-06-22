@@ -232,6 +232,7 @@ export const adminApi = {
     return request(`/admin/users${suffix}`)
   },
   user: (id) => request(`/admin/users/${id}`),
+  userXpHistory: (id) => request(`/admin/users/${id}/xp-history`),
   updateUser: (id, payload) =>
     request(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   deleteUser: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
