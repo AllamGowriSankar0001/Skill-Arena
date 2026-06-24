@@ -17,6 +17,13 @@
   transform: translateY(0);
 }
 
+.scroll-reveal.scroll-reveal--static {
+  opacity: 1;
+  transform: none;
+  transition: none;
+  pointer-events: auto;
+}
+
 .scroll-reveal.hero-title-line,
 .scroll-reveal.battles-title-line,
 .scroll-reveal.community-title-line {

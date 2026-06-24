@@ -77,7 +77,7 @@ export const FOOTER_LINKS = {
     { label: 'Guides', to: ROUTES.guides },
     { label: 'FAQ', to: ROUTES.faq },
     { label: 'Security', to: ROUTES.security },
-    { label: 'Developers', to: ROUTES.developers },
+    { label: 'Our team', to: ROUTES.developers },
   ],
   Legal: [
     { label: 'Terms', to: ROUTES.terms },
@@ -94,7 +94,7 @@ export const CONTENT_PAGES = [
     eyebrow: 'Legal',
     title: 'Terms of Service',
     description:
-      'These terms outline how Skill Arena works, what you can expect from the platform, and the responsibilities that come with learning and competing here.',
+      'The legal agreement governing your use of Skill Arena — accounts, battles, community conduct, intellectual property, and dispute resolution.',
   },
   {
     path: ROUTES.privacy,
@@ -102,7 +102,7 @@ export const CONTENT_PAGES = [
     eyebrow: 'Legal',
     title: 'Privacy Policy',
     description:
-      'Learn how Skill Arena collects, uses, and protects your data while you learn, battle, and connect with the community.',
+      'How Skill Arena collects, uses, stores, and protects personal data — including your rights under GDPR, CCPA, and other privacy laws.',
   },
   {
     path: ROUTES.cookies,
@@ -110,7 +110,7 @@ export const CONTENT_PAGES = [
     eyebrow: 'Legal',
     title: 'Cookie Policy',
     description:
-      'Understand how cookies and similar technologies help Skill Arena remember preferences and improve your experience.',
+      'Full disclosure on cookies, local storage, analytics, consent requirements, and how to control tracking on Skill Arena.',
   },
   {
     path: ROUTES.safety,
@@ -118,7 +118,7 @@ export const CONTENT_PAGES = [
     eyebrow: 'Legal',
     title: 'Safety Center',
     description:
-      'How Skill Arena keeps learners safe through moderation, reporting tools, and fair-play enforcement.',
+      'Community standards, anti-cheat enforcement, reporting and appeals, child safety, and crisis resources for the Skill Arena community.',
   },
   {
     path: ROUTES.helpCenter,
@@ -163,10 +163,10 @@ export const CONTENT_PAGES = [
   {
     path: ROUTES.developers,
     contentKey: 'developers',
-    eyebrow: 'Resources',
-    title: 'Developers',
+    eyebrow: 'Company',
+    title: 'Our team',
     description:
-      'Build integrations, community tools, and extensions on top of Skill Arena.',
+      'Meet the people behind Skill Arena — the developers and testers who build, ship, and quality-check every release.',
   },
   {
     path: ROUTES.about,

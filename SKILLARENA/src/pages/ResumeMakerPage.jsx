@@ -146,6 +146,8 @@ const ResumeMakerPage = ({ adminMode = false }) => {
   const [optimizeResumeText, setOptimizeResumeText] = useState('')
   const [optimizeJobDescription, setOptimizeJobDescription] = useState('')
   const [optimizeError, setOptimizeError] = useState('')
+  const [optimizeFileName, setOptimizeFileName] = useState('')
+  const [optimizeSource, setOptimizeSource] = useState('upload')
 
   const hydrateStructured = (data) => {
     const nextExperiences = data.experiences?.length
@@ -457,6 +459,8 @@ const ResumeMakerPage = ({ adminMode = false }) => {
     setOptimizeResumeText(hasResume ? buildResumeTextFromState() : '')
     setOptimizeJobDescription(jobDescription)
     setOptimizeError('')
+    setOptimizeFileName('')
+    setOptimizeSource(hasResume ? 'profile' : 'upload')
     setOptimizeModalOpen(true)
   }
 
@@ -466,7 +470,7 @@ const ResumeMakerPage = ({ adminMode = false }) => {
 
     const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
     if (!isPdf) {
-      setOptimizeError('Upload a PDF file or paste your resume below.')
+      setOptimizeError('Please upload a PDF resume file.')
       event.target.value = ''
       return
     }
@@ -478,12 +482,21 @@ const ResumeMakerPage = ({ adminMode = false }) => {
         return
       }
       setOptimizeResumeText(text)
+      setOptimizeFileName(file.name)
+      setOptimizeSource('upload')
       setOptimizeError('')
     } catch {
       setOptimizeError('Could not read that PDF. Try a different file or paste your resume instead.')
     } finally {
       event.target.value = ''
     }
+  }
+
+  const clearOptimizeUpload = () => {
+    setOptimizeFileName('')
+    setOptimizeResumeText(hasResume ? buildResumeTextFromState() : '')
+    setOptimizeSource(hasResume ? 'profile' : 'paste')
+    setOptimizeError('')
   }
 
   const applyOptimizedOutput = async (output, source) => {
@@ -552,10 +565,17 @@ const ResumeMakerPage = ({ adminMode = false }) => {
   const handleOptimizeFromModal = async (event) => {
     event.preventDefault()
     const jd = optimizeJobDescription.trim()
-    const resumeText = optimizeResumeText.trim() || (hasResume ? buildResumeTextFromState() : '')
+    const resumeText =
+      optimizeSource === 'profile'
+        ? buildResumeTextFromState()
+        : optimizeResumeText.trim() || (hasResume ? buildResumeTextFromState() : '')
 
     if (!resumeText) {
-      setOptimizeError('Paste your resume or upload a PDF file.')
+      setOptimizeError(
+        optimizeSource === 'upload'
+          ? 'Upload a PDF resume or switch to paste text.'
+          : 'Add your resume content before generating.',
+      )
       return
     }
     if (!jd) {
@@ -1048,7 +1068,9 @@ const ResumeMakerPage = ({ adminMode = false }) => {
   if (loading) {
     return (
       <main className={`resume-page${adminMode ? ' resume-page--admin' : ''}`}>
-        <p>Loading resume builder…</p>
+        <div className="resume-page-inner resume-page-inner--loading">
+          <p className="resume-loading-text">Loading resume builder…</p>
+        </div>
       </main>
     )
   }
@@ -1100,96 +1122,163 @@ const ResumeMakerPage = ({ adminMode = false }) => {
           <div className="resume-admin-hero-actions">{resumeActions}</div>
         </section>
       ) : (
-        <>
-          <div className="resume-page-head">
-            <div>
+        <div className="resume-page-inner">
+          <header className="resume-page-header">
+            <div className="resume-header-copy">
               <p className="resume-eyebrow">Career tools</p>
               <h1>AI Resume Maker</h1>
               <p className="resume-lead">
-                Paste a job description, add structured details, and generate an ATS-friendly resume.
+                Tailor an ATS-friendly resume to any job — upload an existing resume or build one
+                step by step with the wizard.
               </p>
             </div>
-          </div>
-          <div className="resume-page-actions">{resumeActions}</div>
-        </>
+            <div className="resume-header-pills">
+              <span
+                className={`resume-pill${
+                  atsResume ? ' resume-pill--success' : hasResume ? ' resume-pill--draft' : ''
+                }`}
+              >
+                {atsResume ? 'AI optimized' : hasResume ? 'Draft in progress' : 'Not started'}
+              </span>
+              {previewAts ? (
+                <span className="resume-pill">{atsSections.length} sections</span>
+              ) : null}
+            </div>
+          </header>
+
+          <section className="resume-how-section" aria-labelledby="resume-how-title">
+            <h2 id="resume-how-title" className="resume-section-title">
+              How it works
+            </h2>
+            <div className="resume-how-grid">
+              <article className="resume-how-card">
+                <span className="resume-how-step">1</span>
+                <h3>Add your details</h3>
+                <p>Upload a PDF or use the wizard, and paste the job description you are targeting.</p>
+              </article>
+              <article className="resume-how-card">
+                <span className="resume-how-step">2</span>
+                <h3>Optimize with AI</h3>
+                <p>We tailor wording and structure for applicant tracking systems.</p>
+              </article>
+              <article className="resume-how-card">
+                <span className="resume-how-step">3</span>
+                <h3>Preview and download</h3>
+                <p>Review the live preview, save to your profile, and export as PDF.</p>
+              </article>
+            </div>
+          </section>
+
+          <section className="resume-toolbar" aria-labelledby="resume-actions-title">
+            <div className="resume-toolbar-head">
+              <h2 id="resume-actions-title" className="resume-section-title">
+                Resume actions
+              </h2>
+              <p className="resume-section-lead">Optimize, edit, save, or download your resume.</p>
+            </div>
+            {resumeActions}
+          </section>
+        </div>
       )}
 
-      <section className="resume-preview-panel">
-        {message ? (
-          <div className="resume-preview-alert resume-preview-alert--success" role="status">
-            {message}
-          </div>
-        ) : null}
-        {!wizardOpen && error && !retryCountdown ? (
-          <div className="resume-preview-alert resume-preview-alert--error" role="alert">
-            {error}
-          </div>
-        ) : null}
-        {!wizardOpen && retryCountdown > 0 ? (
-          <div className="resume-preview-alert resume-preview-alert--busy" role="status" aria-live="polite">
-            The server is currently busy. Please try again in{' '}
-            <strong>{retryCountdown}</strong> second{retryCountdown === 1 ? '' : 's'}.
-          </div>
-        ) : null}
-
-        <div className="resume-preview-panel-head">
-          <div>
-            <p className="resume-preview-label">Resume output</p>
-            <h2 className="resume-preview-title">
-              {previewAts ? previewAts.name || 'Your resume' : 'Build your ATS resume'}
+      <div className={`resume-page-inner${adminMode ? ' resume-page-inner--admin-preview' : ''}`}>
+        <section
+          className="resume-preview-section"
+          aria-labelledby={adminMode ? 'resume-preview-heading-admin' : 'resume-preview-heading'}
+        >
+          <div className="resume-preview-section-head">
+            <h2
+              id={adminMode ? 'resume-preview-heading-admin' : 'resume-preview-heading'}
+              className="resume-section-title"
+            >
+              Live preview
             </h2>
-            <p className="resume-ats-note">
-              {previewAts
-                ? atsResume
-                  ? 'AI-optimized for applicant tracking systems — save or download when ready.'
-                  : 'Live draft from your wizard answers — run Optimize with AI to polish every section.'
-                : hasResume
-                  ? 'Complete the wizard and optimize with AI to generate your tailored resume.'
-                  : 'Start the wizard with a job description, then preview a clean ATS-friendly layout here.'}
+            <p className="resume-section-lead">
+              {adminMode
+                ? 'Test builder output below before reviewing saved learner resumes.'
+                : 'Your ATS-formatted resume appears here as you build or optimize.'}
             </p>
           </div>
-          {previewAts ? (
-            <div className="resume-preview-meta">
-              <span
-                className={`resume-status-badge${atsResume ? ' resume-status-badge--optimized' : ' resume-status-badge--draft'}`}
-              >
-                {atsResume ? 'AI optimized' : 'Live draft'}
-              </span>
-              <span className="resume-meta-chip">{atsSections.length} sections</span>
-            </div>
-          ) : null}
-        </div>
 
-        {previewAts ? (
-          <div className="resume-preview-canvas">
-            <AtsResumeDocument ats={previewAts} sections={atsSections} />
-          </div>
-        ) : (
-          <div className="resume-preview-empty">
-            <div className="resume-preview-empty-visual" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+          <section className="resume-preview-panel">
+            {message ? (
+              <div className="resume-preview-alert resume-preview-alert--success" role="status">
+                {message}
+              </div>
+            ) : null}
+            {!wizardOpen && error && !retryCountdown ? (
+              <div className="resume-preview-alert resume-preview-alert--error" role="alert">
+                {error}
+              </div>
+            ) : null}
+            {!wizardOpen && retryCountdown > 0 ? (
+              <div className="resume-preview-alert resume-preview-alert--busy" role="status" aria-live="polite">
+                The server is currently busy. Please try again in{' '}
+                <strong>{retryCountdown}</strong> second{retryCountdown === 1 ? '' : 's'}.
+              </div>
+            ) : null}
+
+            <div className="resume-preview-panel-head">
+              <div>
+                <p className="resume-preview-label">Document</p>
+                <h3 className="resume-preview-title">
+                  {previewAts ? previewAts.name || 'Your resume' : 'Build your ATS resume'}
+                </h3>
+                <p className="resume-ats-note">
+                  {previewAts
+                    ? atsResume
+                      ? 'AI-optimized for applicant tracking systems — save or download when ready.'
+                      : 'Live draft from your wizard answers — run Optimize with AI to polish every section.'
+                    : hasResume
+                      ? 'Complete the wizard and optimize with AI to generate your tailored resume.'
+                      : 'Start the wizard with a job description, then preview a clean ATS-friendly layout here.'}
+                </p>
+              </div>
+              {previewAts ? (
+                <div className="resume-preview-meta">
+                  <span
+                    className={`resume-status-badge${atsResume ? ' resume-status-badge--optimized' : ' resume-status-badge--draft'}`}
+                  >
+                    {atsResume ? 'AI optimized' : 'Live draft'}
+                  </span>
+                  <span className="resume-meta-chip">{atsSections.length} sections</span>
+                </div>
+              ) : null}
             </div>
-            <h3>No resume preview yet</h3>
-            <p className="resume-muted">
-              Paste your resume and a job description, then let AI build an ATS-ready version — or use the step-by-step wizard.
-            </p>
-            <div className="resume-preview-empty-actions">
-              <button type="button" className="resume-btn resume-btn--primary" onClick={openOptimizeModal}>
-                Optimize with AI
-              </button>
-              <button type="button" className="resume-btn resume-btn--outline" onClick={openWizard}>
-                {hasResume ? 'Open resume wizard' : 'Start resume wizard'}
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
+
+            {previewAts ? (
+              <div className="resume-preview-canvas">
+                <AtsResumeDocument ats={previewAts} sections={atsSections} />
+              </div>
+            ) : (
+              <div className="resume-preview-empty">
+                <div className="resume-preview-empty-visual" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <h3>No resume preview yet</h3>
+                <p className="resume-muted">
+                  Paste your resume and a job description, then let AI build an ATS-ready version — or
+                  use the step-by-step wizard.
+                </p>
+                <div className="resume-preview-empty-actions">
+                  <button type="button" className="resume-btn resume-btn--primary" onClick={openOptimizeModal}>
+                    Optimize with AI
+                  </button>
+                  <button type="button" className="resume-btn resume-btn--outline" onClick={openWizard}>
+                    {hasResume ? 'Open resume wizard' : 'Start resume wizard'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+        </section>
+      </div>
 
       {optimizeModalOpen ? (
         <div
-          className="resume-wizard-backdrop"
+          className="resume-wizard-backdrop resume-wizard-backdrop--center"
           onClick={() => setOptimizeModalOpen(false)}
           role="presentation"
         >
@@ -1205,47 +1294,158 @@ const ResumeMakerPage = ({ adminMode = false }) => {
                 <p className="resume-preview-label">AI resume optimizer</p>
                 <h2 id="resume-optimize-title">Optimize with AI</h2>
                 <p className="resume-muted">
-                  Paste your resume and the job description. We will tailor an ATS-friendly version for that role.
+                  Add your resume and the job posting — we will generate an ATS-tailored version.
                 </p>
               </div>
               <button
                 type="button"
                 className="resume-wizard-close"
                 onClick={() => setOptimizeModalOpen(false)}
+                aria-label="Close"
               >
                 ✕
               </button>
             </div>
 
             <form className="resume-optimize-form" onSubmit={handleOptimizeFromModal}>
-              <label className="resume-optimize-upload">
-                <span>Upload resume (PDF)</span>
-                <input type="file" accept=".pdf,application/pdf" onChange={handleResumeFileUpload} />
-              </label>
+              <section className="resume-optimize-section" aria-labelledby="resume-optimize-resume-title">
+                <div className="resume-optimize-section-head">
+                  <span className="resume-optimize-step">1</span>
+                  <div>
+                    <h3 id="resume-optimize-resume-title">Your resume</h3>
+                    <p>Upload a PDF, use saved profile data, or paste your resume text.</p>
+                  </div>
+                </div>
 
-              <label>
-                Your resume
-                <textarea
-                  value={optimizeResumeText}
-                  onChange={(event) => setOptimizeResumeText(event.target.value)}
-                  placeholder="Paste your full resume here — experience, projects, skills, education, and contact details."
-                  rows={10}
-                  required={!hasResume}
-                />
-              </label>
+                <div className="resume-optimize-source-tabs" role="tablist" aria-label="Resume source">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={optimizeSource === 'upload'}
+                    className={`resume-optimize-source-tab${optimizeSource === 'upload' ? ' is-active' : ''}`}
+                    onClick={() => {
+                      setOptimizeSource('upload')
+                      setOptimizeError('')
+                    }}
+                  >
+                    Upload PDF
+                  </button>
+                  {hasResume ? (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={optimizeSource === 'profile'}
+                      className={`resume-optimize-source-tab${optimizeSource === 'profile' ? ' is-active' : ''}`}
+                      onClick={() => {
+                        setOptimizeSource('profile')
+                        setOptimizeResumeText(buildResumeTextFromState())
+                        setOptimizeFileName('')
+                        setOptimizeError('')
+                      }}
+                    >
+                      Saved profile
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={optimizeSource === 'paste'}
+                    className={`resume-optimize-source-tab${optimizeSource === 'paste' ? ' is-active' : ''}`}
+                    onClick={() => {
+                      setOptimizeSource('paste')
+                      setOptimizeFileName('')
+                      setOptimizeError('')
+                    }}
+                  >
+                    Paste text
+                  </button>
+                </div>
 
-              <label>
-                Job description
-                <textarea
-                  value={optimizeJobDescription}
-                  onChange={(event) => setOptimizeJobDescription(event.target.value)}
-                  placeholder="Paste the full job posting you want to target."
-                  rows={8}
-                  required
-                />
-              </label>
+                {optimizeSource === 'upload' ? (
+                  <div className="resume-optimize-upload-panel">
+                    {optimizeFileName && optimizeResumeText.trim() ? (
+                      <div className="resume-optimize-file-card">
+                        <div className="resume-optimize-file-icon" aria-hidden="true">
+                          PDF
+                        </div>
+                        <div className="resume-optimize-file-copy">
+                          <strong>{optimizeFileName}</strong>
+                          <p>Resume text loaded and ready to optimize.</p>
+                        </div>
+                        <button type="button" className="resume-optimize-link-btn" onClick={clearOptimizeUpload}>
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="resume-optimize-dropzone">
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handleResumeFileUpload}
+                          className="resume-optimize-dropzone-input"
+                        />
+                        <span className="resume-optimize-dropzone-icon" aria-hidden="true">
+                          ↑
+                        </span>
+                        <span className="resume-optimize-dropzone-title">Upload your resume PDF</span>
+                        <span className="resume-optimize-dropzone-hint">Click to browse — we extract the text automatically</span>
+                      </label>
+                    )}
+                  </div>
+                ) : null}
 
-              {optimizeError ? <p className="resume-error">{optimizeError}</p> : null}
+                {optimizeSource === 'profile' ? (
+                  <div className="resume-optimize-profile-card">
+                    <p className="resume-optimize-profile-title">Using your saved profile</p>
+                    <p className="resume-muted">
+                      We will use the name, experience, projects, skills, and education from your
+                      resume wizard.
+                    </p>
+                    <ul className="resume-optimize-profile-stats">
+                      <li>{resume?.name || 'Name not set'}</li>
+                      <li>{filledExperienceCount} experience entries</li>
+                      <li>{filledProjectCount} projects</li>
+                      <li>{filledEducationCount} education entries</li>
+                    </ul>
+                  </div>
+                ) : null}
+
+                {optimizeSource === 'paste' ? (
+                  <label className="resume-optimize-field">
+                    <span className="resume-optimize-field-label">Resume content</span>
+                    <textarea
+                      value={optimizeResumeText}
+                      onChange={(event) => setOptimizeResumeText(event.target.value)}
+                      placeholder="Paste your full resume — experience, projects, skills, education, and contact details."
+                      rows={9}
+                      required={!hasResume}
+                    />
+                  </label>
+                ) : null}
+              </section>
+
+              <section className="resume-optimize-section" aria-labelledby="resume-optimize-job-title">
+                <div className="resume-optimize-section-head">
+                  <span className="resume-optimize-step">2</span>
+                  <div>
+                    <h3 id="resume-optimize-job-title">Target job description</h3>
+                    <p>Paste the role you are applying for so AI can tailor your resume.</p>
+                  </div>
+                </div>
+
+                <label className="resume-optimize-field">
+                  <span className="resume-optimize-field-label">Job posting</span>
+                  <textarea
+                    value={optimizeJobDescription}
+                    onChange={(event) => setOptimizeJobDescription(event.target.value)}
+                    placeholder="Paste the full job description — responsibilities, requirements, and qualifications."
+                    rows={8}
+                    required
+                  />
+                </label>
+              </section>
+
+              {optimizeError ? <p className="resume-error resume-optimize-error">{optimizeError}</p> : null}
 
               <div className="resume-optimize-actions">
                 <button

@@ -31,12 +31,16 @@ import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
 import CommunityPage from './pages/CommunityPage'
 import ContentPage from './pages/ContentPage'
+import DevelopersPage from './pages/DevelopersPage'
 import SkeletonPreviewPage from './pages/SkeletonPreviewPage'
 import { CONTENT_PAGES, ROUTES } from './routes'
 import './App.css'
 
 const MARKETING_PAGES = CONTENT_PAGES.filter(
-  (page) => !['battles', 'courses', 'leaderboard', 'blog', 'community'].includes(page.contentKey),
+  (page) =>
+    !['battles', 'courses', 'leaderboard', 'blog', 'community', 'developers'].includes(
+      page.contentKey,
+    ),
 )
 
 function App() {
@@ -56,6 +60,7 @@ function App() {
         <Route path={ROUTES.blog} element={<BlogPage />} />
         <Route path={`${ROUTES.blog}/:slug`} element={<BlogPostPage />} />
         <Route path="/skeleton-preview" element={<SkeletonPreviewPage />} />
+        <Route path={ROUTES.developers} element={<DevelopersPage />} />
         {MARKETING_PAGES.map((page) => (
           <Route
             key={page.path}

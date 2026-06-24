@@ -8,11 +8,17 @@ const ScrollReveal = ({
   className = '',
   delay = 0,
   as: Component = 'div',
+  disabled = false,
 }) => {
   const ref = useRef(null)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(disabled)
 
   useIsomorphicLayoutEffect(() => {
+    if (disabled) {
+      setVisible(true)
+      return undefined
+    }
+
     const node = ref.current
     if (!node) return
 
@@ -39,12 +45,12 @@ const ScrollReveal = ({
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [disabled])
 
   return (
     <Component
       ref={ref}
-      className={`scroll-reveal${visible ? ' is-visible' : ''}${className ? ` ${className}` : ''}`}
+      className={`scroll-reveal${visible ? ' is-visible' : ''}${disabled ? ' scroll-reveal--static' : ''}${className ? ` ${className}` : ''}`}
       style={{ '--reveal-delay': `${delay}ms` }}
     >
       {children}

@@ -10,6 +10,21 @@ import './PracticePage.css'
 const PRACTICE_CARD_FIXTURE = <PracticeCard assessment={MOCK_PRACTICE} asLink={false} />
 const SKELETON_COUNT = 6
 
+const MODE_TABS = [
+  { id: 'all', label: 'All types' },
+  { id: 'QUIZ', label: 'MCQ Quiz' },
+  { id: 'CODING', label: 'Coding' },
+  { id: 'MIXED', label: 'Mixed' },
+]
+
+const DIFFICULTY_TABS = [
+  { id: 'all', label: 'All' },
+  { id: 'EASY', label: 'Easy' },
+  { id: 'MEDIUM', label: 'Medium' },
+  { id: 'HARD', label: 'Hard' },
+  { id: 'MIXED', label: 'Mixed' },
+]
+
 const PracticePage = () => {
   const codingViewportAllowed = useCodingViewportAllowed()
   const [assessments, setAssessments] = useState([])
@@ -37,6 +52,13 @@ const PracticePage = () => {
     return [...map.entries()].map(([id, name]) => ({ id, name }))
   }, [assessments])
 
+  const stats = useMemo(() => {
+    const quiz = assessments.filter((item) => item.mode === 'QUIZ').length
+    const coding = assessments.filter((item) => item.mode === 'CODING').length
+    const passed = assessments.filter((item) => item.passed).length
+    return { quiz, coding, passed }
+  }, [assessments])
+
   const filteredAssessments = useMemo(
     () =>
       assessments.filter((item) => {
@@ -48,60 +70,109 @@ const PracticePage = () => {
     [assessments, skillFilter, difficultyFilter, modeFilter],
   )
 
+  const hasActiveFilters =
+    skillFilter !== 'all' || difficultyFilter !== 'all' || modeFilter !== 'all'
+
+  const clearFilters = () => {
+    setSkillFilter('all')
+    setDifficultyFilter('all')
+    setModeFilter('all')
+  }
+
   return (
     <main className="practice-page">
       <div className="practice-page-inner">
         <header className="practice-page-header">
-          <p className="practice-eyebrow">Practice</p>
-          <h1>Drills, quizzes & coding challenges</h1>
-          <p className="practice-lead">
-            Sharpen skills with industry-style MCQ sets and hands-on coding exercises. Track your
-            best scores and earn XP when you pass.
-          </p>
-          {!loading && assessments.length ? (
-            <p className="practice-count">
-              {assessments.length} practice set{assessments.length === 1 ? '' : 's'} available
+          <div className="practice-header-copy">
+            <p className="practice-eyebrow">Practice</p>
+            <h1>Drills, quizzes & coding challenges</h1>
+            <p className="practice-lead">
+              Sharpen skills with industry-style MCQ sets and hands-on coding exercises. Track your
+              best scores and earn XP when you pass.
             </p>
+          </div>
+          {!loading && assessments.length ? (
+            <div className="practice-header-pills">
+              <span className="practice-pill practice-pill--count">
+                {assessments.length} set{assessments.length === 1 ? '' : 's'}
+              </span>
+              {stats.quiz ? <span className="practice-pill">{stats.quiz} quiz</span> : null}
+              {stats.coding ? <span className="practice-pill">{stats.coding} coding</span> : null}
+              {stats.passed ? (
+                <span className="practice-pill practice-pill--passed">{stats.passed} passed</span>
+              ) : null}
+            </div>
           ) : null}
         </header>
 
         {!loading && assessments.length ? (
           <div className="practice-toolbar">
-            <div className="practice-filters" role="group" aria-label="Filter practice sets">
-              <label className="practice-filter">
-                <span>Skill</span>
-                <select value={skillFilter} onChange={(event) => setSkillFilter(event.target.value)}>
-                  <option value="all">All skills</option>
-                  {skills.map((skill) => (
-                    <option key={skill.id} value={skill.id}>
-                      {skill.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="practice-filter">
-                <span>Difficulty</span>
-                <select
-                  value={difficultyFilter}
-                  onChange={(event) => setDifficultyFilter(event.target.value)}
-                >
-                  <option value="all">All levels</option>
-                  <option value="EASY">Easy</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HARD">Hard</option>
-                  <option value="MIXED">Mixed</option>
-                </select>
-              </label>
-              <label className="practice-filter">
-                <span>Type</span>
-                <select value={modeFilter} onChange={(event) => setModeFilter(event.target.value)}>
-                  <option value="all">All types</option>
-                  <option value="QUIZ">MCQ Quiz</option>
-                  <option value="CODING">Coding</option>
-                  <option value="MIXED">Mixed</option>
-                </select>
-              </label>
+            <div className="practice-toolbar-head">
+              <h2 className="practice-toolbar-title">Filter practice sets</h2>
+              {hasActiveFilters ? (
+                <button type="button" className="practice-clear-btn" onClick={clearFilters}>
+                  Clear filters
+                </button>
+              ) : null}
             </div>
+
+            <div className="practice-mode-tabs" role="tablist" aria-label="Practice type">
+              {MODE_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={modeFilter === tab.id}
+                  className={`practice-mode-tab${modeFilter === tab.id ? ' is-active' : ''}`}
+                  onClick={() => setModeFilter(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="practice-filters-row">
+              <label className="practice-filter">
+                <span>Skill track</span>
+                <div className="practice-select-wrap">
+                  <select value={skillFilter} onChange={(event) => setSkillFilter(event.target.value)}>
+                    <option value="all">All skills</option>
+                    {skills.map((skill) => (
+                      <option key={skill.id} value={skill.id}>
+                        {skill.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </label>
+
+              <div className="practice-filter practice-filter--difficulty">
+                <span id="practice-difficulty-label">Difficulty</span>
+                <div
+                  className="practice-difficulty-tabs"
+                  role="group"
+                  aria-labelledby="practice-difficulty-label"
+                >
+                  {DIFFICULTY_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={`practice-difficulty-tab${
+                        difficultyFilter === tab.id ? ' is-active' : ''
+                      }`}
+                      onClick={() => setDifficultyFilter(tab.id)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <p className="practice-results-copy" aria-live="polite">
+              Showing {filteredAssessments.length} of {assessments.length} practice set
+              {assessments.length === 1 ? '' : 's'}
+            </p>
           </div>
         ) : null}
 
@@ -138,6 +209,13 @@ const PracticePage = () => {
             icon="🔍"
             title="No matches"
             description="Try changing your filters to see more practice sets."
+            action={
+              hasActiveFilters ? (
+                <button type="button" className="practice-empty-btn" onClick={clearFilters}>
+                  Clear all filters
+                </button>
+              ) : null
+            }
           />
         ) : null}
 
