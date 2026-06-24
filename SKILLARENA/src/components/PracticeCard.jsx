@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../routes'
-import { getPracticeModeMeta } from '../utils/practiceMode'
+import { getPracticeModeKey, getPracticeModeMeta } from '../utils/practiceMode'
 
 const formatLabel = (value = '') =>
   value
@@ -9,16 +9,24 @@ const formatLabel = (value = '') =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
 
+const getCtaLabel = (assessment) => {
+  if (assessment.passed) return 'Review practice'
+  if (assessment.bestScore != null) return 'Try again'
+  return 'Start practice'
+}
+
 const PracticeCard = ({
   assessment,
   showDesktopBadge = false,
   asLink = true,
 }) => {
   const modeMeta = getPracticeModeMeta(assessment)
+  const modeKey = getPracticeModeKey(assessment)
+  const questionCount = assessment.questionCount || 0
 
   const body = (
     <>
-      <div className="practice-card-top">
+      <div className="practice-card-tags">
         {assessment.skillName ? (
           <span className="practice-badge practice-badge--skill">{assessment.skillName}</span>
         ) : null}
@@ -31,35 +39,50 @@ const PracticeCard = ({
           {formatLabel(assessment.difficulty)}
         </span>
       </div>
-      <div className="practice-card-heading">
-        <div className="practice-card-icon" aria-hidden="true">
+
+      <div className="practice-card-main">
+        <div className={`practice-card-icon practice-card-icon--${modeKey}`} aria-hidden="true">
           {modeMeta.icon}
         </div>
-        <h2>{assessment.title}</h2>
+        <div className="practice-card-copy">
+          <h2>{assessment.title}</h2>
+          {assessment.description ? <p>{assessment.description}</p> : null}
+        </div>
       </div>
-      {assessment.description ? <p>{assessment.description}</p> : null}
-      <div className="practice-card-meta">
-        <span>{modeMeta.label}</span>
-        {showDesktopBadge ? (
-          <span className="practice-badge practice-badge--desktop">Laptop / tablet</span>
-        ) : null}
-        <span>
-          {assessment.questionCount || 0} question
-          {(assessment.questionCount || 0) === 1 ? '' : 's'}
+
+      <div className="practice-card-stats">
+        <span className={`practice-stat practice-stat--mode practice-stat--${modeKey}`}>
+          {modeMeta.label}
         </span>
-        {assessment.xpReward ? <span>{assessment.xpReward} XP</span> : null}
+        <span className="practice-stat">
+          {questionCount} question{questionCount === 1 ? '' : 's'}
+        </span>
+        {assessment.xpReward ? (
+          <span className="practice-stat practice-stat--xp">{assessment.xpReward} XP</span>
+        ) : null}
+        {showDesktopBadge ? (
+          <span className="practice-stat practice-stat--desktop">Laptop / tablet</span>
+        ) : null}
       </div>
+
       <div className="practice-card-foot">
         {assessment.passed ? (
           <span className="practice-status practice-status--passed">
             Passed · Best {assessment.bestScore}%
           </span>
         ) : assessment.bestScore != null ? (
-          <span className="practice-status">Best score {assessment.bestScore}%</span>
+          <span className="practice-status practice-status--progress">
+            Best score {assessment.bestScore}%
+          </span>
         ) : (
           <span className="practice-status practice-status--new">Not started</span>
         )}
-        <span className="practice-card-cta">Start practice →</span>
+        <span className="practice-card-cta">
+          {getCtaLabel(assessment)}
+          <span className="practice-card-cta-arrow" aria-hidden="true">
+            →
+          </span>
+        </span>
       </div>
     </>
   )

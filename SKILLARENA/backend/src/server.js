@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const routes = require('./routes');
 const errorMiddleware = require('./middleware/errorMiddleware');
+const { repairPublishedCodingLessons } = require('./services/codingLessonService');
 const { tryMatchWaitingTickets, expireStaleTickets, startBattleIfReady } = require('./services/matchmakingService');
 const { finalizeBattleIfNeeded } = require('./services/battleService');
 const { Battle } = require('./models');
@@ -55,6 +56,7 @@ app.use(errorMiddleware);
 const start = async () => {
   try {
     await connectDB();
+    await repairPublishedCodingLessons();
     app.listen(PORT, () => {
       console.log(`Skill Arena API running on http://localhost:${PORT}`);
     });

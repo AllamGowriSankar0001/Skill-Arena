@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
+import CursorTrail from './components/CursorTrail'
 import PageLayout from './components/layout/PageLayout'
 import AuthLayout from './components/layout/AuthLayout'
 import AppLayout from './components/layout/AppLayout'
@@ -47,6 +48,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <CursorTrail />
       <Routes>
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.login} element={<LoginPage />} />

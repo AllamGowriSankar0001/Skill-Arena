@@ -53,7 +53,8 @@
 }
 
 .app-lesson-content--article {
-  max-width: var(--app-content-reading, 42rem);
+  width: 100%;
+  max-width: none;
   padding: clamp(1rem, 3vw, 1.35rem);
   border-radius: 0.85rem;
   background: #fff;

@@ -952,6 +952,16 @@ async function validateCodingLessonForPublish(lesson) {
   if (errors.length) {
     throw new Error(`Cannot publish coding lesson: ${errors.join(' ')}`);
   }
+
+  if (assessment.status !== 'PUBLISHED') {
+    assessment.status = 'PUBLISHED';
+    await assessment.save();
+  }
+
+  if (question.status !== 'PUBLISHED') {
+    question.status = 'PUBLISHED';
+    await question.save();
+  }
 }
 
 const createLessonCoding = async (adminId, lessonId, payload) => {

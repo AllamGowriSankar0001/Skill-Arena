@@ -6,7 +6,8 @@
 
 .lesson-page-header {
   margin-bottom: 1.75rem;
-  max-width: var(--app-content-reading, 42rem);
+  width: 100%;
+  max-width: none;
 }
 
 .lesson-page-eyebrow {
@@ -35,7 +36,7 @@
 
 .lesson-page-lead {
   margin: 0.85rem 0 0;
-  max-width: 40rem;
+  max-width: none;
   color: #6b5f54;
   line-height: 1.65;
   font-size: 1rem;
@@ -123,6 +124,8 @@
 }
 
 .app-lesson-content--article {
+  width: 100%;
+  max-width: none;
   padding: clamp(1.35rem, 3.5vw, 2rem);
   box-shadow: 0 2px 12px rgba(26, 17, 10, 0.05);
 }
@@ -144,6 +147,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  width: 100%;
   margin-top: 1.75rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(26, 17, 10, 0.08);
@@ -157,6 +161,7 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
   margin-top: 2rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(26, 17, 10, 0.08);

@@ -29,21 +29,31 @@ function getVisibleTests(question) {
     : details.sampleTestCases || [];
 }
 
-async function getCodingQuestionForLesson(lesson) {
-  if (!lesson.assessmentId) return null;
+async function getCodingQuestionForLesson(lesson, { isAdmin = false } = {}) {
+  if (!lesson?.assessmentId) return null;
 
-  const assessment = await Assessment.findOne({
-    _id: lesson.assessmentId,
-    status: 'PUBLISHED',
-  });
+  const assessment = await Assessment.findById(lesson.assessmentId);
   if (!assessment?.questions?.length) return null;
+
+  if (!isAdmin) {
+    if (lesson.status !== 'PUBLISHED') return null;
+    if (assessment.status === 'ARCHIVED') return null;
+  }
 
   const entry = [...assessment.questions].sort((a, b) => a.order - b.order)[0];
   const question = await Question.findById(entry.questionId);
   if (!question || question.type !== 'CODING') return null;
+  if (!isAdmin && question.status === 'ARCHIVED') return null;
 
   const solution = await QuestionSolution.findOne({ questionId: question._id });
   return { assessment, question, solution, points: entry.points };
+}
+
+function codingNotConfiguredError() {
+  const error = new Error('Coding question not configured for this lesson.');
+  error.statusCode = 404;
+  error.code = 'CODING_NOT_CONFIGURED';
+  return error;
 }
 
 async function getCodingLessonPayload(userId, lessonId, { isAdmin = false } = {}) {
@@ -57,8 +67,8 @@ async function getCodingLessonPayload(userId, lessonId, { isAdmin = false } = {}
     throw error;
   }
 
-  const bundle = await getCodingQuestionForLesson(lesson);
-  if (!bundle) throw new Error('Coding question not configured for this lesson.');
+  const bundle = await getCodingQuestionForLesson(lesson, { isAdmin });
+  if (!bundle) throw codingNotConfiguredError();
 
   const { assessment, question } = bundle;
   const starter = getStarterCodeMap(question);
@@ -95,7 +105,7 @@ async function runVisibleCodingTests(userId, lessonId, code) {
   await startLesson(userId, lessonId);
 
   const bundle = await getCodingQuestionForLesson(lesson);
-  if (!bundle) throw new Error('Coding question not configured.');
+  if (!bundle) throw codingNotConfiguredError();
 
   const visibleTests = getVisibleTests(bundle.question);
   const result = runCodingTests(code, visibleTests);
@@ -124,7 +134,7 @@ async function submitCodingAnswer(userId, lessonId, code, { isAdmin = false } = 
   await incrementAttemptCount(userId, lessonId);
 
   const bundle = await getCodingQuestionForLesson(lesson);
-  if (!bundle) throw new Error('Coding question not configured.');
+  if (!bundle) throw codingNotConfiguredError();
 
   const { assessment, question, solution, points } = bundle;
   const visibleTests = getVisibleTests(question);
@@ -213,10 +223,61 @@ async function listCodingAttempts(userId, lessonId) {
   }));
 }
 
+async function repairPublishedCodingLessons() {
+  const lessons = await Lesson.find({
+    type: 'CODING',
+    status: 'PUBLISHED',
+    assessmentId: { $ne: null },
+  }).select('assessmentId title');
+
+  let repaired = 0;
+
+  for (const lesson of lessons) {
+    const assessment = await Assessment.findById(lesson.assessmentId);
+    if (!assessment) continue;
+
+    let changed = false;
+    if (assessment.status !== 'PUBLISHED') {
+      assessment.status = 'PUBLISHED';
+      await assessment.save();
+      changed = true;
+    }
+
+    const entry = [...(assessment.questions || [])].sort((a, b) => a.order - b.order)[0];
+    if (entry?.questionId) {
+      const question = await Question.findById(entry.questionId);
+      if (question && question.status !== 'PUBLISHED') {
+        question.status = 'PUBLISHED';
+        await question.save();
+        changed = true;
+      }
+    }
+
+    if (changed) repaired += 1;
+  }
+
+  const unconfigured = await Lesson.countDocuments({
+    type: 'CODING',
+    status: 'PUBLISHED',
+    $or: [{ assessmentId: null }, { assessmentId: { $exists: false } }],
+  });
+
+  if (repaired) {
+    console.log(`Repaired publish state for ${repaired} coding lesson(s).`);
+  }
+
+  if (unconfigured) {
+    console.warn(
+      `Warning: ${unconfigured} published coding lesson(s) have no linked assessment. Run scripts/migrateCodingLessons.js to fix.`,
+    );
+  }
+}
+
 module.exports = {
   getCodingLessonPayload,
   runVisibleCodingTests,
   submitCodingAnswer,
   listCodingAttempts,
   getCodingQuestionForLesson,
+  repairPublishedCodingLessons,
 };

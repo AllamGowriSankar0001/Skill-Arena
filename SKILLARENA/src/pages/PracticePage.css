@@ -288,23 +288,27 @@
 
 .practice-card {
   display: grid;
-  gap: 0.6rem;
-  padding: 1.05rem 1.1rem;
-  border-radius: 0.85rem;
+  gap: 0.85rem;
+  padding: 1.1rem 1.15rem 1rem;
+  border-radius: 0.9rem;
   background: #fff;
   border: 1px solid rgba(26, 17, 10, 0.08);
   box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .practice-card:hover {
-  border-color: rgba(196, 92, 38, 0.25);
-  box-shadow: 0 8px 24px rgba(26, 17, 10, 0.07);
+  border-color: rgba(196, 92, 38, 0.28);
+  box-shadow: 0 10px 28px rgba(26, 17, 10, 0.08);
+  transform: translateY(-2px);
 }
 
-.practice-card-top {
+.practice-card-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
@@ -312,11 +316,13 @@
 
 .practice-badge {
   display: inline-flex;
-  padding: 0.18rem 0.55rem;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
 .practice-badge--skill {
@@ -349,9 +355,11 @@
   color: #b91c1c;
 }
 
-.practice-badge--desktop {
-  background: rgba(196, 92, 38, 0.1);
-  color: #c45c26;
+.practice-card-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
 }
 
 .practice-card-icon {
@@ -359,34 +367,50 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 0.6rem;
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.practice-card-icon--coding {
   background: rgba(196, 92, 38, 0.1);
   color: #c45c26;
-  font-size: 0.95rem;
-  font-weight: 800;
 }
 
-.practice-card-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
+.practice-card-icon--quiz {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
 }
 
-.practice-card-heading h2 {
-  margin: 0;
-  flex: 1;
+.practice-card-icon--mixed {
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+}
+
+.practice-card-copy {
+  display: grid;
+  gap: 0.35rem;
   min-width: 0;
-  font-size: 1.02rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: #1a110a;
 }
 
-.practice-card p {
+.practice-card-copy h2 {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.38;
+  color: #1a110a;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.practice-card-copy p {
+  margin: 0;
+  font-size: 0.84rem;
   line-height: 1.55;
   color: #6b5f54;
   display: -webkit-box;
@@ -395,12 +419,55 @@
   overflow: hidden;
 }
 
-.practice-card-meta {
+.practice-card-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.6rem;
-  font-size: 0.76rem;
-  font-weight: 600;
+  gap: 0.4rem;
+}
+
+.practice-stat {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 0.45rem;
+  background: #faf8f5;
+  border: 1px solid rgba(26, 17, 10, 0.06);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b5f54;
+  white-space: nowrap;
+}
+
+.practice-stat--mode {
+  color: #1a110a;
+}
+
+.practice-stat--coding {
+  background: rgba(196, 92, 38, 0.08);
+  border-color: rgba(196, 92, 38, 0.14);
+  color: #c45c26;
+}
+
+.practice-stat--quiz {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.14);
+  color: #15803d;
+}
+
+.practice-stat--mixed {
+  background: rgba(13, 148, 136, 0.08);
+  border-color: rgba(13, 148, 136, 0.14);
+  color: #0d9488;
+}
+
+.practice-stat--xp {
+  background: rgba(196, 92, 38, 0.06);
+  border-color: rgba(196, 92, 38, 0.12);
+  color: #a04a1f;
+}
+
+.practice-stat--desktop {
+  background: rgba(26, 17, 10, 0.04);
   color: #8a7a6d;
 }
 
@@ -409,14 +476,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 0.25rem;
-  padding-top: 0.7rem;
+  margin-top: 0.1rem;
+  padding-top: 0.8rem;
   border-top: 1px solid rgba(26, 17, 10, 0.06);
 }
 
 .practice-status {
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-size: 0.74rem;
+  font-weight: 700;
   color: #8a7a6d;
 }
 
@@ -424,14 +491,44 @@
   color: #15803d;
 }
 
-.practice-status--new {
+.practice-status--progress {
   color: #c45c26;
 }
 
+.practice-status--new {
+  color: #8a7a6d;
+}
+
 .practice-card-cta {
-  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(196, 92, 38, 0.08);
+  border: 1px solid rgba(196, 92, 38, 0.16);
+  font-size: 0.74rem;
   font-weight: 700;
   color: #c45c26;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.practice-card:hover .practice-card-cta {
+  background: #c45c26;
+  border-color: #c45c26;
+  color: #fff;
+}
+
+.practice-card-cta-arrow {
+  transition: transform 0.15s ease;
+}
+
+.practice-card:hover .practice-card-cta-arrow {
+  transform: translateX(2px);
 }
 
 .practice-card-skeleton-wrap {
@@ -539,16 +636,16 @@
   }
 
   .practice-card {
-    padding: 0.95rem;
+    padding: 1rem;
   }
 
   .practice-card-foot {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+    align-items: stretch;
+    gap: 0.55rem;
   }
 
   .practice-card-cta {
-    align-self: flex-end;
+    justify-content: center;
   }
 }

@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom'
 import Navbar from '../Navbar'
 import AppNavbar from '../AppNavbar'
 import Footer from '../Footer'
-import CursorTrail from '../CursorTrail'
 import { useAuth } from '../../context/AuthContext'
 
 const PageLayout = () => {
@@ -27,7 +26,6 @@ const PageLayout = () => {
       <Navbar />
       <Outlet />
       <Footer />
-      <CursorTrail />
     </>
   )
 }

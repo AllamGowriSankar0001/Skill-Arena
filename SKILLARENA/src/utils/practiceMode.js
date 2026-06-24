@@ -13,3 +13,11 @@ export const getPracticeModeMeta = (assessment = {}) => {
   }
   return PRACTICE_MODE_META.QUIZ
 }
+
+export const getPracticeModeKey = (assessment = {}) => {
+  if (assessment.sessionType === 'CODING') return 'coding'
+  const mode = (assessment.mode || 'QUIZ').toLowerCase()
+  if (mode === 'coding') return 'coding'
+  if (mode === 'mixed') return 'mixed'
+  return 'quiz'
+}

@@ -10,7 +10,17 @@
   border: 1.5px solid rgba(26, 17, 10, 0.18);
   pointer-events: none;
   z-index: 10005;
-  will-change: transform, left, top;
+  will-change: transform, left, top, opacity;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+html.cursor-trail-active.cursor-trail-interactive .cursor-trail-circle {
+  background-color: #000000;
+  border-color: transparent;
+}
+
+html.cursor-trail-active.cursor-trail-pressed .cursor-trail-circle:first-child {
+  background-color: #000000;
 }
 
 html.cursor-trail-active,

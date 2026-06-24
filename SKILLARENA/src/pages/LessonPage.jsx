@@ -117,10 +117,28 @@ const LessonPage = () => {
 
   useEffect(() => {
     if (!user || !lessonId || lesson?.type !== 'CODING' || lockedMessage) return
+
+    let cancelled = false
+
     learningApi
       .getCoding(lessonId)
-      .then(setCodingPayload)
-      .catch((err) => setError(err.message || 'Failed to load coding lesson'))
+      .then((payload) => {
+        if (!cancelled) setCodingPayload(payload)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        if (err.code === 'CODING_NOT_CONFIGURED') {
+          setError(
+            'This coding lesson is not fully set up yet. An admin needs to add the coding challenge in the course editor.',
+          )
+          return
+        }
+        setError(err.message || 'Failed to load coding lesson')
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [user, lessonId, lesson?.type, lockedMessage])
 
   const syncXp = useCallback(
