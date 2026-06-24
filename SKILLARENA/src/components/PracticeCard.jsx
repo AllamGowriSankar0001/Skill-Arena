@@ -41,13 +41,15 @@ const PracticeCard = ({
       </div>
 
       <div className="practice-card-main">
-        <div className={`practice-card-icon practice-card-icon--${modeKey}`} aria-hidden="true">
-          {modeMeta.icon}
-        </div>
-        <div className="practice-card-copy">
+        <div className="practice-card-heading">
+          <div className={`practice-card-icon practice-card-icon--${modeKey}`} aria-hidden="true">
+            {modeMeta.icon}
+          </div>
           <h2>{assessment.title}</h2>
-          {assessment.description ? <p>{assessment.description}</p> : null}
         </div>
+        {assessment.description ? (
+          <p className="practice-card-description">{assessment.description}</p>
+        ) : null}
       </div>
 
       <div className="practice-card-stats">
