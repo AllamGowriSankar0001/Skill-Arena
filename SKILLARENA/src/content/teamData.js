@@ -12,7 +12,6 @@ export const SKILL_ARENA_TEAM = [
       'Prepared the platform design, user flows, and feature architecture across every major module',
       'Implemented the design and codebase himself — frontend, backend, APIs, and database layer',
       'Created the entire platform end to end: courses, practice, battles, community, leaderboard, resume tools, and admin',
-      'Software developer at Trizen Ventures',
       'Full-stack web: JavaScript, React, Node.js, REST APIs, and modern UI systems',
       'Mobile: Android development and app prototyping',
     ],
