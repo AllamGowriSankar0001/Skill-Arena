@@ -403,7 +403,7 @@ const AdminBlogPage = () => {
         </div>
       ) : null}
 
-      {loading ? <p className="admin-blog-loading">Loading posts…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading posts" /> : null}
       {!loading && !posts.length ? (
         <div className="admin-blog-empty">
           <h2>No blog posts yet</h2>

@@ -199,7 +199,7 @@ const Features = () => {
                 return (
                   <article
                     key={feature.index}
-                    className={`deck-card deck-card--${feature.theme}${offset === 0 ? ' deck-card--active' : ''}`}
+                    className={`deck-card deck-card--${feature.theme} deck-card--${feature.badge.toLowerCase()}${offset === 0 ? ' deck-card--active' : ''}`}
                     style={{
                       zIndex: CARD_COUNT - offset,
                       transform: getCardTransform(offset),

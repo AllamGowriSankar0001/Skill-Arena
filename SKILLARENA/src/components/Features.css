@@ -1,7 +1,7 @@
 .features {
   --features-ink: var(--sa-ink);
   --features-muted: var(--sa-muted);
-  --features-tan: var(--sa-primary-soft);
+  --features-tan: #d1fae5;
   --features-accent: var(--sa-primary);
 
   scroll-margin-top: calc(var(--navbar-height, 4rem) + 0.75rem);
@@ -62,8 +62,16 @@
   margin-top: 3.5rem;
   padding: 4.5rem 2rem 3rem;
   border-radius: 2rem;
-  background-color: #0f172a;
+  background-color: #04261d;
+  border: 1px solid #064e3b;
   overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme='dark'] .features-deck-wrap {
+  background-color: #050806;
+  border: 1px solid #14281e;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(16, 185, 129, 0.1);
 }
 
 .features-deck {
@@ -90,6 +98,8 @@
     box-shadow 0.5s ease;
   pointer-events: none;
   user-select: none;
+  opacity: 1 !important;
+  background-clip: padding-box;
 }
 
 .deck-card--active {
@@ -102,8 +112,6 @@
   align-self: flex-start;
   padding: 0.4rem 0.85rem;
   border-radius: 9999px;
-  background-color: var(--sa-bg);
-  color: var(--features-ink);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -155,11 +163,9 @@
   letter-spacing: 0.02em;
   text-decoration: none;
   color: inherit;
-  opacity: 0.92;
 }
 
 .deck-card-link:hover {
-  opacity: 1;
   text-decoration: underline;
 }
 
@@ -170,43 +176,255 @@
   letter-spacing: 0.04em;
 }
 
+/* ─── Light Mode: Solid Opaque Cards (Green & White) ─── */
 .deck-card--dark {
-  background-color: #1e293b;
-  color: #ffffff;
+  background-color: #064e3b !important;
+  color: #ffffff !important;
+  border: 1px solid #047857;
+}
+
+.deck-card--dark .deck-card-badge {
+  background-color: #022c22;
+  color: #6ee7b7;
+  border: 1px solid #047857;
 }
 
 .deck-card--dark .deck-card-icon {
-  background-color: var(--features-accent);
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.deck-card--dark .deck-card-title {
   color: #ffffff;
 }
 
 .deck-card--dark .deck-card-description {
-  color: rgba(248, 250, 252, 0.72);
+  color: #d1fae5;
+}
+
+.deck-card--dark .deck-card-link {
+  color: #a7f3d0;
 }
 
 .deck-card--dark .deck-card-index {
-  color: var(--features-accent);
+  color: #6ee7b7;
 }
 
 .deck-card--tan {
-  background-color: var(--features-tan);
-  color: var(--features-ink);
+  background-color: #d1fae5 !important;
+  color: #064e3b !important;
+  border: 1px solid #a7f3d0;
 }
 
-.deck-card--light {
-  background-color: var(--sa-bg);
-  color: var(--features-ink);
+.deck-card--tan .deck-card-badge {
+  background-color: #ffffff;
+  color: #047857;
+  border: 1px solid #6ee7b7;
 }
 
-.deck-card--tan .deck-card-icon,
-.deck-card--light .deck-card-icon {
-  background-color: var(--features-ink);
+.deck-card--tan .deck-card-icon {
+  background-color: #047857;
   color: #ffffff;
 }
 
-.deck-card--tan .deck-card-description,
+.deck-card--tan .deck-card-title {
+  color: #064e3b;
+}
+
+.deck-card--tan .deck-card-description {
+  color: #065f46;
+}
+
+.deck-card--tan .deck-card-link {
+  color: #047857;
+}
+
+.deck-card--tan .deck-card-index {
+  color: #059669;
+}
+
+.deck-card--light {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0;
+}
+
+.deck-card--light .deck-card-badge {
+  background-color: #ecfdf5;
+  color: #064e3b;
+  border: 1px solid #a7f3d0;
+}
+
+.deck-card--light .deck-card-icon {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.deck-card--light .deck-card-title {
+  color: #0f172a;
+}
+
 .deck-card--light .deck-card-description {
-  color: var(--features-muted);
+  color: #475569;
+}
+
+.deck-card--light .deck-card-link {
+  color: #059669;
+}
+
+.deck-card--light .deck-card-index {
+  color: #059669;
+}
+
+/* Specific Light Mode Card Accents */
+.deck-card--community {
+  background-color: #043e2e !important;
+  border-color: #05684d;
+}
+
+.deck-card--rankings {
+  background-color: #cbf5dc !important;
+  border-color: #86efac;
+}
+
+.deck-card--integrity {
+  background-color: #ffffff !important;
+  border-color: #a7f3d0;
+}
+
+/* ─── Dark Mode: Solid Opaque Cards (Green & Black) ─── */
+html[data-theme='dark'] .deck-card {
+  opacity: 1 !important;
+}
+
+html[data-theme='dark'] .deck-card--dark {
+  background-color: #0c1410 !important;
+  color: #ffffff !important;
+  border: 1px solid #1f3d2e;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-badge {
+  background-color: #14281e;
+  color: #34d399;
+  border: 1px solid #23523c;
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-icon {
+  background-color: #10b981;
+  color: #022c22;
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-title {
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-description {
+  color: #9ca3af;
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-link {
+  color: #10b981;
+}
+
+html[data-theme='dark'] .deck-card--dark .deck-card-index {
+  color: #10b981;
+}
+
+html[data-theme='dark'] .deck-card--tan {
+  background-color: #065f46 !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-badge {
+  background-color: #022c22;
+  color: #a7f3d0;
+  border: 1px solid #047857;
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-icon {
+  background-color: #022c22;
+  color: #34d399;
+  border: 1px solid #10b981;
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-title {
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-description {
+  color: #ecfdf5;
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-link {
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .deck-card--tan .deck-card-index {
+  color: #a7f3d0;
+}
+
+html[data-theme='dark'] .deck-card--light {
+  background-color: #123326 !important;
+  color: #ffffff !important;
+  border: 1px solid #1a4f3b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-badge {
+  background-color: #091a13;
+  color: #6ee7b7;
+  border: 1px solid #164634;
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-icon {
+  background-color: #34d399;
+  color: #022c22;
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-title {
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-description {
+  color: #cbd5e1;
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-link {
+  color: #34d399;
+}
+
+html[data-theme='dark'] .deck-card--light .deck-card-index {
+  color: #34d399;
+}
+
+/* Specific Dark Mode Card Accents */
+html[data-theme='dark'] .deck-card--community {
+  background-color: #0e1713 !important;
+  border-color: #1a3d2e;
+}
+
+html[data-theme='dark'] .deck-card--community .deck-card-icon {
+  background-color: #10b981;
+  color: #022c22;
+}
+
+html[data-theme='dark'] .deck-card--rankings {
+  background-color: #047857 !important;
+  border-color: #34d399;
+}
+
+html[data-theme='dark'] .deck-card--rankings .deck-card-badge {
+  background-color: #022c22;
+  color: #6ee7b7;
+  border-color: #10b981;
+}
+
+html[data-theme='dark'] .deck-card--integrity {
+  background-color: #0d2b20 !important;
+  border-color: #19533d;
 }
 
 .features-deck-nav {

@@ -924,7 +924,7 @@ const AdminPracticePage = () => {
         </div>
       ) : null}
 
-      {loading ? <p className="admin-practice-loading">Loading practice sets…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading practice sets" /> : null}
       {!loading && !assessments.length ? (
         <div className="admin-practice-empty">
           <h2>No practice sets yet</h2>
@@ -1447,7 +1447,7 @@ const AdminPracticePage = () => {
             ) : null}
             <h3 className="admin-modal-section-title">Questions</h3>
             {loadingAssessmentDetail ? (
-              <p className="admin-muted">Loading questions…</p>
+              <PageLoadingSkeleton variant="list" label="Loading questions" />
             ) : assessmentDetail?.questions?.length ? (
               <div className="admin-practice-question-list">
                 {assessmentDetail.questions.map((question, index) => (

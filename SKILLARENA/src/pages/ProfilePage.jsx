@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -22,7 +23,7 @@ const getInitials = (name = '') => {
 }
 
 const ProfilePage = () => {
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, bootstrapping } = useAuth()
   const [profileForm, setProfileForm] = useState(emptyResumeProfileForm)
   const [geminiApiKey, setGeminiApiKey] = useState('')
   const [openaiApiKey, setOpenaiApiKey] = useState('')
@@ -117,6 +118,16 @@ const ProfilePage = () => {
     } finally {
       setKeySaving(false)
     }
+  }
+
+  if (bootstrapping || !user) {
+    return (
+      <main className="profile-page">
+        <div className="profile-page-inner">
+          <PageLoadingSkeleton label="Loading profile" />
+        </div>
+      </main>
+    )
   }
 
   return (

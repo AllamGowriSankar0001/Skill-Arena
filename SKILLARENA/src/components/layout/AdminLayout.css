@@ -31,9 +31,9 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #0f172a 100%);
+  background: linear-gradient(180deg, #09090b 0%, #000000 100%);
   color: #fdf8f0;
-  border-right: 1px solid rgba(253, 248, 240, 0.06);
+  border-right: 1px solid rgba(16, 185, 129, 0.18);
   overflow: hidden;
   position: sticky;
   top: 0;

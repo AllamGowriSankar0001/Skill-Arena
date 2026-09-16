@@ -1,5 +1,6 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BattleTimer from './BattleTimer'
+import PageLoadingSkeleton from './PageLoadingSkeleton'
 import { getCodingOutputMode } from '../utils/codingPreview'
 import './BattleQuiz.css'
 import './BattleCoding.css'
@@ -125,7 +126,7 @@ const BattleCoding = ({
   }
 
   if (!challenge) {
-    return <div className="battle-coding-empty">Loading coding challenge…</div>
+    return <PageLoadingSkeleton label="Loading coding challenge" />
   }
 
   return (
@@ -160,7 +161,7 @@ const BattleCoding = ({
             ))}
           </div>
           <div className="battle-coding-editor">
-            <Suspense fallback={<div className="battle-coding-editor-loading">Loading editor…</div>}>
+            <Suspense fallback={<PageLoadingSkeleton variant="list" label="Loading editor" />}>
               <CodeEditor
                 language={editorLanguage}
                 value={code[activeTab] || ''}

@@ -4,6 +4,7 @@ import BattleCoding from '../components/BattleCoding'
 import BattleQuiz from '../components/BattleQuiz'
 import CodingViewportGate from '../components/CodingViewportGate'
 import PageBreadcrumb from '../components/PageBreadcrumb'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { battleApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { getBattleFingerprint, getPollIntervalMs } from '../utils/battleState'
@@ -251,8 +252,7 @@ const BattleRoomPage = () => {
     return (
       <div className="battle-room-page battle-room-page--boot">
         <div className="battle-room-boot">
-          <span className="battle-room-boot-vs">VS</span>
-          <p>Syncing arena…</p>
+          <PageLoadingSkeleton label="Syncing arena" />
         </div>
       </div>
     )
@@ -328,7 +328,11 @@ const BattleRoomPage = () => {
 
           {['MATCHED', 'WAITING'].includes(battle?.status) ? (
             <div className="battle-waiting">
-              <div className="battle-waiting-spinner" aria-hidden="true" />
+              {battle.status === 'MATCHED' ? (
+                <PageLoadingSkeleton variant="list" label="Forging battle questions" />
+              ) : (
+                <div className="battle-waiting-spinner" aria-hidden="true" />
+              )}
               <p className="battle-waiting-title">
                 {battle.status === 'MATCHED'
                   ? 'Forging battle questions…'
@@ -352,6 +356,10 @@ const BattleRoomPage = () => {
                 </button>
               ) : null}
             </div>
+          ) : null}
+
+          {battle?.status === 'IN_PROGRESS' && !payload ? (
+            <PageLoadingSkeleton label="Loading battle challenge" />
           ) : null}
 
           {battle?.status === 'IN_PROGRESS' && battle.mode === 'QUIZ' && payload?.mode === 'QUIZ' ? (

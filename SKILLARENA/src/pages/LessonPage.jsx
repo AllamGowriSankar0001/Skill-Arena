@@ -65,6 +65,7 @@ const LessonPage = () => {
     if (!lessonId) return
 
     setLoading(true)
+    setLesson(null)
     setError('')
     setLockedMessage('')
 
@@ -275,7 +276,7 @@ const LessonPage = () => {
         )
       }
       return (
-        <Suspense fallback={<p className="app-section-meta">Loading coding playground…</p>}>
+        <Suspense fallback={<PageLoadingSkeleton label="Loading coding playground" />}>
           <CodingViewportGate
             action={getCodingGateAction({
               passed: progressDetail?.status === 'COMPLETED',

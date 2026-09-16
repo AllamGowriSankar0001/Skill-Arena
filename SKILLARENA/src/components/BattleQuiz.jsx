@@ -1,5 +1,6 @@
 import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import BattleTimer from './BattleTimer'
+import PageLoadingSkeleton from './PageLoadingSkeleton'
 import './BattleQuiz.css'
 
 const isQuestionAnswered = (question, answers) => Boolean(answers[question.id])
@@ -60,7 +61,7 @@ const BattleQuiz = ({
   }
 
   if (!questions.length) {
-    return <div className="battle-quiz-empty">Questions are loading…</div>
+    return <PageLoadingSkeleton label="Loading battle questions" />
   }
 
   return (

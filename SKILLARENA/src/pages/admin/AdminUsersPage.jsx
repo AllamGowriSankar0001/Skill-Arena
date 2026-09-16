@@ -341,7 +341,7 @@ const AdminUsersPage = () => {
         </div>
       </div>
 
-      {loading ? <p className="admin-users-loading">Loading users…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading users" /> : null}
       {!loading && !users.length ? (
         <div className="admin-users-empty">
           <h2>No users found</h2>
@@ -480,7 +480,7 @@ const AdminUsersPage = () => {
           </div>
         }
       >
-        {detailLoading ? <p className="admin-users-loading">Loading user details…</p> : null}
+        {detailLoading ? <PageLoadingSkeleton label="Loading user details" /> : null}
 
         {!detailLoading && activeUser ? (
           <div className="admin-users-detail">
@@ -641,7 +641,7 @@ const AdminUsersPage = () => {
           </div>
         }
       >
-        {xpLoading ? <p className="admin-users-loading">Loading XP history…</p> : null}
+        {xpLoading ? <PageLoadingSkeleton variant="list" label="Loading XP history" /> : null}
         {xpError ? <p className="admin-users-xp-error">{xpError}</p> : null}
 
         {!xpLoading && !xpError && xpHistory ? (

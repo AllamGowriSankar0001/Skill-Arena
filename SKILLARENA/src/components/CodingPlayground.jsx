@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import PageLoadingSkeleton from './PageLoadingSkeleton'
 import { learningApi, getStoredUser } from '../services/api'
 import { getCodingOutputMode } from '../utils/codingPreview'
 import './CodingPlayground.css'
@@ -622,7 +623,7 @@ const CodingPlayground = ({
               </div>
 
               <div className="coding-playground-editor-body">
-                <Suspense fallback={<div className="coding-playground-editor-loading">Loading editor…</div>}>
+                <Suspense fallback={<PageLoadingSkeleton variant="list" label="Loading editor" />}>
                   <CodeEditor
                     language={editorLanguage}
                     value={code[activeTab]}

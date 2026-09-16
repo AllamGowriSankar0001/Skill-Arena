@@ -36,6 +36,7 @@ const CourseDetailPage = () => {
     if (!courseId) return
 
     setLoading(true)
+    setDetail(null)
     setError('')
 
     platformApi

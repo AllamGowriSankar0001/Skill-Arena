@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import PasswordField from '../components/auth/PasswordField'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
+import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
 import { ROUTES } from '../routes'
 import {
@@ -15,6 +17,7 @@ import {
 const ResetPasswordPage = () => {
   const [params] = useSearchParams()
   const token = useMemo(() => params.get('token') || '', [params])
+  const { bootstrapping } = useAuth()
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -31,6 +34,14 @@ const ResetPasswordPage = () => {
     () => isResetPasswordFormReady({ password, confirmPassword }),
     [password, confirmPassword],
   )
+
+  if (bootstrapping) {
+    return (
+      <div className="app-loading-bone">
+        <PageLoadingSkeleton label="Loading password reset" />
+      </div>
+    )
+  }
 
   if (!token) {
     return (

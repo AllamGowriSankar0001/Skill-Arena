@@ -2081,7 +2081,7 @@ const AdminCoursesPage = () => {
           + Add module
         </button>
       </div>
-      {loadingModules ? <p className="admin-muted">Loading modules…</p> : null}
+      {loadingModules ? <PageLoadingSkeleton variant="list" label="Loading modules" /> : null}
       {renderAccordion('builder')}
     </div>
   )
@@ -2163,7 +2163,7 @@ const AdminCoursesPage = () => {
         </div>
       ) : null}
 
-      {loading ? <p className="admin-courses-loading">Loading courses…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading courses" /> : null}
       {!loading && !courses.length ? (
         <div className="admin-courses-empty">
           <h2>No courses yet</h2>
@@ -2464,7 +2464,7 @@ const AdminCoursesPage = () => {
           ) : null
         }
       >
-        {loadingModules ? <p>Loading modules…</p> : null}
+        {loadingModules ? <PageLoadingSkeleton variant="list" label="Loading modules" /> : null}
         <div className="admin-course-explore-meta">
           <span className={`admin-badge${activeCourse?.status === 'PUBLISHED' ? ' admin-badge--published' : ''}`}>
             {activeCourse?.status}
@@ -2853,7 +2853,7 @@ const AdminCoursesPage = () => {
             )}
           </div>
           {loadingLessonAssessment ? (
-            <p className="admin-muted">Loading questions…</p>
+            <PageLoadingSkeleton variant="list" label="Loading questions" />
           ) : (
             renderQuizQuestionList(true)
           )}
@@ -2997,7 +2997,7 @@ const AdminCoursesPage = () => {
         ) : activeLesson?.type === 'QUIZ' ? (
           <div className="admin-lesson-quiz">
             {loadingLessonAssessment ? (
-              <p className="admin-muted">Loading quiz…</p>
+              <PageLoadingSkeleton label="Loading quiz" />
             ) : lessonAssessment ? (
               <>
                 <div className="admin-lesson-quiz-toolbar">
@@ -3038,7 +3038,7 @@ const AdminCoursesPage = () => {
         ) : activeLesson?.type === 'CODING' ? (
           <div className="admin-lesson-coding">
             {loadingCodingLesson ? (
-              <p className="admin-muted">Loading coding challenge…</p>
+              <PageLoadingSkeleton label="Loading coding challenge" />
             ) : (
               <>
                 <div className="admin-info-panel">

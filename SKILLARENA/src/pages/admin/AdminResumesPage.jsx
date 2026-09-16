@@ -210,7 +210,7 @@ const AdminResumesPage = () => {
         </div>
       ) : null}
 
-      {loading ? <p className="admin-resumes-loading">Loading resumes…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading resumes" /> : null}
       {!loading && !resumes.length ? (
         <div className="admin-resumes-empty">
           <h2>No saved resumes yet</h2>

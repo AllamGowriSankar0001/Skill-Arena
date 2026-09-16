@@ -29,7 +29,8 @@
     "helmet": "^8.1.0",
     "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.24.4"
+    "mongoose": "^8.24.4",
+    "nodemailer": "^10.0.10"
   },
   "overrides": {
     "qs": "6.16.0"

@@ -1,14 +1,14 @@
 .footer {
-  --footer-accent: #34d399;
-  --footer-text: rgba(248, 250, 252, 0.72);
-  --footer-heading: #6ee7b7;
+  --footer-accent: var(--sa-footer-accent, #10b981);
+  --footer-text: var(--sa-footer-text, rgba(248, 250, 252, 0.72));
+  --footer-heading: var(--sa-primary, #10b981);
 
   position: relative;
   overflow: hidden;
   padding: 4.5rem 3rem 2rem;
-  background-color: #0f172a;
+  background-color: var(--sa-footer-bg, #000000);
   background-image:
-    radial-gradient(circle at 50% -20%, rgba(5, 150, 105, 0.28) 0%, transparent 42%),
+    radial-gradient(circle at 50% -20%, rgba(16, 185, 129, 0.28) 0%, transparent 42%),
     radial-gradient(rgba(255, 255, 255, 0.03) 0.6px, transparent 0.6px);
   background-size: auto, 3px 3px;
   color: var(--footer-text);

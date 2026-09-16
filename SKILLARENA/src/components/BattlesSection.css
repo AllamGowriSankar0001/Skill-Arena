@@ -49,13 +49,13 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #059669;
+  color: var(--sa-primary);
 }
 
 .battles-eyebrow-line {
   width: 2rem;
   height: 1px;
-  background-color: #059669;
+  background-color: var(--sa-primary);
 }
 
 .battles-title {

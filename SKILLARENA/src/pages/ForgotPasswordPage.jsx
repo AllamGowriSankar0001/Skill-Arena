@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import AuthErrorAlert from '../components/auth/AuthErrorAlert'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
+import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
 import { ROUTES } from '../routes'
 import {
@@ -14,6 +16,7 @@ import {
 const ForgotPasswordPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { bootstrapping } = useAuth()
   const confirmed = location.state?.confirmed
   const confirmedEmail = location.state?.email
 
@@ -23,6 +26,14 @@ const ForgotPasswordPage = () => {
 
   const emailError = useMemo(() => getEmailError(email), [email])
   const formReady = useMemo(() => isForgotPasswordFormReady({ email }), [email])
+
+  if (bootstrapping) {
+    return (
+      <div className="app-loading-bone">
+        <PageLoadingSkeleton label="Loading recovery page" />
+      </div>
+    )
+  }
 
   if (confirmed) {
     return (

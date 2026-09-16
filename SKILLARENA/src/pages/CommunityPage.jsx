@@ -417,7 +417,16 @@ const ThreadReplies = ({ messageId, commentCount, onCountChange }) => {
 
       {open ? (
         <div className="disc-thread-panel">
-          {loading ? <p className="disc-thread-status">Loading replies…</p> : null}
+          {loading ? (
+            <div className="disc-thread-status" role="status" aria-label="Loading replies">
+              <BoneyardSkeleton
+                name="community-message"
+                loading
+                fixture={COMMUNITY_MESSAGE_FIXTURE}
+                className="disc-message-skeleton-wrap"
+              />
+            </div>
+          ) : null}
           {error ? <p className="disc-form-error">{error}</p> : null}
 
           <ul className="disc-thread-list">

@@ -171,117 +171,121 @@ const AdminDashboardPage = () => {
       </header>
 
       {error ? <p className="admin-error admin-overview-alert">{error}</p> : null}
-      {loading ? <p className="admin-overview-loading">Loading overview…</p> : null}
+      {loading ? <PageLoadingSkeleton label="Loading overview" /> : null}
 
-      <section className="admin-overview-stats" aria-label="Content stats">
-        {STAT_ITEMS.map((item) => (
-          <article key={item.key} className={`admin-overview-stat admin-overview-stat--${item.accent}`}>
-            <div className="admin-overview-stat-top">
-              <span className="admin-overview-stat-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <p className="admin-overview-stat-label">{item.label}</p>
-            </div>
-            <p className="admin-overview-stat-value">
-              {loading ? '—' : (overview?.[item.key] ?? 0).toLocaleString()}
-            </p>
-          </article>
-        ))}
-      </section>
-
-      <section className="admin-overview-panel admin-overview-panel--highlight">
-        <div className="admin-overview-panel-head">
-          <div>
-            <p className="admin-overview-eyebrow">Publishing health</p>
-            <h2>Course publish rate</h2>
-          </div>
-          <strong className="admin-overview-rate">{loading ? '—' : `${publishRate}%`}</strong>
-        </div>
-        <div className="admin-overview-rate-track" aria-hidden="true">
-          <div className="admin-overview-rate-fill" style={{ width: `${publishRate}%` }} />
-        </div>
-        <p className="admin-overview-panel-copy">
-          {overview?.publishedCourseCount ?? 0} of {overview?.courseCount ?? 0} courses are live for students.
-        </p>
-      </section>
-
-      <section className="admin-overview-panel admin-overview-panel--actions">
-        <div className="admin-overview-actions-head">
-          <div>
-            <p className="admin-overview-eyebrow">Workspace</p>
-            <h2>Quick actions</h2>
-          </div>
-          <p className="admin-overview-actions-lead">Jump into the tools you use most.</p>
-        </div>
-        <div className="admin-overview-actions">
-          {QUICK_ACTIONS.map((action) => {
-            const statValue = action.statKey ? overview?.[action.statKey] : null
-            return (
-              <Link
-                key={action.to}
-                to={action.to}
-                className={`admin-overview-action admin-overview-action--${action.accent}`}
-              >
-                <div className="admin-overview-action-top">
-                  <QuickActionIcon name={action.icon} />
-                  {action.statKey ? (
-                    <span className="admin-overview-action-chip">
-                      {loading ? '—' : `${(statValue ?? 0).toLocaleString()} ${action.statLabel}`}
-                    </span>
-                  ) : null}
+      {!loading ? (
+        <>
+          <section className="admin-overview-stats" aria-label="Content stats">
+            {STAT_ITEMS.map((item) => (
+              <article key={item.key} className={`admin-overview-stat admin-overview-stat--${item.accent}`}>
+                <div className="admin-overview-stat-top">
+                  <span className="admin-overview-stat-icon" aria-hidden="true">
+                    {item.icon}
+                  </span>
+                  <p className="admin-overview-stat-label">{item.label}</p>
                 </div>
-                <div className="admin-overview-action-body">
-                  <h3>{action.title}</h3>
-                  <p>{action.copy}</p>
-                </div>
-                <span className="admin-overview-action-cta">
-                  {action.label}
-                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path
-                      d="M3.5 8h9M8.5 4.5L12 8l-3.5 3.5"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-      </section>
-
-      <div className="admin-overview-grid">
-        <section className="admin-overview-panel">
-          <p className="admin-overview-eyebrow">Getting started</p>
-          <h2>Launch checklist</h2>
-          <ol className="admin-overview-steps">
-            {START_STEPS.map((step) => (
-              <li key={step}>{step}</li>
+                <p className="admin-overview-stat-value">
+                  {(overview?.[item.key] ?? 0).toLocaleString()}
+                </p>
+              </article>
             ))}
-          </ol>
-        </section>
+          </section>
 
-        <section className="admin-overview-panel">
-          <p className="admin-overview-eyebrow">Shortcuts</p>
-          <h2>More admin tools</h2>
-          <div className="admin-overview-shortcuts">
-            <Link to={ROUTES.adminResumes} className="admin-overview-shortcut">
-              <span>User resumes</span>
-              <strong>Review saved resumes</strong>
-            </Link>
-            <Link to={ROUTES.home} className="admin-overview-shortcut">
-              <span>Public site</span>
-              <strong>View marketing homepage</strong>
-            </Link>
-            <Link to={ROUTES.blog} className="admin-overview-shortcut">
-              <span>Public blog</span>
-              <strong>View published posts</strong>
-            </Link>
+          <section className="admin-overview-panel admin-overview-panel--highlight">
+            <div className="admin-overview-panel-head">
+              <div>
+                <p className="admin-overview-eyebrow">Publishing health</p>
+                <h2>Course publish rate</h2>
+              </div>
+              <strong className="admin-overview-rate">{publishRate}%</strong>
+            </div>
+            <div className="admin-overview-rate-track" aria-hidden="true">
+              <div className="admin-overview-rate-fill" style={{ width: `${publishRate}%` }} />
+            </div>
+            <p className="admin-overview-panel-copy">
+              {overview?.publishedCourseCount ?? 0} of {overview?.courseCount ?? 0} courses are live for students.
+            </p>
+          </section>
+
+          <section className="admin-overview-panel admin-overview-panel--actions">
+            <div className="admin-overview-actions-head">
+              <div>
+                <p className="admin-overview-eyebrow">Workspace</p>
+                <h2>Quick actions</h2>
+              </div>
+              <p className="admin-overview-actions-lead">Jump into the tools you use most.</p>
+            </div>
+            <div className="admin-overview-actions">
+              {QUICK_ACTIONS.map((action) => {
+                const statValue = action.statKey ? overview?.[action.statKey] : null
+                return (
+                  <Link
+                    key={action.to}
+                    to={action.to}
+                    className={`admin-overview-action admin-overview-action--${action.accent}`}
+                  >
+                    <div className="admin-overview-action-top">
+                      <QuickActionIcon name={action.icon} />
+                      {action.statKey ? (
+                        <span className="admin-overview-action-chip">
+                          {`${(statValue ?? 0).toLocaleString()} ${action.statLabel}`}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="admin-overview-action-body">
+                      <h3>{action.title}</h3>
+                      <p>{action.copy}</p>
+                    </div>
+                    <span className="admin-overview-action-cta">
+                      {action.label}
+                      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path
+                          d="M3.5 8h9M8.5 4.5L12 8l-3.5 3.5"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </section>
+
+          <div className="admin-overview-grid">
+            <section className="admin-overview-panel">
+              <p className="admin-overview-eyebrow">Getting started</p>
+              <h2>Launch checklist</h2>
+              <ol className="admin-overview-steps">
+                {START_STEPS.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </section>
+
+            <section className="admin-overview-panel">
+              <p className="admin-overview-eyebrow">Shortcuts</p>
+              <h2>More admin tools</h2>
+              <div className="admin-overview-shortcuts">
+                <Link to={ROUTES.adminResumes} className="admin-overview-shortcut">
+                  <span>User resumes</span>
+                  <strong>Review saved resumes</strong>
+                </Link>
+                <Link to={ROUTES.home} className="admin-overview-shortcut">
+                  <span>Public site</span>
+                  <strong>View marketing homepage</strong>
+                </Link>
+                <Link to={ROUTES.blog} className="admin-overview-shortcut">
+                  <span>Public blog</span>
+                  <strong>View published posts</strong>
+                </Link>
+              </div>
+            </section>
           </div>
-        </section>
-      </div>
+        </>
+      ) : null}
     </div>
   )
 }
