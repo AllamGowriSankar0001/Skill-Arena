@@ -7,7 +7,7 @@
   margin-left: calc(var(--cursor-trail-size, 24px) / -2);
   margin-top: calc(var(--cursor-trail-size, 24px) / -2);
   border-radius: 50%;
-  border: 1.5px solid rgba(26, 17, 10, 0.18);
+  border: 1.5px solid rgba(5, 150, 105, 0.28);
   pointer-events: none;
   z-index: 10005;
   will-change: transform, left, top, opacity;
@@ -15,7 +15,7 @@
 }
 
 html.cursor-trail-active.cursor-trail-interactive .cursor-trail-circle {
-  background-color: #000000;
+  background-color: #059669;
   border-color: transparent;
 }
 

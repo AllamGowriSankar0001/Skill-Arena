@@ -1,12 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import PasswordField from '../components/auth/PasswordField'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { authApi } from '../services/api'
 import { getHomeRouteForUser, ROUTES } from '../routes'
-import { FIELD_LIMITS, validateSignupForm } from '../utils/authValidation'
+import {
+  FIELD_LIMITS,
+  getConfirmPasswordError,
+  getEmailError,
+  getNameError,
+  getPasswordError,
+  isSignupFormReady,
+  validateSignupForm,
+} from '../utils/authValidation'
 
 const SignupPage = () => {
   const navigate = useNavigate()
@@ -15,16 +24,21 @@ const SignupPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [errorField, setErrorField] = useState('')
+  const [serverError, setServerError] = useState('')
+  const [serverErrorField, setServerErrorField] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const clearFieldError = (field) => {
-    if (errorField === field) {
-      setError('')
-      setErrorField('')
-    }
-  }
+  const nameError = useMemo(() => getNameError(name), [name])
+  const emailError = useMemo(() => getEmailError(email), [email])
+  const passwordError = useMemo(() => getPasswordError(password), [password])
+  const confirmError = useMemo(
+    () => getConfirmPasswordError(password, confirmPassword),
+    [password, confirmPassword],
+  )
+  const formReady = useMemo(
+    () => isSignupFormReady({ name, email, password, confirmPassword }),
+    [name, email, password, confirmPassword],
+  )
 
   useEffect(() => {
     if (!bootstrapping && isAuthenticated) {
@@ -34,11 +48,9 @@ const SignupPage = () => {
 
   if (bootstrapping) {
     return (
-      <main className="auth-page">
-        <div className="app-loading" style={{ minHeight: 'auto', background: 'transparent' }}>
-          Loading…
-        </div>
-      </main>
+      <div className="app-loading-bone">
+        <PageLoadingSkeleton label="Loading sign up" />
+      </div>
     )
   }
 
@@ -48,13 +60,13 @@ const SignupPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setError('')
-    setErrorField('')
+    setServerError('')
+    setServerErrorField('')
 
     const validation = validateSignupForm({ name, email, password, confirmPassword })
     if (!validation.ok) {
-      setError(validation.message)
-      setErrorField(validation.field || '')
+      setServerError(validation.message)
+      setServerErrorField(validation.field || '')
       return
     }
 
@@ -71,31 +83,31 @@ const SignupPage = () => {
         state: { signupSuccess: 'Account created successfully. Please sign in.' },
       })
     } catch (err) {
-      setError(err.message || 'Signup failed')
-      setErrorField(err.message === 'This Email is already Existed' ? 'email' : '')
+      setServerError(err.message || 'Signup failed')
+      setServerErrorField(err.message === 'This Email is already Existed' ? 'email' : '')
     } finally {
       setSubmitting(false)
     }
   }
 
   const busy = loading || submitting
+  const canSubmit = formReady && !busy
 
   return (
     <AuthCard
       eyebrow="Create account"
       title="Join Skill Arena"
-      description="Set up your account to use the AI Resume Builder and get ready for upcoming Learn, Practice, and Battle features."
-      footer={
-        <>
-          <AuthFooterLink to={ROUTES.login}>Already have an account? Sign in</AuthFooterLink>
-          <AuthFooterLink to={ROUTES.home}>Back to homepage</AuthFooterLink>
-        </>
-      }
+      description="Create your free account to start learning, practicing, and battling."
+      panelTitle="Build skills. Prove them."
+      panelDescription="Join students who learn together, compete fairly, and track progress every week."
+      footer={<AuthFooterLink to={ROUTES.login}>Already have an account? Sign in</AuthFooterLink>}
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        {error ? <AuthErrorAlert message={error} field={errorField} /> : null}
+        {serverError ? <AuthErrorAlert message={serverError} field={serverErrorField} /> : null}
 
-        <div className={`auth-field${errorField === 'name' ? ' auth-field--error' : ''}`}>
+        <div
+          className={`auth-field${nameError || serverErrorField === 'name' ? ' auth-field--error' : ''}`}
+        >
           <label htmlFor="signup-name">Full name</label>
           <input
             id="signup-name"
@@ -104,15 +116,26 @@ const SignupPage = () => {
             value={name}
             onChange={(event) => {
               setName(event.target.value)
-              clearFieldError('name')
+              if (serverErrorField === 'name') {
+                setServerError('')
+                setServerErrorField('')
+              }
             }}
             autoComplete="name"
             maxLength={FIELD_LIMITS.name}
-            aria-invalid={errorField === 'name' || undefined}
+            aria-invalid={Boolean(nameError) || serverErrorField === 'name' || undefined}
+            aria-describedby={nameError ? 'signup-name-error' : undefined}
           />
+          {nameError ? (
+            <p id="signup-name-error" className="auth-field-error" role="alert">
+              {nameError}
+            </p>
+          ) : null}
         </div>
 
-        <div className={`auth-field${errorField === 'email' ? ' auth-field--error' : ''}`}>
+        <div
+          className={`auth-field${emailError || serverErrorField === 'email' ? ' auth-field--error' : ''}`}
+        >
           <label htmlFor="signup-email">Email</label>
           <input
             id="signup-email"
@@ -121,12 +144,21 @@ const SignupPage = () => {
             value={email}
             onChange={(event) => {
               setEmail(event.target.value)
-              clearFieldError('email')
+              if (serverErrorField === 'email') {
+                setServerError('')
+                setServerErrorField('')
+              }
             }}
             autoComplete="email"
             maxLength={FIELD_LIMITS.email}
-            aria-invalid={errorField === 'email' || undefined}
+            aria-invalid={Boolean(emailError) || serverErrorField === 'email' || undefined}
+            aria-describedby={emailError ? 'signup-email-error' : undefined}
           />
+          {emailError ? (
+            <p id="signup-email-error" className="auth-field-error" role="alert">
+              {emailError}
+            </p>
+          ) : null}
         </div>
 
         <PasswordField
@@ -134,13 +166,11 @@ const SignupPage = () => {
           label="Password"
           placeholder="At least 6 characters"
           value={password}
-          onChange={(event) => {
-            setPassword(event.target.value)
-            clearFieldError('password')
-          }}
+          onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
           maxLength={FIELD_LIMITS.password}
-          hasError={errorField === 'password'}
+          hasError={Boolean(passwordError)}
+          errorMessage={passwordError || ''}
         />
 
         <PasswordField
@@ -148,16 +178,14 @@ const SignupPage = () => {
           label="Confirm password"
           placeholder="Re-enter your password"
           value={confirmPassword}
-          onChange={(event) => {
-            setConfirmPassword(event.target.value)
-            clearFieldError('confirmPassword')
-          }}
+          onChange={(event) => setConfirmPassword(event.target.value)}
           autoComplete="new-password"
           maxLength={FIELD_LIMITS.password}
-          hasError={errorField === 'confirmPassword'}
+          hasError={Boolean(confirmError)}
+          errorMessage={confirmError || ''}
         />
 
-        <button type="submit" className="auth-submit" disabled={busy}>
+        <button type="submit" className="auth-submit" disabled={!canSubmit}>
           {busy ? 'Creating account…' : 'Create account'}
         </button>
       </form>

@@ -108,7 +108,7 @@ async function runVisibleCodingTests(userId, lessonId, code) {
   if (!bundle) throw codingNotConfiguredError();
 
   const visibleTests = getVisibleTests(bundle.question);
-  const result = runCodingTests(code, visibleTests);
+  const result = await runCodingTests(code, visibleTests);
 
   return {
     ...result,
@@ -144,7 +144,7 @@ async function submitCodingAnswer(userId, lessonId, code, { isAdmin = false } = 
     ...hiddenTests.map((test) => ({ ...test, hidden: true })),
   ];
 
-  const evaluation = runCodingTests(code, allTests);
+  const evaluation = await runCodingTests(code, allTests);
   const passingPercentage = assessment.passingPercentage ?? 100;
   const passed = evaluation.score >= passingPercentage;
 

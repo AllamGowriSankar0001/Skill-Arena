@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { learningApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -210,7 +211,7 @@ const LeaderboardAppPage = () => {
         </div>
 
         {error ? <p className="leaderboard-alert leaderboard-alert--error">{error}</p> : null}
-        {loading ? <p className="leaderboard-alert">Loading rankings…</p> : null}
+        {loading ? <PageLoadingSkeleton variant="list" label="Loading rankings" /> : null}
 
         {!loading && !error && tableEntries.length >= 3 ? (
           <section className="leaderboard-podium" aria-label="Top three learners">

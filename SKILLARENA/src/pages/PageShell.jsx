@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
+import PageBreadcrumb from '../components/PageBreadcrumb'
 import { ROUTES } from '../routes'
 import './PageShell.css'
 
@@ -10,11 +10,25 @@ const PageShell = ({
   children,
   showBackLink = true,
   staticLayout = false,
+  breadcrumbLabel,
 }) => {
+  const crumbLabel = breadcrumbLabel || title || 'Page'
+
   return (
     <main className={`page-shell${staticLayout ? ' page-shell--static' : ''}`}>
       <div className="page-shell-inner">
-        <ScrollReveal disabled={staticLayout}>
+        {showBackLink ? (
+          <ScrollReveal disabled={staticLayout}>
+            <PageBreadcrumb
+              items={[
+                { label: 'Home', to: ROUTES.home },
+                { label: crumbLabel },
+              ]}
+            />
+          </ScrollReveal>
+        ) : null}
+
+        <ScrollReveal delay={staticLayout ? 0 : 40} disabled={staticLayout}>
           <p className="page-shell-eyebrow">
             <span className="page-shell-eyebrow-line" aria-hidden="true" />
             {eyebrow}
@@ -32,14 +46,6 @@ const PageShell = ({
         <ScrollReveal delay={staticLayout ? 0 : 240} disabled={staticLayout}>
           <div className="page-shell-body">{children}</div>
         </ScrollReveal>
-
-        {showBackLink ? (
-          <ScrollReveal delay={staticLayout ? 0 : 100} disabled={staticLayout}>
-            <Link to={ROUTES.home} className="page-shell-back">
-              Back to home <span aria-hidden="true">→</span>
-            </Link>
-          </ScrollReveal>
-        ) : null}
       </div>
     </main>
   )

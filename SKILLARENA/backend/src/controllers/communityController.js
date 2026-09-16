@@ -99,7 +99,11 @@ const deleteRoom = async (req, res, next) => {
 
 const toggleLike = async (req, res, next) => {
   try {
-    const result = await communityService.toggleLike(req.user._id, req.params.postId);
+    const result = await communityService.toggleLike(
+      req.user._id,
+      req.params.postId,
+      adminOptions(req.user),
+    );
     res.json(result);
   } catch (error) {
     handleError(error, res, next);
@@ -112,6 +116,7 @@ const listComments = async (req, res, next) => {
       req.user._id,
       req.params.postId,
       req.query,
+      adminOptions(req.user),
     );
     res.json(payload);
   } catch (error) {
@@ -125,6 +130,7 @@ const addComment = async (req, res, next) => {
       req.user._id,
       req.params.postId,
       req.body,
+      adminOptions(req.user),
     );
     res.status(201).json(payload);
   } catch (error) {

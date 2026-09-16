@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import { parseVideoEmbed } from '../utils/videoEmbed'
+import { sanitizeHref } from '../utils/safeUrl'
 import './VideoEmbed.css'
 
 export function VideoEmbed({ url, title = 'Video lesson' }) {
   const embed = useMemo(() => parseVideoEmbed(url), [url])
+  const safeFallbackHref = useMemo(() => sanitizeHref(url), [url])
 
   if (!url?.trim()) return null
 
@@ -11,9 +13,11 @@ export function VideoEmbed({ url, title = 'Video lesson' }) {
     return (
       <div className="video-embed-fallback">
         <p>This video link cannot be embedded. Open it in a new tab to watch.</p>
-        <a href={url.trim()} target="_blank" rel="noopener noreferrer">
-          Open video
-        </a>
+        {safeFallbackHref ? (
+          <a href={safeFallbackHref} target="_blank" rel="noopener noreferrer">
+            Open video
+          </a>
+        ) : null}
       </div>
     )
   }

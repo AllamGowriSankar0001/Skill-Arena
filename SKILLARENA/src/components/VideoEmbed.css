@@ -5,7 +5,7 @@
   border-radius: 0.85rem;
   overflow: hidden;
   background: #0f0f0f;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .video-embed iframe,
@@ -23,18 +23,18 @@
   padding: 1rem;
   border-radius: 0.85rem;
   background: #fdf8f0;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .video-embed-fallback p {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .video-embed-fallback a {
   align-self: flex-start;
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
 }

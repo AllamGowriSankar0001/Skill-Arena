@@ -146,8 +146,24 @@ const CodingPlayground = ({
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data?.source !== 'skillarena-preview') return
-      setConsoleLines(event.data.logs || [])
+      // srcDoc + sandbox="allow-scripts" (no allow-same-origin) → opaque origin "null".
+      if (event.origin !== 'null') return
+      // Trust only messages from our preview iframe window.
+      if (!iframeRef.current?.contentWindow) return
+      if (event.source !== iframeRef.current.contentWindow) return
+      if (!event.data || typeof event.data !== 'object') return
+      if (event.data.source !== 'skillarena-preview') return
+      if (!Array.isArray(event.data.logs)) return
+      const logs = event.data.logs
+        .slice(0, 200)
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null
+          const type = entry.type === 'warn' || entry.type === 'error' ? entry.type : 'log'
+          const text = String(entry.text ?? '').slice(0, 2000)
+          return { type, text }
+        })
+        .filter(Boolean)
+      setConsoleLines(logs)
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)

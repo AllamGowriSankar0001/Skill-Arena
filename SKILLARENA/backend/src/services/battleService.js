@@ -415,7 +415,7 @@ async function submitBattleQuiz(battleId, userId, answers = {}) {
 
   const assessment = await loadBattleAssessment(battle.assessmentId);
   const timer = getTimerInfo(battle, assessment);
-  if (timer.expired && battle.participants[participantIndex].completedAt) {
+  if (timer.expired) {
     throw new Error('Time is up for this battle.');
   }
 
@@ -536,7 +536,7 @@ async function runBattleCoding(battleId, userId, code = {}) {
   if (!coding) throw new Error('Coding challenge not found.');
 
   const visibleTests = getVisibleTests(coding.question);
-  const result = runCodingTests(code, visibleTests);
+  const result = await runCodingTests(code, visibleTests);
 
   return {
     ...result,
@@ -566,7 +566,7 @@ async function submitBattleCoding(battleId, userId, code = {}) {
   }
 
   const timer = getTimerInfo(battle, assessment);
-  if (timer.expired && battle.participants[participantIndex].completedAt) {
+  if (timer.expired) {
     throw new Error('Time is up for this battle.');
   }
 
@@ -582,7 +582,7 @@ async function submitBattleCoding(battleId, userId, code = {}) {
     ...hiddenTests.map((test) => ({ ...test, hidden: true })),
   ];
 
-  const evaluation = runCodingTests(code, allTests);
+  const evaluation = await runCodingTests(code, allTests);
   const points = entry.points || 100;
   const totalScore = Math.round((evaluation.score / 100) * points);
   const passedCount = evaluation.passedCount;
@@ -708,4 +708,5 @@ module.exports = {
   leaveBattle,
   finalizeBattleIfNeeded,
   listUserBattles,
+  getTimerInfo,
 };

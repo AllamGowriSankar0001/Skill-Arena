@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import BlogImage from './BlogImage'
 import { preprocessBlogMarkdown, stripRedundantLessonHeading } from '../utils/blogMarkdown'
+import { sanitizeHref } from '../utils/safeUrl'
 import '../pages/Blog.css'
 
 const markdownComponents = {
@@ -11,22 +12,32 @@ const markdownComponents = {
   h3: ({ children }) => <h3 className="blog-md-h3">{children}</h3>,
   h4: ({ children }) => <h4 className="blog-md-h4">{children}</h4>,
   hr: () => <hr className="blog-md-hr" />,
-  img: ({ src, alt }) => (
-    <figure className="blog-article-figure">
-      <BlogImage
-        src={src}
-        alt={alt || 'Blog image'}
-        className="blog-article-inline-image"
-        fallbackClassName="blog-article-inline-fallback"
-      />
-      {alt ? <figcaption>{alt}</figcaption> : null}
-    </figure>
-  ),
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  ),
+  img: ({ src, alt }) => {
+    const safeSrc = sanitizeHref(src)
+    if (!safeSrc) return null
+    return (
+      <figure className="blog-article-figure">
+        <BlogImage
+          src={safeSrc}
+          alt={alt || 'Blog image'}
+          className="blog-article-inline-image"
+          fallbackClassName="blog-article-inline-fallback"
+        />
+        {alt ? <figcaption>{alt}</figcaption> : null}
+      </figure>
+    )
+  },
+  a: ({ href, children }) => {
+    const safeHref = sanitizeHref(href)
+    if (!safeHref) {
+      return <span>{children}</span>
+    }
+    return (
+      <a href={safeHref} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  },
   p: ({ children }) => <p className="blog-article-paragraph">{children}</p>,
   pre: ({ children }) => <pre>{children}</pre>,
   code: ({ className, children, ...props }) => {

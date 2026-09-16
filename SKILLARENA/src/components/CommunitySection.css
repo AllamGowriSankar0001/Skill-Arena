@@ -1,14 +1,15 @@
 .community {
-  --community-ink: #1a110a;
-  --community-muted: #5c4f45;
-  --community-accent: #3d2818;
+  --community-ink: var(--sa-ink);
+  --community-muted: var(--sa-muted);
+  --community-accent: var(--sa-primary);
 
-  padding: 5rem 3rem 6rem;
-  background-color: #fdf8f0;
+  scroll-margin-top: calc(var(--navbar-height, 4rem) + 0.75rem);
+  padding: 4.5rem 3rem 5rem;
+  background-color: var(--sa-bg);
   background-image:
-    radial-gradient(circle at 18% 42%, rgba(245, 232, 200, 0.45) 0%, transparent 38%),
-    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
+    radial-gradient(circle at 18% 42%, rgba(5, 150, 105, 0.1) 0%, transparent 38%),
+    radial-gradient(circle at 85% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 36%);
+  background-size: auto, auto;
 }
 
 .community-inner {
@@ -33,6 +34,7 @@
   display: block;
   border-radius: 1.25rem;
   object-fit: contain;
+  box-shadow: var(--sa-image-shadow);
 }
 
 .community-content {
@@ -47,13 +49,13 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--community-muted);
+  color: #059669;
 }
 
 .community-eyebrow-line {
   width: 2rem;
   height: 1px;
-  background-color: var(--community-muted);
+  background-color: #059669;
 }
 
 .community-title {
@@ -98,7 +100,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: var(--community-ink);
+  background-color: #059669;
   transition: width 0.35s ease;
 }
 

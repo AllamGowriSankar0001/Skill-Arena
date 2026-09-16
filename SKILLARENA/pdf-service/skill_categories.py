@@ -110,14 +110,21 @@ def _resolve_category(name: str) -> str:
 def group_skills_by_category(skills: list[dict[str, Any]]) -> list[dict[str, Any]]:
     buckets: dict[str, list[dict[str, Any]]] = {}
 
-    for skill in skills:
-        name = str(skill.get('name', '')).strip()
+    for skill in skills or []:
+        if isinstance(skill, str):
+            name = skill.strip()
+            matched = True
+        elif isinstance(skill, dict):
+            name = str(skill.get('name', '')).strip()
+            matched = skill.get('matched', True) is not False
+        else:
+            continue
         if not name:
             continue
         category = _resolve_category(name)
         buckets.setdefault(category, []).append({
             'name': name,
-            'matched': skill.get('matched', True) is not False,
+            'matched': matched,
         })
 
     return [

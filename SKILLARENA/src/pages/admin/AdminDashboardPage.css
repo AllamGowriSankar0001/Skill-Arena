@@ -11,9 +11,9 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   background: #fff;
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .admin-overview-eyebrow {
@@ -21,7 +21,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .admin-overview-header h1 {
@@ -29,7 +29,7 @@
   font-size: clamp(1.6rem, 3vw, 2.2rem);
   font-weight: 700;
   line-height: 1.15;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-lead {
@@ -37,7 +37,7 @@
   max-width: 38rem;
   font-size: 0.95rem;
   line-height: 1.65;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-cta {
@@ -50,12 +50,12 @@
   padding: 0.85rem 1rem;
   border-radius: 0.65rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   font-size: 0.9rem;
 }
 
 .admin-overview-loading {
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-stats {
@@ -70,8 +70,8 @@
   padding: 1.15rem 1.2rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .admin-overview-stat::before {
@@ -81,11 +81,11 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(26, 17, 10, 0.12);
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .admin-overview-stat--courses::before {
-  background: linear-gradient(90deg, #1a110a 0%, #3d2e24 100%);
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
 }
 
 .admin-overview-stat--published::before {
@@ -93,11 +93,11 @@
 }
 
 .admin-overview-stat--practice::before {
-  background: linear-gradient(90deg, #c45c26 0%, #e07a3f 100%);
+  background: linear-gradient(90deg, #059669 0%, #34d399 100%);
 }
 
 .admin-overview-stat--questions::before {
-  background: linear-gradient(90deg, #8a7a6d 0%, #c9a227 100%);
+  background: linear-gradient(90deg, #64748b 0%, #059669 100%);
 }
 
 .admin-overview-stat-top {
@@ -113,7 +113,7 @@
   width: 1.85rem;
   height: 1.85rem;
   border-radius: 0.5rem;
-  background: #faf8f5;
+  background: #f8fafc;
   font-size: 0.9rem;
   line-height: 1;
 }
@@ -123,7 +123,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .admin-overview-stat-value {
@@ -131,19 +131,19 @@
   font-size: clamp(1.5rem, 2.5vw, 1.9rem);
   font-weight: 700;
   line-height: 1.1;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-panel {
   padding: 1.35rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .admin-overview-panel--highlight {
-  border-color: rgba(196, 92, 38, 0.2);
+  border-color: rgba(5, 150, 105, 0.2);
   background: linear-gradient(135deg, #fff 0%, #fff8f2 100%);
 }
 
@@ -151,14 +151,14 @@
   margin-top: 0.35rem;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-panel-copy {
   margin-top: 0.65rem;
   font-size: 0.9rem;
   line-height: 1.6;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-panel-head {
@@ -173,21 +173,21 @@
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
-  color: #c45c26;
+  color: #059669;
 }
 
 .admin-overview-rate-track {
   height: 0.5rem;
   margin-top: 1rem;
   border-radius: 999px;
-  background: rgba(26, 17, 10, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   overflow: hidden;
 }
 
 .admin-overview-rate-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #c45c26 0%, #e07a3f 100%);
+  background: linear-gradient(90deg, #059669 0%, #34d399 100%);
   transition: width 0.35s ease;
 }
 
@@ -199,12 +199,12 @@
 .admin-overview-section-head h2 {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-section-head p {
   font-size: 0.9rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-panel--actions {
@@ -224,14 +224,14 @@
   margin-top: 0.35rem;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-actions-lead {
   max-width: 18rem;
   font-size: 0.88rem;
   line-height: 1.55;
-  color: #6b5f54;
+  color: #64748b;
   text-align: right;
 }
 
@@ -247,8 +247,8 @@
   min-height: 0;
   padding: 1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  background: #faf8f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
   text-decoration: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease,
     background-color 0.15s ease;
@@ -256,13 +256,13 @@
 
 .admin-overview-action:hover {
   transform: translateY(-2px);
-  border-color: rgba(196, 92, 38, 0.22);
+  border-color: rgba(5, 150, 105, 0.22);
   background: #fff;
-  box-shadow: 0 10px 24px rgba(26, 17, 10, 0.07);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
 }
 
 .admin-overview-action:focus-visible {
-  outline: 2px solid rgba(196, 92, 38, 0.45);
+  outline: 2px solid rgba(5, 150, 105, 0.45);
   outline-offset: 2px;
 }
 
@@ -281,8 +281,8 @@
   height: 2.35rem;
   border-radius: 0.65rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  color: #1a110a;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0f172a;
   flex-shrink: 0;
 }
 
@@ -294,25 +294,25 @@
 .admin-overview-action-chip {
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
-  background: rgba(26, 17, 10, 0.06);
+  background: rgba(15, 23, 42, 0.06);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #5c4f45;
+  color: #475569;
   white-space: nowrap;
 }
 
 .admin-overview-action-body h3 {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-overview-action-body p {
   margin-top: 0.3rem;
   font-size: 0.8rem;
   line-height: 1.5;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-action-cta {
@@ -322,7 +322,7 @@
   margin-top: auto;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
 }
 
 .admin-overview-action-cta svg {
@@ -336,14 +336,14 @@
 }
 
 .admin-overview-action--courses .admin-overview-action-icon {
-  color: #1a110a;
-  background: rgba(26, 17, 10, 0.06);
+  color: #0f172a;
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .admin-overview-action--practice .admin-overview-action-icon {
-  color: #a84d1f;
-  background: rgba(196, 92, 38, 0.12);
-  border-color: rgba(196, 92, 38, 0.18);
+  color: #047857;
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.18);
 }
 
 .admin-overview-action--blog .admin-overview-action-icon {
@@ -353,23 +353,23 @@
 }
 
 .admin-overview-action--users .admin-overview-action-icon {
-  color: #1a110a;
-  background: rgba(26, 17, 10, 0.08);
-  border-color: rgba(26, 17, 10, 0.14);
+  color: #0f172a;
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.14);
 }
 
 .admin-overview-action--resume .admin-overview-action-icon {
-  color: #6b5f54;
+  color: #64748b;
   background: rgba(138, 122, 109, 0.12);
   border-color: rgba(138, 122, 109, 0.18);
 }
 
 .admin-overview-action--courses:hover {
-  border-color: rgba(26, 17, 10, 0.18);
+  border-color: rgba(15, 23, 42, 0.18);
 }
 
 .admin-overview-action--practice:hover {
-  border-color: rgba(196, 92, 38, 0.28);
+  border-color: rgba(5, 150, 105, 0.28);
 }
 
 .admin-overview-action--blog:hover {
@@ -377,7 +377,7 @@
 }
 
 .admin-overview-action--users:hover {
-  border-color: rgba(26, 17, 10, 0.22);
+  border-color: rgba(15, 23, 42, 0.22);
 }
 
 .admin-overview-action--resume:hover {
@@ -400,7 +400,7 @@
 .admin-overview-steps li {
   font-size: 0.92rem;
   line-height: 1.6;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-overview-shortcuts {
@@ -414,14 +414,14 @@
   gap: 0.2rem;
   padding: 0.85rem 0.95rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  background: #faf8f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
   text-decoration: none;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .admin-overview-shortcut:hover {
-  border-color: rgba(196, 92, 38, 0.25);
+  border-color: rgba(5, 150, 105, 0.25);
   background: #fff8f2;
 }
 
@@ -430,13 +430,13 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .admin-overview-shortcut strong {
   font-size: 0.92rem;
   font-weight: 600;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 @media (max-width: 1024px) {

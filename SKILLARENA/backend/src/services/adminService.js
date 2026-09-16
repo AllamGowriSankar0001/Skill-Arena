@@ -20,6 +20,7 @@ const MatchmakingTicket = require('../models/MatchmakingTicket');
 const { slugify, uniqueSlug } = require('../utils/slugify');
 const { USER_ROLES, USER_STATUSES } = require('../constants/enums');
 const { rankFromLevel, calculateLevelProgress } = require('../utils/level');
+const { asPlainString, escapeRegex } = require('../utils/safeInput');
 const lessonProgressService = require('./lessonProgressService');
 const { generateCoursePlanFromAi } = require('./courseAiService');
 const {
@@ -391,8 +392,12 @@ const deleteSkill = async (skillId) => {
 
 const listCourses = async () => {
   const courses = await Course.find()
+    .select(
+      'title slug shortDescription description categoryId level status estimatedMinutes completionXpReward thumbnailUrl stats publishedAt updatedAt createdAt isFeatured skillIds',
+    )
     .populate('categoryId', 'name')
-    .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 })
+    .limit(500);
 
   return courses.map(formatCourse);
 };
@@ -489,8 +494,12 @@ const deleteCourse = async (courseId) => {
 
 const listAssessments = async (type = 'PRACTICE') => {
   const assessments = await Assessment.find({ type })
+    .select(
+      'title description type mode skillId difficulty xpReward passingPercentage durationSeconds status questions seriesPart seriesBaseTitle seriesRootId updatedAt createdAt',
+    )
     .populate('skillId', 'name')
-    .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 })
+    .limit(500);
 
   return assessments.map(formatAssessment);
 };
@@ -810,12 +819,7 @@ const updateLesson = async (lessonId, payload) => {
   await syncCourseStats(lesson.courseId);
 
   if (payload.status === 'PUBLISHED' || payload.status === 'ARCHIVED') {
-    const enrollments = await Enrollment.find({ courseId: lesson.courseId, status: { $in: ['ACTIVE', 'COMPLETED'] } });
-    await Promise.all(
-      enrollments.map((enrollment) =>
-        lessonProgressService.recalculateEnrollment(enrollment.userId, lesson.courseId),
-      ),
-    );
+    await lessonProgressService.recalculateEnrollmentsForCourse(lesson.courseId);
   }
 
   return formatLesson(lesson);
@@ -1384,9 +1388,11 @@ const removeQuestionFromAssessment = async (assessmentId, questionId) => {
 
 const listBlogPosts = async () => {
   const posts = await BlogPost.find()
+    .select('title slug excerpt coverImageUrl authorId status publishedAt tags updatedAt createdAt')
     .populate('authorId', 'name')
-    .sort({ updatedAt: -1 });
-  return posts.map((post) => formatBlogPost(post, true));
+    .sort({ updatedAt: -1 })
+    .limit(500);
+  return posts.map((post) => formatBlogPost(post, false));
 };
 
 const createBlogPost = async (adminId, payload) => {
@@ -1484,21 +1490,24 @@ const formatAdminUserSummary = (user, stats) => {
 };
 
 const listUsers = async (query = {}) => {
-  const { search, role, status } = query;
+  // Only accept plain strings — reject Mongo operator objects from query parsers.
+  const search = asPlainString(query.search, { maxLength: 80 });
+  const role = asPlainString(query.role, { maxLength: 32 });
+  const status = asPlainString(query.status, { maxLength: 32 });
   const filter = {};
 
-  if (role && role !== 'ALL') {
+  if (role && role !== 'ALL' && USER_ROLES.includes(role)) {
     filter.role = role;
   }
 
-  if (status && status !== 'ALL') {
+  if (status && status !== 'ALL' && USER_STATUSES.includes(status)) {
     filter.status = status;
   } else {
     filter.status = { $ne: 'DELETED' };
   }
 
-  if (search?.trim()) {
-    const term = search.trim();
+  if (search) {
+    const term = escapeRegex(search);
     filter.$or = [
       { name: { $regex: term, $options: 'i' } },
       { email: { $regex: term, $options: 'i' } },

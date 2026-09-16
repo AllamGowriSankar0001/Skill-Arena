@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import BlogContent from '../components/BlogContent'
 import BlogImage from '../components/BlogImage'
+import PageBreadcrumb from '../components/PageBreadcrumb'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { platformApi } from '../services/api'
+import { ROUTES } from '../routes'
 import './Blog.css'
 
 const formatDate = (value) => {
@@ -43,7 +46,15 @@ const BlogPostPage = () => {
   return (
     <main className="blog-post-page">
       <div className="blog-post-shell">
-        {loading ? <p className="blog-status">Loading article…</p> : null}
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', to: ROUTES.home },
+            { label: 'Blog', to: ROUTES.blog },
+            { label: post?.title || (loading ? 'Article' : 'Article') },
+          ]}
+        />
+
+        {loading ? <PageLoadingSkeleton label="Loading article" /> : null}
         {error ? <p className="blog-error">{error}</p> : null}
 
         {post ? (

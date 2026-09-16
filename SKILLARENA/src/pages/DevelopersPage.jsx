@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import PageBreadcrumb from '../components/PageBreadcrumb'
 import { DEVELOPER_PROGRAM, SKILL_ARENA_TEAM } from '../content/teamData'
 import { ROUTES } from '../routes'
 import './DevelopersPage.css'
@@ -51,6 +51,13 @@ const TeamMemberBlock = ({ member }) => (
 const DevelopersPage = () => (
   <main className="developers-page">
     <div className="developers-page-inner">
+      <PageBreadcrumb
+        items={[
+          { label: 'Home', to: ROUTES.home },
+          { label: 'Our team' },
+        ]}
+      />
+
       <header className="developers-header">
         <div className="developers-header-copy">
           <p className="developers-eyebrow">Our team</p>
@@ -114,10 +121,6 @@ const DevelopersPage = () => (
           </article>
         </div>
       </section>
-
-      <Link to={ROUTES.home} className="developers-back">
-        Back to home <span aria-hidden="true">→</span>
-      </Link>
     </div>
   </main>
 )

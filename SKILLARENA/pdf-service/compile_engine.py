@@ -72,10 +72,12 @@ def compile_with_pdflatex(pdflatex: str, tex_source: str) -> bytes:
         tex_path = Path(tmpdir) / 'resume.tex'
         tex_path.write_text(tex_source, encoding='utf-8')
 
+        # Never enable -shell-escape. Restrict write to the temp directory.
         command = [
             pdflatex,
             '-interaction=nonstopmode',
             '-halt-on-error',
+            '-no-shell-escape',
             f'-output-directory={tmpdir}',
             str(tex_path),
         ]
@@ -86,16 +88,12 @@ def compile_with_pdflatex(pdflatex: str, tex_source: str) -> bytes:
             text=True,
             timeout=90,
             cwd=tmpdir,
+            env=_minimal_subprocess_env(),
         )
 
         pdf_path = Path(tmpdir) / 'resume.pdf'
         if result.returncode != 0 or not pdf_path.exists():
-            log = '\n'.join(
-                part.strip()
-                for part in [result.stdout, result.stderr]
-                if part and part.strip()
-            )
-            raise RuntimeError(log or 'pdflatex compilation failed.')
+            raise RuntimeError('pdflatex compilation failed.')
 
         return pdf_path.read_bytes()
 
@@ -106,25 +104,72 @@ def compile_with_tectonic(tectonic: str, tex_source: str) -> bytes:
         tex_path.write_text(tex_source, encoding='utf-8')
         pdf_path = tex_path.with_suffix('.pdf')
 
-        command = [tectonic, str(tex_path.name)]
+        # Prefer offline/cached packages to avoid outbound network from the renderer.
+        command = [tectonic, '--only-cached', str(tex_path.name)]
 
         result = subprocess.run(
             command,
             capture_output=True,
             text=True,
-            timeout=300,
+            timeout=120,
             cwd=tmpdir,
+            env=_minimal_subprocess_env(),
         )
 
+        # If the local cache lacks packages, retry once without --only-cached
+        # (still no shell-escape). Documented remaining network risk for package fetch.
         if result.returncode != 0 or not pdf_path.exists():
-            log = '\n'.join(
-                part.strip()
-                for part in [result.stdout, result.stderr]
-                if part and part.strip()
+            command = [tectonic, str(tex_path.name)]
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=120,
+                cwd=tmpdir,
+                env=_minimal_subprocess_env(),
             )
-            raise RuntimeError(log or 'Tectonic compilation failed.')
+
+        if result.returncode != 0 or not pdf_path.exists():
+            raise RuntimeError('Tectonic compilation failed.')
 
         return pdf_path.read_bytes()
+
+
+def _minimal_subprocess_env() -> dict:
+    """Pass through PATH/system vars needed to find TeX; omit app secrets."""
+    keep = (
+        'PATH',
+        'PATHEXT',
+        'SystemRoot',
+        'SYSTEMROOT',
+        'WINDIR',
+        'TEMP',
+        'TMP',
+        'TMPDIR',
+        'HOME',
+        'USERPROFILE',
+        'APPDATA',
+        'LOCALAPPDATA',
+        'LANG',
+        'LC_ALL',
+        'TEXMFHOME',
+        'TEXMFVAR',
+        'TEXMFCACHE',
+    )
+    env = {key: os.environ[key] for key in keep if key in os.environ}
+    # Ensure TeX cannot inherit Node/API secrets if this process was started oddly.
+    for blocked in (
+        'JWT_SECRET',
+        'MONGODB_URI',
+        'SMTP_PASS',
+        'SMTP_PASSWORD',
+        'PDF_SERVICE_SECRET',
+        'GEMINI_API_KEY',
+        'OPENAI_API_KEY',
+        'AI_KEYS_SECRET',
+    ):
+        env.pop(blocked, None)
+    return env
 
 
 def compile_latex(tex_source: str) -> bytes:

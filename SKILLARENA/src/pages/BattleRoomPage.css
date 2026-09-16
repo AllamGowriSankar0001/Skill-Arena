@@ -2,7 +2,7 @@
   --arena-bg: #0f0c0a;
   --arena-surface: rgba(28, 22, 18, 0.92);
   --arena-border: rgba(253, 214, 160, 0.14);
-  --arena-gold: #f0b429;
+  --arena-gold: #34d399;
   --arena-text: #fdf8f0;
   --arena-muted: #b8a99a;
   --arena-accent: #5eead4;
@@ -225,8 +225,8 @@
   padding: 0.75rem 1.2rem;
   border: none;
   border-radius: 0.55rem;
-  background: linear-gradient(135deg, #e86a2a, #f0b429);
-  color: #1a110a;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #0f172a;
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AtsResumeDocument, AtsResumeDocumentModal } from '../components/resume/AtsResumeDocument'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { resumeApi } from '../services/api'
 import { ROUTES } from '../routes'
 import {
@@ -8,7 +9,7 @@ import {
   getAtsSections,
   parseAtsResumeOutput,
 } from '../utils/atsResume'
-import { downloadAtsResumePdf, warmAtsResumePdf } from '../utils/atsResumePdf'
+import { downloadAtsResumePdf, warmAtsResumePdf } from '../utils/atsResumePdfDownload'
 import { extractTextFromPdf } from '../utils/extractPdfText'
 import { requestSkillCategoryGroups } from '../utils/skillCategories'
 import { isAiRateLimitError, isAiKeyRequiredError, parseAiRetrySeconds, formatAiBusyMessage } from '../utils/aiRateLimit'
@@ -1069,7 +1070,7 @@ const ResumeMakerPage = ({ adminMode = false }) => {
     return (
       <main className={`resume-page${adminMode ? ' resume-page--admin' : ''}`}>
         <div className="resume-page-inner resume-page-inner--loading">
-          <p className="resume-loading-text">Loading resume builder…</p>
+          <PageLoadingSkeleton label="Loading resume builder" />
         </div>
       </main>
     )

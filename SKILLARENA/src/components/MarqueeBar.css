@@ -1,12 +1,15 @@
 .marquee-bar {
-  background-color: #1a110a;
+  background-color: #0f172a;
   overflow: hidden;
   border-block: 1px solid rgba(255, 255, 255, 0.04);
+  /* Avoid ancestor transforms (e.g. scroll reveals) breaking the marquee GPU layer. */
+  transform: translateZ(0);
 }
 
 .marquee-bar-track {
   display: flex;
   width: max-content;
+  will-change: transform;
   animation: marquee-scroll 28s linear infinite;
 }
 
@@ -29,14 +32,14 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fdf8f0;
+  color: #ffffff;
   white-space: nowrap;
 }
 
 .marquee-bar-star {
   font-size: 0.95rem;
   line-height: 1;
-  color: #c45c26;
+  color: #34d399;
 }
 
 @keyframes marquee-scroll {

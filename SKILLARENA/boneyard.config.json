@@ -2,10 +2,10 @@
   "breakpoints": [375, 768, 1280],
   "out": "./src/bones",
   "wait": 900,
-  "color": "rgba(138, 122, 109, 0.14)",
-  "darkColor": "rgba(253, 248, 240, 0.08)",
+  "color": "rgba(5, 150, 105, 0.14)",
+  "darkColor": "rgba(52, 211, 153, 0.12)",
   "animate": "shimmer",
-  "shimmerColor": "rgba(196, 92, 38, 0.08)",
-  "darkShimmerColor": "rgba(240, 180, 41, 0.1)",
+  "shimmerColor": "rgba(5, 150, 105, 0.1)",
+  "darkShimmerColor": "rgba(110, 231, 183, 0.12)",
   "speed": "1.8s"
 }

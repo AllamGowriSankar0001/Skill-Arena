@@ -1,7 +1,7 @@
 .app-section {
   min-height: calc(100vh - var(--navbar-height, 4rem));
   padding: var(--app-page-padding-y) var(--app-page-padding-x) clamp(2rem, 4vw, 3rem);
-  background: var(--app-bg, #f6f3ee);
+  background: var(--app-bg, #f8fafc);
 }
 
 .app-section-inner {
@@ -23,20 +23,20 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .app-section h1 {
   margin-top: 0.5rem;
   font-size: clamp(1.6rem, 4vw, 2.25rem);
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .app-section-lead {
   margin-top: 0.65rem;
   max-width: 42rem;
-  color: #6b5f54;
+  color: #64748b;
   line-height: 1.65;
   font-size: 0.95rem;
 }
@@ -58,29 +58,29 @@
   padding: clamp(1rem, 3vw, 1.35rem);
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .app-section-card {
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 0.85rem;
   padding: clamp(1rem, 3vw, 1.25rem);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .app-section-card h2 {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .app-section-card span,
 .app-section-card p {
-  color: #6b5f54;
+  color: #64748b;
   line-height: 1.6;
   font-size: 0.92rem;
 }
@@ -90,7 +90,7 @@
   margin-top: 0.15rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .app-section-card-cta {
@@ -98,24 +98,24 @@
   margin-top: 0.35rem;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
 }
 
 .app-section-card-note {
   margin-top: 0.5rem;
   font-size: 0.88rem;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .app-lesson-meta {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .app-section-card--dark {
-  background: #1a110a;
-  border-color: #1a110a;
+  background: #0f172a;
+  border-color: #0f172a;
   color: #fdf8f0;
 }
 
@@ -130,7 +130,7 @@
   padding: 0.65rem 1rem;
   border-radius: 0.5rem;
   border: none;
-  background: #1a110a;
+  background: #0f172a;
   color: #fff;
   font-weight: 600;
   font-size: 0.875rem;
@@ -157,7 +157,7 @@
 
 .app-section-card--link:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(26, 17, 10, 0.06);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
 .app-section-back {
@@ -165,13 +165,13 @@
   margin-bottom: 1rem;
   font-weight: 600;
   font-size: 0.9rem;
-  color: #c45c26;
+  color: #059669;
   text-decoration: none;
 }
 
 .app-section-meta {
   margin-top: 0.5rem;
-  color: #6b5f54;
+  color: #64748b;
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -197,11 +197,11 @@
   flex-direction: column;
   gap: 0.2rem;
   padding-top: 0.65rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .app-section-error {
-  color: #a84d1f;
+  color: #047857;
   font-size: 0.92rem;
 }
 
@@ -219,24 +219,24 @@
   margin-top: 1.25rem;
   padding: 0.65rem 0.9rem;
   border-radius: 999px;
-  background: rgba(196, 92, 38, 0.1);
-  border: 1px solid rgba(196, 92, 38, 0.18);
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.18);
   font-size: 0.88rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .app-leaderboard-you strong {
   font-size: 1rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .app-leaderboard {
   margin-top: 1.25rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   background: #fff;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .app-leaderboard-head,
@@ -253,24 +253,24 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
-  background: rgba(26, 17, 10, 0.03);
-  border-bottom: 1px solid rgba(26, 17, 10, 0.08);
+  color: #64748b;
+  background: rgba(15, 23, 42, 0.03);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .app-leaderboard-row {
-  border-top: 1px solid rgba(26, 17, 10, 0.06);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
   font-size: 0.92rem;
 }
 
 .app-leaderboard-rank {
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
 }
 
 .app-leaderboard-name {
   font-weight: 600;
-  color: #1a110a;
+  color: #0f172a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -278,7 +278,7 @@
 
 .app-leaderboard-xp {
   font-weight: 600;
-  color: #6b5f54;
+  color: #64748b;
   white-space: nowrap;
 }
 
@@ -296,8 +296,8 @@
   padding: clamp(2rem, 6vw, 3rem) clamp(1.25rem, 4vw, 2rem);
   border-radius: 1rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   text-align: center;
 }
 
@@ -309,8 +309,8 @@
   height: 3.5rem;
   margin-bottom: 1rem;
   border-radius: 999px;
-  background: rgba(196, 92, 38, 0.1);
-  border: 1px solid rgba(196, 92, 38, 0.16);
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.16);
   font-size: 1.45rem;
   line-height: 1;
 }
@@ -318,13 +318,13 @@
 .app-empty-state-title {
   font-size: clamp(1.15rem, 3vw, 1.35rem);
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .app-empty-state-copy {
   max-width: 28rem;
   margin: 0.55rem auto 0;
-  color: #6b5f54;
+  color: #64748b;
   line-height: 1.65;
   font-size: 0.94rem;
 }

@@ -1,17 +1,15 @@
-import { Outlet } from 'react-router-dom'
-import Navbar from '../Navbar'
-import Footer from '../Footer'
+import { Outlet, Link } from 'react-router-dom'
+import { ROUTES } from '../../routes'
 import './AuthLayout.css'
 
 const AuthLayout = () => {
   return (
-    <>
-      <Navbar alwaysVisible />
-      <div className="auth-layout-content">
-        <Outlet />
-      </div>
-      <Footer />
-    </>
+    <div className="auth-layout">
+      <Outlet />
+      <Link to={ROUTES.home} className="auth-layout-home-link visually-hidden">
+        Skill Arena home
+      </Link>
+    </div>
   )
 }
 

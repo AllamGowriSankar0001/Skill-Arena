@@ -1,13 +1,14 @@
 .learn {
-  --learn-ink: #1a110a;
-  --learn-muted: #5c4f45;
+  --learn-ink: var(--sa-ink);
+  --learn-muted: var(--sa-muted);
 
-  padding: 5rem 3rem 6rem;
-  background-color: #fdf8f0;
+  scroll-margin-top: calc(var(--navbar-height, 4rem) + 0.75rem);
+  padding: 4.5rem 3rem 5rem;
+  background-color: var(--sa-bg-alt);
   background-image:
-    radial-gradient(circle at 82% 48%, rgba(245, 232, 200, 0.45) 0%, transparent 38%),
-    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
+    radial-gradient(circle at 82% 48%, rgba(5, 150, 105, 0.1) 0%, transparent 38%),
+    radial-gradient(circle at 10% 30%, rgba(244, 114, 182, 0.07) 0%, transparent 36%);
+  background-size: auto, auto;
 }
 
 .learn-inner {
@@ -31,13 +32,13 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--learn-muted);
+  color: #059669;
 }
 
 .learn-eyebrow-line {
   width: 2rem;
   height: 1px;
-  background-color: var(--learn-muted);
+  background-color: #059669;
 }
 
 .learn-title {
@@ -74,7 +75,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: var(--learn-ink);
+  background-color: #059669;
   transition: width 0.35s ease;
 }
 
@@ -95,6 +96,7 @@
   display: block;
   border-radius: 1.25rem;
   object-fit: contain;
+  box-shadow: var(--sa-image-shadow);
 }
 
 @media (max-width: 1024px) {

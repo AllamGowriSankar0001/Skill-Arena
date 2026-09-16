@@ -171,6 +171,7 @@ const saveCodingDraft = async (req, res, next) => {
       req.user._id,
       req.params.lessonId,
       req.body,
+      { isAdmin: isAdminUser(req.user) },
     );
     res.json({ draft });
   } catch (error) {
@@ -233,8 +234,8 @@ const getLessonAccess = async (req, res, next) => {
 
 const listPractice = async (req, res, next) => {
   try {
-    const assessments = await practiceService.listPracticeForUser(req.user._id);
-    res.json({ assessments });
+    const result = await practiceService.listPracticeForUser(req.user._id, req.query);
+    res.json(result);
   } catch (error) {
     handleError(error, res, next);
   }

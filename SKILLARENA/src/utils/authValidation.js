@@ -11,6 +11,76 @@ const PASSWORD_STRENGTH_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$&*]).{6,}$/
 
 export const trimValue = (value) => (typeof value === 'string' ? value.trim() : '')
 
+/** Empty fields return null (no live error). Invalid non-empty values return a message. */
+export const getNameError = (name) => {
+  const trimmed = trimValue(name)
+  if (!trimmed) return null
+  if (trimmed.length > NAME_MAX_LENGTH) return AUTH_MESSAGES.EXCEED_LENGTH
+  if (!NAME_PATTERN.test(trimmed)) return AUTH_MESSAGES.NAME_ALPHABETS_ONLY
+  return null
+}
+
+export const getEmailError = (email) => {
+  const trimmed = trimValue(email)
+  if (!trimmed) return null
+  if (trimmed.length > EMAIL_MAX_LENGTH) return AUTH_MESSAGES.EXCEED_LENGTH
+  if (!EMAIL_CHARS_PATTERN.test(trimmed)) return AUTH_MESSAGES.EMAIL_SPECIAL_CHARS
+  if (!EMAIL_FORMAT_PATTERN.test(trimmed)) return AUTH_MESSAGES.INVALID_EMAIL_FORMAT
+  return null
+}
+
+export const getPasswordError = (password) => {
+  const trimmed = trimValue(password)
+  if (!trimmed) return null
+  if (trimmed.length > PASSWORD_MAX_LENGTH) return AUTH_MESSAGES.EXCEED_LENGTH
+  if (!PASSWORD_CHARS_PATTERN.test(trimmed)) return AUTH_MESSAGES.PASSWORD_SPECIAL_CHARS
+  if (!PASSWORD_STRENGTH_PATTERN.test(trimmed)) return AUTH_MESSAGES.WEAK_PASSWORD
+  return null
+}
+
+export const getConfirmPasswordError = (password, confirmPassword) => {
+  const trimmedConfirm = trimValue(confirmPassword)
+  if (!trimmedConfirm) return null
+  if (trimValue(password) !== trimmedConfirm) return AUTH_MESSAGES.PASSWORDS_DO_NOT_MATCH
+  return null
+}
+
+export const isLoginFormReady = ({ email, password }) => {
+  const trimmedEmail = trimValue(email)
+  const trimmedPassword = trimValue(password)
+  if (!trimmedEmail || !trimmedPassword) return false
+  return !getEmailError(trimmedEmail)
+}
+
+export const isSignupFormReady = ({ name, email, password, confirmPassword }) => {
+  const trimmedName = trimValue(name)
+  const trimmedEmail = trimValue(email)
+  const trimmedPassword = trimValue(password)
+  const trimmedConfirm = trimValue(confirmPassword)
+
+  if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirm) return false
+  if (getNameError(trimmedName)) return false
+  if (getEmailError(trimmedEmail)) return false
+  if (getPasswordError(trimmedPassword)) return false
+  if (getConfirmPasswordError(trimmedPassword, trimmedConfirm)) return false
+  return true
+}
+
+export const isForgotPasswordFormReady = ({ email }) => {
+  const trimmedEmail = trimValue(email)
+  if (!trimmedEmail) return false
+  return !getEmailError(trimmedEmail)
+}
+
+export const isResetPasswordFormReady = ({ password, confirmPassword }) => {
+  const trimmedPassword = trimValue(password)
+  const trimmedConfirm = trimValue(confirmPassword)
+  if (!trimmedPassword || !trimmedConfirm) return false
+  if (getPasswordError(trimmedPassword)) return false
+  if (getConfirmPasswordError(trimmedPassword, trimmedConfirm)) return false
+  return true
+}
+
 export const validateLoginForm = ({ email, password }) => {
   const trimmedEmail = trimValue(email)
   const trimmedPassword = trimValue(password)
@@ -21,6 +91,11 @@ export const validateLoginForm = ({ email, password }) => {
       message: AUTH_MESSAGES.FILL_REQUIRED_FIELDS,
       field: !trimmedEmail ? 'email' : 'password',
     }
+  }
+
+  const emailError = getEmailError(trimmedEmail)
+  if (emailError) {
+    return { ok: false, message: emailError, field: 'email' }
   }
 
   return {
@@ -47,41 +122,17 @@ export const validateSignupForm = ({ name, email, password, confirmPassword }) =
     return { ok: false, message: AUTH_MESSAGES.SIGNUP_FILL_REQUIRED, field }
   }
 
-  if (trimmedPassword !== trimmedConfirm) {
-    return { ok: false, message: AUTH_MESSAGES.PASSWORDS_DO_NOT_MATCH, field: 'confirmPassword' }
-  }
+  const nameError = getNameError(trimmedName)
+  if (nameError) return { ok: false, message: nameError, field: 'name' }
 
-  if (trimmedName.length > NAME_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'name' }
-  }
+  const emailError = getEmailError(trimmedEmail)
+  if (emailError) return { ok: false, message: emailError, field: 'email' }
 
-  if (!NAME_PATTERN.test(trimmedName)) {
-    return { ok: false, message: AUTH_MESSAGES.NAME_ALPHABETS_ONLY, field: 'name' }
-  }
+  const passwordError = getPasswordError(trimmedPassword)
+  if (passwordError) return { ok: false, message: passwordError, field: 'password' }
 
-  if (trimmedEmail.length > EMAIL_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'email' }
-  }
-
-  if (!EMAIL_CHARS_PATTERN.test(trimmedEmail)) {
-    return { ok: false, message: AUTH_MESSAGES.EMAIL_SPECIAL_CHARS, field: 'email' }
-  }
-
-  if (!EMAIL_FORMAT_PATTERN.test(trimmedEmail)) {
-    return { ok: false, message: AUTH_MESSAGES.INVALID_EMAIL_FORMAT, field: 'email' }
-  }
-
-  if (trimmedPassword.length > PASSWORD_MAX_LENGTH) {
-    return { ok: false, message: AUTH_MESSAGES.EXCEED_LENGTH, field: 'password' }
-  }
-
-  if (!PASSWORD_CHARS_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: AUTH_MESSAGES.PASSWORD_SPECIAL_CHARS, field: 'password' }
-  }
-
-  if (!PASSWORD_STRENGTH_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: AUTH_MESSAGES.WEAK_PASSWORD, field: 'password' }
-  }
+  const confirmError = getConfirmPasswordError(trimmedPassword, trimmedConfirm)
+  if (confirmError) return { ok: false, message: confirmError, field: 'confirmPassword' }
 
   return {
     ok: true,

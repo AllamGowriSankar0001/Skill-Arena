@@ -4,12 +4,29 @@ const mongoose = require('mongoose');
 const connectDB = require('../src/config/db');
 const User = require('../src/models/User');
 
+const MIN_PASSWORD_LENGTH = 12;
+
 async function createAdmin() {
   await connectDB();
 
-  const email = (process.env.ADMIN_EMAIL || 'admin@skillarena.com').toLowerCase().trim();
-  const password = process.env.ADMIN_PASSWORD || 'Admin@123456';
-  const name = process.env.ADMIN_NAME || 'Skill Arena Admin';
+  const email = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
+  const password = process.env.ADMIN_PASSWORD || '';
+  const name = (process.env.ADMIN_NAME || 'Skill Arena Admin').trim();
+
+  if (!email) {
+    console.error('ADMIN_EMAIL is required.');
+    await mongoose.disconnect();
+    process.exit(1);
+  }
+
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    console.error(
+      `ADMIN_PASSWORD is required and must be at least ${MIN_PASSWORD_LENGTH} characters. `
+        + 'Set it in backend/.env — it will never be printed.',
+    );
+    await mongoose.disconnect();
+    process.exit(1);
+  }
 
   const existing = await User.findOne({ email });
   if (existing) {
@@ -25,7 +42,7 @@ async function createAdmin() {
     return;
   }
 
-  const user = await User.create({
+  await User.create({
     name,
     email,
     password,
@@ -35,8 +52,7 @@ async function createAdmin() {
 
   console.log('Admin account created.');
   console.log(`Email: ${email}`);
-  console.log(`Password: ${password}`);
-  console.log('Change ADMIN_PASSWORD in backend/.env and re-run if needed.');
+  console.log('Password was set from ADMIN_PASSWORD (not displayed).');
 
   await mongoose.disconnect();
 }

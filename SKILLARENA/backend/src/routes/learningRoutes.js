@@ -3,17 +3,34 @@ const authMiddleware = require('../middleware/authMiddleware');
 const learningController = require('../controllers/learningController');
 const leaderboardController = require('../controllers/leaderboardController');
 const communityController = require('../controllers/communityController');
+const { createRateLimiter, getClientIp } = require('../middleware/rateLimitMiddleware');
 
 const router = express.Router();
 
 router.use(authMiddleware);
+
+const codingLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: 'Too many coding requests. Please slow down.',
+  code: 'CODING_RATE_LIMIT',
+  keyGenerator: (req) => `coding::${req.user?._id || getClientIp(req)}`,
+});
+
+const roomJoinLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: 'Too many community join attempts. Please try again later.',
+  code: 'ROOM_JOIN_RATE_LIMIT',
+  keyGenerator: (req) => `room-join::${req.user?._id || getClientIp(req)}`,
+});
 
 router.get('/leaderboard', leaderboardController.getLeaderboard);
 
 router.get('/community/meta', communityController.getMeta);
 router.get('/community/feed', communityController.getFeed);
 router.post('/community/rooms', communityController.createRoom);
-router.post('/community/rooms/join', communityController.joinRoom);
+router.post('/community/rooms/join', roomJoinLimiter, communityController.joinRoom);
 router.patch('/community/rooms/:roomId', communityController.updateRoom);
 router.post('/community/rooms/:roomId/leave', communityController.leaveRoom);
 router.delete('/community/rooms/:roomId', communityController.deleteRoom);
@@ -29,8 +46,8 @@ router.get('/practice/:assessmentId/quiz', learningController.getPracticeQuiz);
 router.post('/practice/:assessmentId/quiz/submit', learningController.submitPracticeQuiz);
 router.get('/practice/:assessmentId/quiz/attempts', learningController.getPracticeQuizAttempts);
 router.get('/practice/:assessmentId/coding', learningController.getPracticeCoding);
-router.post('/practice/:assessmentId/coding/run', learningController.runPracticeCoding);
-router.post('/practice/:assessmentId/coding/submit', learningController.submitPracticeCoding);
+router.post('/practice/:assessmentId/coding/run', codingLimiter, learningController.runPracticeCoding);
+router.post('/practice/:assessmentId/coding/submit', codingLimiter, learningController.submitPracticeCoding);
 router.get('/practice/:assessmentId/coding/attempts', learningController.getPracticeCodingAttempts);
 
 router.post('/courses/:courseId/enroll', learningController.enrollCourse);
@@ -49,8 +66,8 @@ router.get('/lessons/:lessonId/quiz/attempts', learningController.getQuizAttempt
 
 router.get('/lessons/:lessonId/coding', learningController.getCodingLesson);
 router.patch('/lessons/:lessonId/coding/draft', learningController.saveCodingDraft);
-router.post('/lessons/:lessonId/coding/run', learningController.runCoding);
-router.post('/lessons/:lessonId/coding/submit', learningController.submitCoding);
+router.post('/lessons/:lessonId/coding/run', codingLimiter, learningController.runCoding);
+router.post('/lessons/:lessonId/coding/submit', codingLimiter, learningController.submitCoding);
 router.get('/lessons/:lessonId/coding/attempts', learningController.getCodingAttempts);
 
 module.exports = router;

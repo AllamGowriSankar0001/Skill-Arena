@@ -1,19 +1,47 @@
 import { API_BASE_URL } from '../config/env.js'
+import { toStoredUserSnapshot } from '../utils/authStorage.js'
 
-const getToken = () => localStorage.getItem('skillarena_token')
+const CSRF_STORAGE_KEY = 'skillarena_csrf'
+const USER_STORAGE_KEY = 'skillarena_user'
+const LEGACY_TOKEN_KEY = 'skillarena_token'
 
-export const setAuth = (token, user) => {
-  localStorage.setItem('skillarena_token', token)
-  localStorage.setItem('skillarena_user', JSON.stringify(user))
+let memoryCsrfToken = null
+let refreshPromise = null
+
+const clearLegacyTokenStorage = () => {
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
+}
+
+export const getCsrfToken = () => memoryCsrfToken || sessionStorage.getItem(CSRF_STORAGE_KEY) || null
+
+export const setCsrfToken = (token) => {
+  memoryCsrfToken = token || null
+  if (token) {
+    sessionStorage.setItem(CSRF_STORAGE_KEY, token)
+  } else {
+    sessionStorage.removeItem(CSRF_STORAGE_KEY)
+  }
+}
+
+/** Persist non-sensitive user snapshot only — never tokens. */
+export const setAuth = (_ignoredToken, user) => {
+  clearLegacyTokenStorage()
+  const snapshot = toStoredUserSnapshot(user)
+  if (snapshot) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(snapshot))
+  } else {
+    localStorage.removeItem(USER_STORAGE_KEY)
+  }
 }
 
 export const clearAuth = () => {
-  localStorage.removeItem('skillarena_token')
-  localStorage.removeItem('skillarena_user')
+  clearLegacyTokenStorage()
+  localStorage.removeItem(USER_STORAGE_KEY)
+  setCsrfToken(null)
 }
 
 export const getStoredUser = () => {
-  const raw = localStorage.getItem('skillarena_user')
+  const raw = localStorage.getItem(USER_STORAGE_KEY)
   if (!raw) return null
   try {
     return JSON.parse(raw)
@@ -22,21 +50,76 @@ export const getStoredUser = () => {
   }
 }
 
-async function request(path, options = {}) {
+const buildHeaders = (options = {}, { includeCsrf = false } = {}) => {
   const headers = {
-    'Content-Type': 'application/json',
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
   }
 
-  const token = getToken()
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
+  if (includeCsrf) {
+    const csrf = getCsrfToken()
+    if (csrf) {
+      headers['X-CSRF-Token'] = csrf
+    }
   }
+
+  return headers
+}
+
+const parseError = async (response) => {
+  const data = await response.json().catch(() => ({}))
+  const error = new Error(data.message || 'Request failed')
+  error.status = response.status
+  error.code = data.code
+  error.previousLessonId = data.previousLessonId
+  error.retryAfterSeconds = data.retryAfterSeconds
+  return error
+}
+
+async function refreshSession() {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = (async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      clearAuth()
+      const error = new Error(data.message || 'Session expired')
+      error.status = response.status
+      error.code = data.code
+      throw error
+    }
+    if (data.csrfToken) setCsrfToken(data.csrfToken)
+    if (data.user) setAuth(null, data.user)
+    return data
+  })().finally(() => {
+    refreshPromise = null
+  })
+  return refreshPromise
+}
+
+async function request(path, options = {}, { retry = true } = {}) {
+  const method = (options.method || 'GET').toUpperCase()
+  const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method)
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    headers,
+    credentials: 'include',
+    headers: buildHeaders(options, { includeCsrf: mutating }),
   })
+
+  if (response.status === 401 && retry && !path.startsWith('/auth/login') && !path.startsWith('/auth/refresh')) {
+    try {
+      await refreshSession()
+      return request(path, options, { retry: false })
+    } catch {
+      // fall through to error handling
+    }
+  }
 
   const data = await response.json().catch(() => ({}))
 
@@ -49,6 +132,7 @@ async function request(path, options = {}) {
     throw error
   }
 
+  if (data.csrfToken) setCsrfToken(data.csrfToken)
   return data
 }
 
@@ -57,12 +141,19 @@ export const authApi = {
     request('/auth/signup', { method: 'POST', body: JSON.stringify(payload) }),
   login: (payload) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  logout: () => request('/auth/logout', { method: 'POST', body: '{}' }),
+  refresh: () => refreshSession(),
   forgotPassword: (payload) =>
     request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(payload) }),
+  resetPassword: (payload) =>
+    request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
+  changePassword: (payload) =>
+    request('/auth/change-password', { method: 'POST', body: JSON.stringify(payload) }),
   me: () => request('/auth/me'),
   updateMe: (payload) =>
     request('/auth/me', { method: 'PATCH', body: JSON.stringify(payload) }),
 }
+
 
 export const homeApi = {
   get: () => request('/home'),
@@ -74,7 +165,31 @@ export const platformApi = {
   lesson: (lessonId) => request(`/platform/lessons/${lessonId}`, { auth: false }),
   practice: () => request('/platform/practice', { auth: false }),
   battles: () => request('/platform/battles'),
-  blogs: () => request('/platform/blogs', { auth: false }),
+  blogs: (() => {
+    let blogsPromise = null
+    let blogsCache = null
+    let blogsCachedAt = 0
+    const BLOGS_TTL_MS = 60_000
+
+    return () => {
+      const now = Date.now()
+      if (blogsCache && now - blogsCachedAt < BLOGS_TTL_MS) {
+        return Promise.resolve(blogsCache)
+      }
+      if (!blogsPromise) {
+        blogsPromise = request('/platform/blogs', { auth: false })
+          .then((data) => {
+            blogsCache = data
+            blogsCachedAt = Date.now()
+            return data
+          })
+          .finally(() => {
+            blogsPromise = null
+          })
+      }
+      return blogsPromise
+    }
+  })(),
   blog: (slug) => request(`/platform/blogs/${slug}`, { auth: false }),
 }
 
@@ -94,13 +209,13 @@ export const adminApi = {
   generateCourseWithAI: (payload) =>
     request('/admin/courses/generate-ai', { method: 'POST', body: JSON.stringify(payload) }),
   generateCourseWithAIStream: async (payload, handlers = {}) => {
-    const token = getToken()
     const response = await fetch(`${API_BASE_URL}/admin/courses/generate-ai/stream`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      credentials: 'include',
+      headers: buildHeaders(
+        { headers: { 'Content-Type': 'application/json' } },
+        { includeCsrf: true },
+      ),
       body: JSON.stringify(payload),
       signal: handlers.signal,
     })

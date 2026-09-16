@@ -3,7 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
 import CourseThumbnail from '../components/CourseThumbnail'
 import LessonTypeIcon from '../components/LessonTypeIcon'
-import { getStoredUser, learningApi, platformApi } from '../services/api'
+import PageBreadcrumb from '../components/PageBreadcrumb'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
+import { useAuth } from '../context/AuthContext'
+import { learningApi, platformApi } from '../services/api'
 import { getLessonStateLabel } from '../utils/lessonProgress'
 import { getCourseCtaLabel, getCourseStatusLabel, hasStartedCourse } from '../utils/courseProgress'
 import { ROUTES } from '../routes'
@@ -23,7 +26,7 @@ const lessonPath = (courseId, lessonId) => `${ROUTES.learn}/${courseId}/lessons/
 
 const CourseDetailPage = () => {
   const { courseId } = useParams()
-  const user = getStoredUser()
+  const { user } = useAuth()
   const [detail, setDetail] = useState(null)
   const [courseProgress, setCourseProgress] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -43,13 +46,13 @@ const CourseDetailPage = () => {
   }, [courseId])
 
   useEffect(() => {
-    if (!user || !courseId) return
+    if (!user?.id || !courseId) return
 
     learningApi.enroll(courseId).catch(() => {})
-  }, [user, courseId])
+  }, [user?.id, courseId])
 
   useEffect(() => {
-    if (!user || !courseId) return
+    if (!user?.id || !courseId) return
 
     const refreshProgress = () => {
       learningApi
@@ -66,7 +69,7 @@ const CourseDetailPage = () => {
 
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [user, courseId])
+  }, [user?.id, courseId])
 
   const progressByLessonId = useMemo(() => {
     const map = new Map()
@@ -106,15 +109,16 @@ const CourseDetailPage = () => {
   return (
     <main className="courses-page courses-page--detail">
       <div className="courses-page-inner">
-        <nav className="courses-breadcrumb" aria-label="Breadcrumb">
-          <Link to={ROUTES.learn}>Courses</Link>
-          <span aria-hidden="true">/</span>
-          <span>{course?.title || 'Course'}</span>
-        </nav>
+        <PageBreadcrumb
+          items={[
+            { label: 'Courses', to: ROUTES.learn },
+            { label: course?.title || 'Course' },
+          ]}
+        />
 
         {loading ? (
           <div className="course-detail-loading" aria-live="polite">
-            Loading course…
+            <PageLoadingSkeleton label="Loading course" />
           </div>
         ) : null}
         {error ? <p className="courses-alert courses-alert--error">{error}</p> : null}

@@ -118,6 +118,123 @@ async function recalculateEnrollment(userId, courseId) {
   return { enrollment, xp };
 }
 
+/**
+ * Batch recalculation for all enrollments in a course after publish/archive.
+ * Loads lessons + progress once; applies enrollment field updates via bulkWrite.
+ * XP award/revoke for completion transitions remain sequential (correctness).
+ */
+async function recalculateEnrollmentsForCourse(courseId) {
+  const orderedLessons = await getPublishedLessonsForCourse(courseId);
+  const total = orderedLessons.length;
+  const enrollments = await Enrollment.find({
+    courseId,
+    status: { $in: ['ACTIVE', 'COMPLETED'] },
+  }).select(
+    '_id userId status totalLessons completedLessonCount progressPercentage currentLessonId completedAt',
+  );
+
+  if (!enrollments.length) {
+    return { updated: 0 };
+  }
+
+  const allProgress = await LessonProgress.find({ courseId })
+    .select('userId lessonId status')
+    .lean();
+
+  const progressByUser = new Map();
+  allProgress.forEach((row) => {
+    const key = String(row.userId);
+    if (!progressByUser.has(key)) progressByUser.set(key, new Map());
+    progressByUser.get(key).set(String(row.lessonId), row);
+  });
+
+  const course = await Course.findById(courseId).select('title completionXpReward');
+  const bulkOps = [];
+  let completionDelta = 0;
+  const now = new Date();
+
+  for (const enrollment of enrollments) {
+    const progressMap = progressByUser.get(String(enrollment.userId)) || new Map();
+    let completedCount = 0;
+    let nextIncomplete = null;
+    for (const lesson of orderedLessons) {
+      const progress = progressMap.get(lesson._id.toString());
+      if (progress?.status === 'COMPLETED') {
+        completedCount += 1;
+      } else if (!nextIncomplete) {
+        nextIncomplete = lesson;
+      }
+    }
+
+    const progressPercentage = total === 0 ? 0 : Math.round((completedCount / total) * 100);
+    const currentLessonId =
+      nextIncomplete?._id || orderedLessons[orderedLessons.length - 1]?._id || null;
+
+    let nextStatus = enrollment.status;
+    let completedAt = enrollment.completedAt;
+
+    if (total > 0 && completedCount >= total && enrollment.status !== 'COMPLETED') {
+      nextStatus = 'COMPLETED';
+      completedAt = now;
+      if (course?.completionXpReward) {
+        await awardXp({
+          userId: enrollment.userId,
+          sourceType: 'COURSE_COMPLETION',
+          sourceId: courseId,
+          amount: course.completionXpReward,
+          description: `Completed course: ${course.title}`,
+        });
+      }
+      completionDelta += 1;
+    } else if (enrollment.status === 'COMPLETED' && completedCount < total) {
+      await revokeXpBySource({
+        userId: enrollment.userId,
+        sourceType: 'COURSE_COMPLETION',
+        sourceId: courseId,
+        description: 'Course marked incomplete after lesson update',
+      });
+      nextStatus = 'ACTIVE';
+      completedAt = undefined;
+    }
+
+    const $set = {
+      totalLessons: total,
+      completedLessonCount: completedCount,
+      progressPercentage: nextStatus === 'COMPLETED' ? 100 : progressPercentage,
+      currentLessonId,
+      lastAccessedAt: now,
+      status: nextStatus,
+    };
+    if (completedAt) {
+      $set.completedAt = completedAt;
+    }
+
+    const update = { $set };
+    if (!completedAt && enrollment.completedAt) {
+      update.$unset = { completedAt: '' };
+    }
+
+    bulkOps.push({
+      updateOne: {
+        filter: { _id: enrollment._id },
+        update,
+      },
+    });
+  }
+
+  if (bulkOps.length) {
+    await Enrollment.bulkWrite(bulkOps, { ordered: false });
+  }
+  if (completionDelta > 0) {
+    await Course.updateOne(
+      { _id: courseId },
+      { $inc: { 'stats.completionCount': completionDelta } },
+    );
+  }
+
+  return { updated: bulkOps.length };
+}
+
 async function canAccessLesson(userId, lesson, { isAdmin = false } = {}) {
   if (isAdmin) return { allowed: true };
   if (lesson.isPreview) return { allowed: true };
@@ -409,15 +526,38 @@ async function incrementAttemptCount(userId, lessonId) {
   await progress.save();
 }
 
-async function saveCodingDraft(userId, lessonId, draft) {
+async function saveCodingDraft(userId, lessonId, draft, { isAdmin = false } = {}) {
   const lesson = await Lesson.findOne({ _id: lessonId, status: 'PUBLISHED', type: 'CODING' });
   if (!lesson) throw new Error('Coding lesson not found.');
 
+  const access = await canAccessLesson(userId, lesson, { isAdmin });
+  if (!access.allowed) {
+    const error = new Error(access.reason || 'Lesson is locked.');
+    error.statusCode = 403;
+    error.code = 'LESSON_LOCKED';
+    error.previousLessonId = access.previousLessonId;
+    throw error;
+  }
+
+  const MAX_DRAFT_FIELD_CHARS = 100_000;
+  const normalizeField = (value) => {
+    const text = typeof value === 'string' ? value : '';
+    if (text.length > MAX_DRAFT_FIELD_CHARS) {
+      const error = new Error(
+        `Coding draft fields must be at most ${MAX_DRAFT_FIELD_CHARS.toLocaleString()} characters each.`,
+      );
+      error.statusCode = 400;
+      error.code = 'DRAFT_TOO_LARGE';
+      throw error;
+    }
+    return text;
+  };
+
   const progress = await getLessonProgressRecord(userId, lesson);
   progress.codingDraft = {
-    html: draft.html || '',
-    css: draft.css || '',
-    javascript: draft.javascript || '',
+    html: normalizeField(draft.html),
+    css: normalizeField(draft.css),
+    javascript: normalizeField(draft.javascript),
     updatedAt: new Date(),
   };
   progress.lastAccessedAt = new Date();
@@ -472,6 +612,7 @@ module.exports = {
   enrollUser,
   getOrCreateEnrollment,
   recalculateEnrollment,
+  recalculateEnrollmentsForCourse,
   canAccessLesson,
   startLesson,
   completeLesson,

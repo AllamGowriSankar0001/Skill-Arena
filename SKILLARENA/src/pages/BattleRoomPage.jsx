@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import BattleCoding from '../components/BattleCoding'
 import BattleQuiz from '../components/BattleQuiz'
 import CodingViewportGate from '../components/CodingViewportGate'
+import PageBreadcrumb from '../components/PageBreadcrumb'
 import { battleApi } from '../services/api'
 import { ROUTES } from '../routes'
 import { getBattleFingerprint, getPollIntervalMs } from '../utils/battleState'
@@ -260,10 +261,13 @@ const BattleRoomPage = () => {
   if (error && !battle) {
     return (
       <div className="battle-room-page">
+        <PageBreadcrumb
+          items={[
+            { label: 'Battles', to: ROUTES.battles },
+            { label: 'Room' },
+          ]}
+        />
         <div className="battle-room-error">{error}</div>
-        <button type="button" className="battle-room-back" onClick={handleExit}>
-          Back to battles
-        </button>
       </div>
     )
   }
@@ -279,6 +283,19 @@ const BattleRoomPage = () => {
 
   return (
     <div className="battle-room-page">
+      <PageBreadcrumb
+        items={[
+          { label: 'Battles', to: ROUTES.battles },
+          {
+            label:
+              battle?.format === 'THREE_V_THREE'
+                ? '3v3 Squad'
+                : battle?.format === 'ONE_V_ONE'
+                  ? '1v1 Duel'
+                  : 'Battle room',
+          },
+        ]}
+      />
       <header className="battle-room-header">
         <div>
           <p className="battle-room-eyebrow">{battle?.skill?.name || 'Skill Arena'} · {battle?.mode}</p>
@@ -354,7 +371,7 @@ const BattleRoomPage = () => {
               action="start"
               contextLabel="coding battle"
               backTo={ROUTES.battles}
-              backLabel="← Back to battles"
+              backLabel="Battles"
             >
               <BattleCoding
                 challenge={payload.challenge}

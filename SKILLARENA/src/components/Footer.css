@@ -1,14 +1,14 @@
 .footer {
-  --footer-accent: #c4885a;
-  --footer-text: rgba(253, 248, 240, 0.72);
-  --footer-heading: #c4885a;
+  --footer-accent: #34d399;
+  --footer-text: rgba(248, 250, 252, 0.72);
+  --footer-heading: #6ee7b7;
 
   position: relative;
   overflow: hidden;
   padding: 4.5rem 3rem 2rem;
-  background-color: #0f0d0b;
+  background-color: #0f172a;
   background-image:
-    radial-gradient(circle at 50% -20%, rgba(196, 92, 38, 0.22) 0%, transparent 42%),
+    radial-gradient(circle at 50% -20%, rgba(5, 150, 105, 0.28) 0%, transparent 42%),
     radial-gradient(rgba(255, 255, 255, 0.03) 0.6px, transparent 0.6px);
   background-size: auto, 3px 3px;
   color: var(--footer-text);
@@ -33,28 +33,28 @@
 }
 
 .footer-watermark-skill {
-  color: rgba(253, 248, 240, 0.045);
+  color: rgba(248, 250, 252, 0.045);
 }
 
 .footer-watermark-slash {
   display: inline-block;
   width: clamp(2px, 0.35vw, 4px);
   height: 0.78em;
-  background-color: rgba(253, 248, 240, 0.04);
+  background-color: rgba(248, 250, 252, 0.04);
   transform: skewX(-18deg);
   flex-shrink: 0;
 }
 
 .footer-watermark-arena {
-  color: rgba(196, 92, 38, 0.08);
+  color: rgba(5, 150, 105, 0.08);
 }
 
 .footer-brand-logo .brand-logo-skill {
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .footer-brand-logo .brand-logo-slash {
-  background-color: rgba(253, 248, 240, 0.75);
+  background-color: rgba(248, 250, 252, 0.75);
 }
 
 .footer-brand-logo .brand-logo-arena {
@@ -86,7 +86,7 @@
   margin-top: 1rem;
   font-size: 0.8125rem;
   line-height: 1.65;
-  color: rgba(253, 248, 240, 0.58);
+  color: rgba(248, 250, 252, 0.58);
 }
 
 .footer-social {
@@ -104,7 +104,7 @@
   height: 2rem;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.06);
-  color: rgba(253, 248, 240, 0.72);
+  color: rgba(248, 250, 252, 0.72);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -115,7 +115,7 @@
 
 .footer-social-link:hover {
   background-color: rgba(255, 255, 255, 0.12);
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .footer-links {
@@ -156,7 +156,7 @@
   width: fit-content;
   font-size: 0.8125rem;
   text-decoration: none;
-  color: rgba(253, 248, 240, 0.62);
+  color: rgba(248, 250, 252, 0.62);
   transition: color 0.2s ease;
 }
 
@@ -167,12 +167,12 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: #fdf8f0;
+  background-color: var(--sa-bg);
   transition: width 0.35s ease;
 }
 
 .footer-column-list a:hover {
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .footer-column-list a:hover::after {
@@ -191,7 +191,7 @@
 
 .footer-copy {
   font-size: 0.75rem;
-  color: rgba(253, 248, 240, 0.45);
+  color: rgba(248, 250, 252, 0.45);
 }
 
 .footer-locale {
@@ -202,7 +202,7 @@
   background: none;
   font-family: inherit;
   font-size: 0.75rem;
-  color: rgba(253, 248, 240, 0.55);
+  color: rgba(248, 250, 252, 0.55);
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -213,7 +213,7 @@
 }
 
 .footer-locale:hover {
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 @media (max-width: 1024px) {
@@ -242,7 +242,7 @@
 .app-footer {
   padding: 1.25rem clamp(1rem, 4vw, 1.5rem);
   background: #fff;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .app-footer-inner {
@@ -257,7 +257,7 @@
 
 .app-footer-copy {
   font-size: 0.82rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .app-footer-links {
@@ -269,12 +269,12 @@
 .app-footer-links a {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #6b5f54;
+  color: #64748b;
   text-decoration: none;
 }
 
 .app-footer-links a:hover {
-  color: #c45c26;
+  color: #059669;
 }
 
 @media (max-width: 480px) {

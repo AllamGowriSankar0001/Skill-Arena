@@ -155,6 +155,13 @@ assessmentAttemptSchema.index({ userId: 1, assessmentId: 1 });
 assessmentAttemptSchema.index({ userId: 1, contextType: 1, createdAt: -1 });
 assessmentAttemptSchema.index({ contextType: 1, contextId: 1 });
 assessmentAttemptSchema.index({ status: 1 });
+// Supports practice list attempt-summary aggregation / filters
+assessmentAttemptSchema.index({
+  userId: 1,
+  contextType: 1,
+  status: 1,
+  assessmentId: 1,
+});
 
 const AssessmentAttempt = mongoose.model('AssessmentAttempt', assessmentAttemptSchema);
 

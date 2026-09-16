@@ -1,0 +1,40 @@
+{
+  "breakpoints": {
+    "375": {
+      "name": "list-loading",
+      "viewportWidth": 343,
+      "width": 343,
+      "height": 360,
+      "bones": [
+        [0, 0, 100, 72, 12, true],
+        [0, 88, 100, 72, 12, true],
+        [0, 176, 100, 72, 12, true],
+        [0, 264, 100, 72, 12, true]
+      ]
+    },
+    "768": {
+      "name": "list-loading",
+      "viewportWidth": 720,
+      "width": 720,
+      "height": 280,
+      "bones": [
+        [0, 0, 100, 56, 12, true],
+        [0, 72, 100, 56, 12, true],
+        [0, 144, 100, 56, 12, true],
+        [0, 216, 100, 56, 12, true]
+      ]
+    },
+    "1280": {
+      "name": "list-loading",
+      "viewportWidth": 960,
+      "width": 960,
+      "height": 300,
+      "bones": [
+        [0, 0, 100, 60, 12, true],
+        [0, 76, 100, 60, 12, true],
+        [0, 152, 100, 60, 12, true],
+        [0, 228, 100, 60, 12, true]
+      ]
+    }
+  }
+}

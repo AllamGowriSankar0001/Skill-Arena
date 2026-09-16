@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BlogImage from '../components/BlogImage'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import PageShell from './PageShell'
 import { platformApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -21,11 +22,26 @@ const BlogPage = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let cancelled = false
+
     platformApi
       .blogs()
-      .then((data) => setPosts(data.posts))
-      .catch((err) => setError(err.message || 'Failed to load blog posts'))
-      .finally(() => setLoading(false))
+      .then((data) => {
+        if (cancelled) return
+        setPosts(data.posts || [])
+        setError('')
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setError(err.message || 'Failed to load blog posts')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
@@ -33,9 +49,10 @@ const BlogPage = () => {
       eyebrow="Company"
       title="Blog"
       description="Product updates, learning tips, community highlights, and stories from inside the arena."
-      showBackLink={false}
+      showBackLink
+      staticLayout
     >
-      {loading ? <p className="blog-status">Loading posts…</p> : null}
+      {loading ? <PageLoadingSkeleton variant="list" label="Loading posts" /> : null}
       {error ? <p className="blog-error">{error}</p> : null}
 
       {!loading && !error && !posts.length ? (

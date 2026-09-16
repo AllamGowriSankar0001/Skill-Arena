@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import PageLoadingSkeleton from '../../components/PageLoadingSkeleton'
 import { useAuth } from '../../context/AuthContext'
 import { adminApi } from '../../services/api'
 import { ROUTES } from '../../routes'

@@ -157,6 +157,8 @@ const battleSchema = new mongoose.Schema(
 battleSchema.index({ 'participants.userId': 1, status: 1 });
 battleSchema.index({ skillId: 1, format: 1, status: 1 });
 battleSchema.index({ createdAt: -1 });
+// Scheduler: due STARTING battles and active IN_PROGRESS scans
+battleSchema.index({ status: 1, scheduledAt: 1 });
 
 const Battle = mongoose.model('Battle', battleSchema);
 

@@ -5,12 +5,16 @@ const {
   QuestionSolution,
   UserStats,
 } = require('../models');
+const mongoose = require('mongoose');
 const {
   getPracticeSeriesParts,
 } = require('./practiceSeriesService');
 const { runCodingTests } = require('./codingTestRunner');
+const { parsePositiveInt } = require('../utils/safeInput');
 
 const QUIZ_QUESTION_TYPES = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE'];
+const PRACTICE_LIST_DEFAULT_LIMIT = 100;
+const PRACTICE_LIST_MAX_LIMIT = 200;
 
 function arraysEqual(left = [], right = []) {
   if (left.length !== right.length) return false;
@@ -72,12 +76,18 @@ async function loadAssessmentQuestions(assessment, { includeAnswers = false } = 
   const orderedEntries = [...assessment.questions].sort((a, b) => a.order - b.order);
   const questionIds = orderedEntries.map((entry) => entry.questionId);
   const [questions, solutions] = await Promise.all([
-    Question.find({ _id: { $in: questionIds } }),
-    QuestionSolution.find({ questionId: { $in: questionIds } }),
+    Question.find({ _id: { $in: questionIds } }).select(
+      'type prompt title options codingDetails',
+    ),
+    includeAnswers
+      ? QuestionSolution.find({ questionId: { $in: questionIds } })
+      : Promise.resolve([]),
   ]);
 
   const questionMap = new Map(questions.map((question) => [question._id.toString(), question]));
-  const solutionMap = new Map(solutions.map((solution) => [solution.questionId.toString(), solution]));
+  const solutionMap = new Map(
+    solutions.map((solution) => [solution.questionId.toString(), solution]),
+  );
 
   return orderedEntries
     .map((entry) => {
@@ -128,62 +138,141 @@ function formatQuizQuestions(questions, assessment) {
   });
 }
 
-async function getUserAttemptSummary(userId, assessmentId) {
-  const attempts = await AssessmentAttempt.find({
-    userId,
-    assessmentId,
-    contextType: 'PRACTICE',
-    status: { $in: ['SUBMITTED', 'EVALUATED'] },
-  })
-    .sort({ createdAt: -1 })
-    .lean();
+function toObjectId(value) {
+  if (value instanceof mongoose.Types.ObjectId) return value;
+  return new mongoose.Types.ObjectId(String(value));
+}
 
-  const best = attempts.reduce(
-    (top, attempt) => (attempt.percentage > (top?.percentage || 0) ? attempt : top),
-    null,
-  );
-
+function emptyAttemptSummary() {
   return {
-    attemptCount: attempts.length,
-    bestScore: best?.percentage ?? null,
-    passed: Boolean(best?.passed),
-    lastAttemptAt: attempts[0]?.submittedAt || null,
+    attemptCount: 0,
+    bestScore: null,
+    passed: false,
+    lastAttemptAt: null,
   };
 }
 
-async function listPracticeForUser(userId) {
-  const assessments = await Assessment.find({
+/**
+ * Batch attempt summaries for many assessments in a single aggregation.
+ * Avoids N+1 find() of full attempt histories.
+ */
+async function getUserAttemptSummariesMap(userId, assessmentIds = []) {
+  const summaryMap = new Map();
+  if (!userId || !assessmentIds.length) return summaryMap;
+
+  const objectIds = assessmentIds.map(toObjectId);
+
+  const rows = await AssessmentAttempt.aggregate([
+    {
+      $match: {
+        userId: toObjectId(userId),
+        assessmentId: { $in: objectIds },
+        contextType: 'PRACTICE',
+        status: { $in: ['SUBMITTED', 'EVALUATED'] },
+      },
+    },
+    {
+      $project: {
+        assessmentId: 1,
+        percentage: 1,
+        passed: 1,
+        submittedAt: 1,
+      },
+    },
+    {
+      $group: {
+        _id: '$assessmentId',
+        attemptCount: { $sum: 1 },
+        bestScore: { $max: '$percentage' },
+        passed: { $max: { $cond: [{ $eq: ['$passed', true] }, 1, 0] } },
+        lastAttemptAt: { $max: '$submittedAt' },
+      },
+    },
+  ]);
+
+  rows.forEach((row) => {
+    summaryMap.set(String(row._id), {
+      attemptCount: row.attemptCount || 0,
+      bestScore: row.bestScore ?? null,
+      passed: Boolean(row.passed),
+      lastAttemptAt: row.lastAttemptAt || null,
+    });
+  });
+
+  return summaryMap;
+}
+
+async function getUserAttemptSummary(userId, assessmentId) {
+  if (!userId || !assessmentId) return emptyAttemptSummary();
+  const map = await getUserAttemptSummariesMap(userId, [assessmentId]);
+  return map.get(String(assessmentId)) || emptyAttemptSummary();
+}
+
+async function listPracticeForUser(userId, query = {}) {
+  const limit = parsePositiveInt(query.limit, {
+    defaultValue: PRACTICE_LIST_DEFAULT_LIMIT,
+    min: 1,
+    max: PRACTICE_LIST_MAX_LIMIT,
+  });
+  const page = parsePositiveInt(query.page, {
+    defaultValue: 1,
+    min: 1,
+    max: 10_000,
+  });
+  const skip = (page - 1) * limit;
+
+  const filter = {
     type: 'PRACTICE',
     status: 'PUBLISHED',
-  })
-    .populate('skillId', 'name slug')
-    .sort({ updatedAt: -1 })
-    .lean();
+  };
 
-  const summaries = userId
-    ? await Promise.all(
-        assessments.map((assessment) => getUserAttemptSummary(userId, assessment._id)),
+  const [total, assessments] = await Promise.all([
+    Assessment.countDocuments(filter),
+    Assessment.find(filter)
+      .select(
+        'title description difficulty mode xpReward passingPercentage durationSeconds questions skillId seriesPart seriesBaseTitle seriesRootId updatedAt',
       )
-    : [];
+      .populate('skillId', 'name slug')
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+  ]);
 
-  return assessments.map((assessment, index) => ({
-    id: assessment._id.toString(),
-    title: assessment.title,
-    description: assessment.description || '',
-    difficulty: assessment.difficulty,
-    mode: assessment.mode,
-    xpReward: assessment.xpReward,
-    passingPercentage: assessment.passingPercentage ?? 70,
-    durationSeconds: assessment.durationSeconds || null,
-    questionCount: assessment.questions?.length || 0,
-    skillId: assessment.skillId?._id?.toString() || null,
-    skillName: assessment.skillId?.name || null,
-    skillSlug: assessment.skillId?.slug || null,
-    seriesPart: assessment.seriesPart || 1,
-    seriesBaseTitle: assessment.seriesBaseTitle || null,
-    seriesRootId: assessment.seriesRootId?.toString() || null,
-    ...(summaries[index] || {}),
-  }));
+  const summaryMap = userId
+    ? await getUserAttemptSummariesMap(
+        userId,
+        assessments.map((assessment) => assessment._id),
+      )
+    : new Map();
+
+  return {
+    assessments: assessments.map((assessment) => ({
+      id: assessment._id.toString(),
+      title: assessment.title,
+      description: assessment.description || '',
+      difficulty: assessment.difficulty,
+      mode: assessment.mode,
+      xpReward: assessment.xpReward,
+      passingPercentage: assessment.passingPercentage ?? 70,
+      durationSeconds: assessment.durationSeconds || null,
+      questionCount: assessment.questions?.length || 0,
+      skillId: assessment.skillId?._id?.toString() || null,
+      skillName: assessment.skillId?.name || null,
+      skillSlug: assessment.skillId?.slug || null,
+      seriesPart: assessment.seriesPart || 1,
+      seriesBaseTitle: assessment.seriesBaseTitle || null,
+      seriesRootId: assessment.seriesRootId?.toString() || null,
+      ...(summaryMap.get(assessment._id.toString()) || emptyAttemptSummary()),
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+      hasMore: skip + assessments.length < total,
+    },
+  };
 }
 
 async function getPracticeDetail(userId, assessmentId) {
@@ -475,7 +564,7 @@ async function runPracticeCodingTests(userId, assessmentId, code) {
   }
 
   const visibleTests = getVisibleTests(bundle.question);
-  const result = runCodingTests(code, visibleTests);
+  const result = await runCodingTests(code, visibleTests);
 
   return {
     ...result,
@@ -507,7 +596,7 @@ async function submitPracticeCoding(userId, assessmentId, code) {
     ...hiddenTests.map((test) => ({ ...test, hidden: true })),
   ];
 
-  const evaluation = runCodingTests(code, allTests);
+  const evaluation = await runCodingTests(code, allTests);
   const passingPercentage = assessment.passingPercentage ?? 100;
   const passed = evaluation.score >= passingPercentage;
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
+import ThemeToggle from './ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import { ROUTES } from '../routes'
 import { formatXpLabel } from '../utils/xpSync'
@@ -142,6 +143,8 @@ const AppNavbar = () => {
           <div className="app-navbar-actions app-navbar-actions--desktop">
             {NAVBAR_LINKS.map((link) => renderNavLink(link))}
 
+            <ThemeToggle />
+
             {user?.level ? (
               <span className="app-navbar-level-chip" title={user?.xp != null ? formatXpLabel(user.xp) : undefined}>
                 Lv {user.level}
@@ -187,18 +190,21 @@ const AppNavbar = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="app-navbar-toggle"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            aria-controls="app-navbar-mobile-menu"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <span className="app-navbar-toggle-line" />
-            <span className="app-navbar-toggle-line" />
-            <span className="app-navbar-toggle-line" />
-          </button>
+          <div className="app-navbar-mobile-tools">
+            <ThemeToggle />
+            <button
+              type="button"
+              className="app-navbar-toggle"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="app-navbar-mobile-menu"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span className="app-navbar-toggle-line" />
+              <span className="app-navbar-toggle-line" />
+              <span className="app-navbar-toggle-line" />
+            </button>
+          </div>
         </div>
       </header>
 

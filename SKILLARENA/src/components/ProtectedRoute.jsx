@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import PageLoadingSkeleton from './PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { getHomeRouteForUser, ROUTES } from '../routes'
 
@@ -7,7 +8,11 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, bootstrapping, user } = useAuth()
 
   if (bootstrapping) {
-    return <div className="app-loading">Loading…</div>
+    return (
+      <div className="app-loading-bone">
+        <PageLoadingSkeleton label="Checking session" />
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -15,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (user?.role === 'ADMIN') {
-    return <Navigate to={ROUTES.admin} replace />
+    return <Navigate to={getHomeRouteForUser(user)} replace />
   }
 
   return children

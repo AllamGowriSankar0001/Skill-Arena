@@ -1,16 +1,26 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { verifyAccessToken } = require('../utils/accessToken');
+const { readAccessToken } = require('../utils/authCookies');
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const header = req.headers.authorization || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    const { token, source } = readAccessToken(req);
 
     if (!token) {
       return res.status(401).json({ message: 'Not authorized. No token provided.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (token.length > 4096) {
+      return res.status(401).json({ message: 'Not authorized. Invalid token.' });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch {
+      return res.status(401).json({ message: 'Not authorized. Invalid token.' });
+    }
+
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -22,6 +32,10 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
+    req.auth = {
+      sessionId: decoded.sid,
+      tokenSource: source,
+    };
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized. Invalid token.' });

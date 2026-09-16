@@ -6,11 +6,22 @@ import { configureBoneyard } from 'boneyard-js/react'
 import _learn_course_card from './learn-course-card.bones.json'
 import _practice_card from './practice-card.bones.json'
 import _community_message from './community-message.bones.json'
+import _page_loading from './page-loading.bones.json'
+import _list_loading from './list-loading.bones.json'
 
-configureBoneyard({"color":"rgba(138, 122, 109, 0.14)","darkColor":"rgba(253, 248, 240, 0.08)","animate":"shimmer","shimmerColor":"rgba(196, 92, 38, 0.08)","darkShimmerColor":"rgba(240, 180, 41, 0.1)","speed":"1.8s"})
+configureBoneyard({
+  color: 'rgba(5, 150, 105, 0.14)',
+  darkColor: 'rgba(52, 211, 153, 0.12)',
+  animate: 'shimmer',
+  shimmerColor: 'rgba(5, 150, 105, 0.1)',
+  darkShimmerColor: 'rgba(110, 231, 183, 0.12)',
+  speed: '1.8s',
+})
 
 registerBones({
-  "learn-course-card": _learn_course_card,
-  "practice-card": _practice_card,
-  "community-message": _community_message,
+  'learn-course-card': _learn_course_card,
+  'practice-card': _practice_card,
+  'community-message': _community_message,
+  'page-loading': _page_loading,
+  'list-loading': _list_loading,
 })

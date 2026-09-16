@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import AppEmptyState from '../components/AppEmptyState'
 import BlogContent from '../components/BlogContent'
 import LessonQuiz from '../components/LessonQuiz'
+import PageBreadcrumb from '../components/PageBreadcrumb'
 import VideoLessonPlayer from '../components/VideoLessonPlayer'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { learningApi, platformApi } from '../services/api'
@@ -89,14 +91,24 @@ const LessonPage = () => {
           }
         }
 
+        // Access check must complete before progress reads.
         await learningApi.startLesson(lessonId)
-        const detail = await learningApi.lessonProgress(lessonId)
+
+        const progressCourseId = courseId
+        const [detail, progress] = await Promise.all([
+          learningApi.lessonProgress(lessonId),
+          progressCourseId
+            ? learningApi.courseProgress(progressCourseId)
+            : Promise.resolve(null),
+        ])
+
         if (cancelled) return
         setProgressDetail(detail)
+        if (progress) setCourseProgress(progress)
 
-        if (courseId || detail.courseId) {
-          const progress = await learningApi.courseProgress(courseId || detail.courseId)
-          if (!cancelled) setCourseProgress(progress)
+        if (!progressCourseId && detail.courseId) {
+          const courseProg = await learningApi.courseProgress(detail.courseId)
+          if (!cancelled) setCourseProgress(courseProg)
         }
       } catch (err) {
         if (err.code === 'LESSON_LOCKED') {
@@ -271,7 +283,7 @@ const LessonPage = () => {
             })}
             contextLabel="coding lesson"
             backTo={coursePath}
-            backLabel="← Back to course"
+            backLabel="Course"
           >
             <CodingPlayground
               lessonId={lessonId}
@@ -302,14 +314,21 @@ const LessonPage = () => {
     <main className="app-section">
       <div className="app-section-inner app-section-inner--lesson">
         {loading && !lesson ? (
-          <p className="lesson-page-loading" aria-live="polite">
-            Loading lesson…
-          </p>
+          <div className="lesson-page-loading" aria-live="polite">
+            <PageLoadingSkeleton label="Loading lesson" />
+          </div>
         ) : null}
         {error ? <p className="app-section-error">{error}</p> : null}
 
         {!loading && !error && lesson ? (
           <>
+            <PageBreadcrumb
+              items={[
+                { label: 'Courses', to: ROUTES.learn },
+                { label: lesson.courseTitle || 'Course', to: coursePath },
+                { label: lesson.title },
+              ]}
+            />
             <header className="lesson-page-header">
               <p className="lesson-page-eyebrow">
                 {lesson.courseTitle}

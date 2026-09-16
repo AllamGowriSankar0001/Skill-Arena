@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
+import ThemeToggle from './ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import { useNavbarScroll } from '../hooks/useNavbarScroll'
 import { ROUTES } from '../routes'
@@ -8,9 +9,9 @@ import './Navbar.css'
 
 const NAV_LINKS = [
   { label: 'FEATURES', mobileLabel: 'Features', to: `${ROUTES.home}#features` },
-  { label: 'BATTLES', mobileLabel: 'Battles', to: ROUTES.battles },
-  { label: 'LEARN', mobileLabel: 'Learn', to: ROUTES.learn },
-  { label: 'COMMUNITY', mobileLabel: 'Community', to: ROUTES.community },
+  { label: 'BATTLES', mobileLabel: 'Battles', to: `${ROUTES.home}#battles` },
+  { label: 'LEARN', mobileLabel: 'Learn', to: `${ROUTES.home}#learn` },
+  { label: 'COMMUNITY', mobileLabel: 'Community', to: `${ROUTES.home}#community` },
 ]
 
 const Navbar = ({ alwaysVisible = false }) => {
@@ -48,12 +49,28 @@ const Navbar = ({ alwaysVisible = false }) => {
         <ul className="navbar-links navbar-links--desktop">
           {NAV_LINKS.map(({ label, to }) => (
             <li key={label}>
-              <Link to={to}>{label}</Link>
+              <Link
+                to={to}
+                onClick={(event) => {
+                  const hash = to.includes('#') ? to.split('#')[1] : ''
+                  if (!hash) return
+                  if (location.pathname !== ROUTES.home) return
+                  event.preventDefault()
+                  const section = document.getElementById(hash)
+                  if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                  navigate({ pathname: ROUTES.home, hash }, { replace: false })
+                }}
+              >
+                {label}
+              </Link>
             </li>
           ))}
         </ul>
 
         <div className="navbar-actions navbar-actions--desktop">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link to={ROUTES.dashboard} className="navbar-login">
@@ -88,18 +105,21 @@ const Navbar = ({ alwaysVisible = false }) => {
           )}
         </div>
 
-        <button
-          type="button"
-          className="navbar-toggle"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="navbar-mobile-menu"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <span className="navbar-toggle-line" />
-          <span className="navbar-toggle-line" />
-          <span className="navbar-toggle-line" />
-        </button>
+        <div className="navbar-mobile-tools">
+          <ThemeToggle className="theme-toggle--mobile-bar" />
+          <button
+            type="button"
+            className="navbar-toggle"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="navbar-mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="navbar-toggle-line" />
+            <span className="navbar-toggle-line" />
+            <span className="navbar-toggle-line" />
+          </button>
+        </div>
       </nav>
 
       <button
@@ -123,7 +143,22 @@ const Navbar = ({ alwaysVisible = false }) => {
         <ul className="navbar-mobile-links">
           {NAV_LINKS.map(({ label, mobileLabel, to }) => (
             <li key={label}>
-              <Link to={to} onClick={closeMenu}>
+              <Link
+                to={to}
+                onClick={(event) => {
+                  closeMenu()
+                  const hash = to.includes('#') ? to.split('#')[1] : ''
+                  if (!hash || location.pathname !== ROUTES.home) return
+                  event.preventDefault()
+                  window.setTimeout(() => {
+                    const section = document.getElementById(hash)
+                    if (section) {
+                      section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                    navigate({ pathname: ROUTES.home, hash }, { replace: false })
+                  }, 0)
+                }}
+              >
                 <span>{mobileLabel || label}</span>
                 <span className="navbar-mobile-link-arrow" aria-hidden="true">
                   →

@@ -11,16 +11,27 @@
     "dev:all": "node scripts/dev-all.js",
     "seed": "node scripts/seed.js",
     "migrate:coding": "node scripts/migrateCodingLessons.js",
-    "test": "node --test tests/**/*.test.js",
+    "migrate:remove-original-passwords": "node scripts/removeOriginalPasswords.js",
+    "perf:explain": "node scripts/perfExplain.js",
+    "perf:measure": "node scripts/perfMeasure.js",
+    "perf:hotpath": "node scripts/perfHotPath.js",
+    "perf:phase9": "node scripts/perfPhase9Load.js",
+    "perf:phase9:race": "node scripts/perfPhase9Race.js",
+    "test": "node --test tests/learning.test.js tests/xp.test.js tests/security.phase1.test.js tests/security.phase4.test.js tests/coding.runner.security.test.js tests/pdf.security.test.js tests/performance.phase2.test.js tests/leaderboard.ranking.test.js tests/performance.phase9.test.js",
     "create-admin": "node scripts/createAdmin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "helmet": "^8.1.0",
     "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.24.4"
+  },
+  "overrides": {
+    "qs": "6.16.0"
   }
 }

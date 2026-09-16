@@ -2,11 +2,20 @@ const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const { requireRole } = require('../middleware/roleMiddleware');
 const adminController = require('../controllers/adminController');
+const { createRateLimiter, getClientIp } = require('../middleware/rateLimitMiddleware');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 router.use(requireRole('ADMIN'));
+
+const aiLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: 'Too many AI generation requests. Please try again later.',
+  code: 'AI_RATE_LIMIT',
+  keyGenerator: (req) => `admin-ai::${req.user?._id || getClientIp(req)}`,
+});
 
 router.get('/overview', adminController.getOverview);
 router.get('/categories', adminController.listCategories);
@@ -17,8 +26,8 @@ router.post('/skills', adminController.createSkill);
 router.delete('/skills/:id', adminController.deleteSkill);
 
 router.get('/courses', adminController.listCourses);
-router.post('/courses/generate-ai/stream', adminController.generateCourseWithAIStream);
-router.post('/courses/generate-ai', adminController.generateCourseWithAI);
+router.post('/courses/generate-ai/stream', aiLimiter, adminController.generateCourseWithAIStream);
+router.post('/courses/generate-ai', aiLimiter, adminController.generateCourseWithAI);
 router.post('/courses', adminController.createCourse);
 router.patch('/courses/:id', adminController.updateCourse);
 router.delete('/courses/:id', adminController.deleteCourse);
@@ -35,7 +44,7 @@ router.post('/lessons/:id/coding', adminController.createLessonCoding);
 router.get('/lessons/:id/coding', adminController.getLessonCoding);
 router.patch('/lessons/:id/coding', adminController.updateLessonCoding);
 
-router.post('/practice/generate-ai', adminController.generatePracticeWithAI);
+router.post('/practice/generate-ai', aiLimiter, adminController.generatePracticeWithAI);
 router.get('/assessments', adminController.listAssessments);
 router.get('/assessments/:id', adminController.getAssessment);
 router.post('/assessments', adminController.createPracticeAssessment);

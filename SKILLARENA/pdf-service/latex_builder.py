@@ -10,6 +10,9 @@ def escape_latex(value: Any) -> str:
     text = str(value or '').strip()
     if not text:
         return ''
+    # Collapse control characters so user text cannot break TeX structure.
+    text = ''.join(ch if ch >= ' ' or ch in '\t' else ' ' for ch in text)
+    text = text.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ')
     text = (
         text.replace('\u2022', '-')
         .replace('\u2013', '-')
@@ -21,6 +24,9 @@ def escape_latex(value: Any) -> str:
         .replace('\u00a0', ' ')
         .replace('&', 'and')
     )
+    # Cap field length to limit TeX memory / output abuse.
+    if len(text) > 4000:
+        text = text[:4000]
     return LATEX_SPECIAL.sub(r'\\\1', text)
 
 

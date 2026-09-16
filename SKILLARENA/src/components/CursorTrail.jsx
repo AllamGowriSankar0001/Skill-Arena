@@ -22,6 +22,7 @@ const getTrailScale = (index, interactive) => {
 const CursorTrail = () => {
   const [enabled, setEnabled] = useState(false)
   const coordsRef = useRef({ x: 0, y: 0 })
+  const lastHitTestAt = useRef(0)
   const trailRef = useRef(
     Array.from({ length: CURSOR_TRAIL_COUNT }, () => ({ x: 0, y: 0 })),
   )
@@ -55,9 +56,16 @@ const CursorTrail = () => {
     const onMove = ({ clientX, clientY }) => {
       coordsRef.current = { x: clientX, y: clientY }
 
+      const now = performance.now()
+      if (now - lastHitTestAt.current < 80) return
+      lastHitTestAt.current = now
+
       const target = document.elementFromPoint(clientX, clientY)
-      modeRef.current.interactive = isInteractiveCursorTarget(target)
-      syncModeClasses()
+      const nextInteractive = isInteractiveCursorTarget(target)
+      if (nextInteractive !== modeRef.current.interactive) {
+        modeRef.current.interactive = nextInteractive
+        syncModeClasses()
+      }
     }
 
     const onDown = () => {

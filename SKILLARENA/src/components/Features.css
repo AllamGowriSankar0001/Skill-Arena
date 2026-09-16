@@ -1,15 +1,16 @@
 .features {
-  --features-ink: #1a110a;
-  --features-muted: #5c4f45;
-  --features-tan: #f5e8c8;
-  --features-accent: #c45c26;
+  --features-ink: var(--sa-ink);
+  --features-muted: var(--sa-muted);
+  --features-tan: var(--sa-primary-soft);
+  --features-accent: var(--sa-primary);
 
-  padding: 5rem 3rem 6rem;
-  background-color: #fdf8f0;
+  scroll-margin-top: calc(var(--navbar-height, 4rem) + 0.75rem);
+  padding: 4.5rem 3rem 5rem;
+  background-color: var(--sa-bg-alt);
   background-image:
-    radial-gradient(circle at 88% 42%, rgba(245, 232, 200, 0.55) 0%, transparent 34%),
-    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
+    radial-gradient(circle at 88% 42%, rgba(5, 150, 105, 0.1) 0%, transparent 34%),
+    radial-gradient(circle at 12% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 36%);
+  background-size: auto, auto;
 }
 
 .features-inner {
@@ -25,13 +26,13 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--features-muted);
+  color: var(--sa-primary);
 }
 
 .features-eyebrow-line {
   width: 2rem;
   height: 1px;
-  background-color: var(--features-muted);
+  background-color: var(--sa-primary);
 }
 
 .features-intro {
@@ -61,7 +62,7 @@
   margin-top: 3.5rem;
   padding: 4.5rem 2rem 3rem;
   border-radius: 2rem;
-  background-color: #101010;
+  background-color: #0f172a;
   overflow: hidden;
 }
 
@@ -101,7 +102,7 @@
   align-self: flex-start;
   padding: 0.4rem 0.85rem;
   border-radius: 9999px;
-  background-color: #fdf8f0;
+  background-color: var(--sa-bg);
   color: var(--features-ink);
   font-size: 0.75rem;
   font-weight: 600;
@@ -170,17 +171,17 @@
 }
 
 .deck-card--dark {
-  background-color: #2a2420;
-  color: #fdf8f0;
+  background-color: #1e293b;
+  color: #ffffff;
 }
 
 .deck-card--dark .deck-card-icon {
   background-color: var(--features-accent);
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .deck-card--dark .deck-card-description {
-  color: rgba(253, 248, 240, 0.72);
+  color: rgba(248, 250, 252, 0.72);
 }
 
 .deck-card--dark .deck-card-index {
@@ -193,14 +194,14 @@
 }
 
 .deck-card--light {
-  background-color: #ffffff;
+  background-color: var(--sa-bg);
   color: var(--features-ink);
 }
 
 .deck-card--tan .deck-card-icon,
 .deck-card--light .deck-card-icon {
   background-color: var(--features-ink);
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .deck-card--tan .deck-card-description,
@@ -214,7 +215,7 @@
   justify-content: center;
   gap: 1.25rem;
   margin-top: 2.5rem;
-  color: #fdf8f0;
+  color: #ffffff;
 }
 
 .features-deck-nav-label {

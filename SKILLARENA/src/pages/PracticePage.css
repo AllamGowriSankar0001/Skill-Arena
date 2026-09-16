@@ -1,7 +1,7 @@
 .practice-page {
   min-height: calc(100dvh - var(--navbar-height, 4rem));
   padding: var(--app-page-padding-y) var(--app-page-padding-x) clamp(2rem, 4vw, 3rem);
-  background: var(--app-bg, #f6f3ee);
+  background: var(--app-bg, #f8fafc);
 }
 
 .practice-page-inner {
@@ -29,7 +29,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .practice-page-header h1 {
@@ -38,12 +38,12 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.12;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .practice-lead {
   margin: 0.65rem 0 0;
-  color: #6b5f54;
+  color: #64748b;
   line-height: 1.65;
   font-size: 0.98rem;
 }
@@ -62,17 +62,17 @@
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  color: #6b5f54;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #64748b;
   font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .practice-pill--count {
-  border-color: rgba(196, 92, 38, 0.2);
-  background: rgba(196, 92, 38, 0.08);
-  color: #c45c26;
+  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
   font-weight: 700;
 }
 
@@ -89,8 +89,8 @@
   padding: 1rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .practice-toolbar-head {
@@ -105,16 +105,16 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .practice-clear-btn,
 .practice-empty-btn {
   padding: 0.4rem 0.75rem;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 0.5rem;
   background: #fff;
-  color: #6b5f54;
+  color: #64748b;
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
@@ -124,8 +124,8 @@
 
 .practice-clear-btn:hover,
 .practice-empty-btn:hover {
-  border-color: rgba(196, 92, 38, 0.35);
-  color: #c45c26;
+  border-color: rgba(5, 150, 105, 0.35);
+  color: #059669;
 }
 
 .practice-mode-tabs {
@@ -134,8 +134,8 @@
   gap: 0.35rem;
   padding: 0.3rem;
   border-radius: 0.65rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.06);
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .practice-mode-tab {
@@ -145,7 +145,7 @@
   border: none;
   border-radius: 0.45rem;
   background: transparent;
-  color: #6b5f54;
+  color: #64748b;
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 600;
@@ -155,7 +155,7 @@
 }
 
 .practice-mode-tab.is-active {
-  background: #1a110a;
+  background: #0f172a;
   color: #fff;
 }
 
@@ -165,7 +165,7 @@
   gap: 1rem;
   margin-top: 0.85rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.06);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .practice-filter {
@@ -179,7 +179,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .practice-select-wrap {
@@ -193,8 +193,8 @@
   right: 0.75rem;
   width: 0.4rem;
   height: 0.4rem;
-  border-right: 2px solid #8a7a6d;
-  border-bottom: 2px solid #8a7a6d;
+  border-right: 2px solid #64748b;
+  border-bottom: 2px solid #64748b;
   transform: translateY(-65%) rotate(45deg);
   pointer-events: none;
 }
@@ -203,12 +203,12 @@
   width: 100%;
   height: 2.5rem;
   padding: 0 2rem 0 0.75rem;
-  border: 1px solid rgba(26, 17, 10, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 0.55rem;
   background: #fff;
   font: inherit;
   font-size: 0.86rem;
-  color: #1a110a;
+  color: #0f172a;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
@@ -216,8 +216,8 @@
 
 .practice-filter select:focus {
   outline: none;
-  border-color: rgba(196, 92, 38, 0.45);
-  box-shadow: 0 0 0 3px rgba(196, 92, 38, 0.1);
+  border-color: rgba(5, 150, 105, 0.45);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
 .practice-difficulty-tabs {
@@ -226,7 +226,7 @@
   gap: 0.35rem;
   padding: 0.25rem;
   border-radius: 0.55rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   background: #fff;
 }
 
@@ -236,7 +236,7 @@
   border: 1px solid transparent;
   border-radius: 0.4rem;
   background: transparent;
-  color: #6b5f54;
+  color: #64748b;
   font-family: inherit;
   font-size: 0.76rem;
   font-weight: 700;
@@ -245,11 +245,11 @@
 }
 
 .practice-difficulty-tab:hover:not(.is-active) {
-  background: #faf8f5;
+  background: #f8fafc;
 }
 
 .practice-difficulty-tab.is-active {
-  background: #1a110a;
+  background: #0f172a;
   color: #fff;
 }
 
@@ -257,7 +257,7 @@
   margin: 0.85rem 0 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 /* Alerts & grid */
@@ -267,8 +267,8 @@
   padding: 0.85rem 1rem;
   border-radius: 0.75rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  color: #6b5f54;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #64748b;
 }
 
 .practice-alert--error {
@@ -309,8 +309,8 @@
   padding: 1.15rem 1.2rem 1.05rem;
   border-radius: 1rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 3px rgba(26, 17, 10, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   text-decoration: none;
   color: inherit;
   transition:
@@ -320,8 +320,8 @@
 }
 
 .practice-card:hover {
-  border-color: rgba(196, 92, 38, 0.3);
-  box-shadow: 0 12px 32px rgba(26, 17, 10, 0.09);
+  border-color: rgba(5, 150, 105, 0.3);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.09);
   transform: translateY(-2px);
 }
 
@@ -344,8 +344,8 @@
 }
 
 .practice-badge--skill {
-  background: rgba(26, 17, 10, 0.06);
-  color: #5c4f45;
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
 }
 
 .practice-badge--series {
@@ -354,8 +354,8 @@
 }
 
 .practice-badge--difficulty {
-  background: rgba(26, 17, 10, 0.06);
-  color: #6b5f54;
+  background: rgba(15, 23, 42, 0.06);
+  color: #64748b;
 }
 
 .practice-badge--easy {
@@ -364,8 +364,8 @@
 }
 
 .practice-badge--medium {
-  background: rgba(196, 92, 38, 0.12);
-  color: #c45c26;
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
 }
 
 .practice-badge--hard {
@@ -400,8 +400,8 @@
 }
 
 .practice-card-icon--coding {
-  background: rgba(196, 92, 38, 0.12);
-  color: #c45c26;
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
 }
 
 .practice-card-icon--quiz {
@@ -420,7 +420,7 @@
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.4;
-  color: #1a110a;
+  color: #0f172a;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -431,7 +431,7 @@
   margin: 0;
   font-size: 0.86rem;
   line-height: 1.6;
-  color: #5c4f45;
+  color: #475569;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -450,22 +450,22 @@
   gap: 0.25rem;
   padding: 0.32rem 0.6rem;
   border-radius: 0.5rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.06);
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
   font-size: 0.73rem;
   font-weight: 700;
-  color: #6b5f54;
+  color: #64748b;
   white-space: nowrap;
 }
 
 .practice-stat--mode {
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .practice-stat--coding {
-  background: rgba(196, 92, 38, 0.09);
-  border-color: rgba(196, 92, 38, 0.16);
-  color: #c45c26;
+  background: rgba(5, 150, 105, 0.09);
+  border-color: rgba(5, 150, 105, 0.16);
+  color: #059669;
 }
 
 .practice-stat--quiz {
@@ -483,12 +483,12 @@
 .practice-stat--xp {
   background: rgba(161, 98, 7, 0.08);
   border-color: rgba(161, 98, 7, 0.16);
-  color: #92400e;
+  color: #065f46;
 }
 
 .practice-stat--desktop {
-  background: rgba(26, 17, 10, 0.04);
-  color: #8a7a6d;
+  background: rgba(15, 23, 42, 0.04);
+  color: #64748b;
 }
 
 .practice-card-foot {
@@ -498,7 +498,7 @@
   gap: 0.75rem;
   margin-top: auto;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.07);
+  border-top: 1px solid rgba(15, 23, 42, 0.07);
 }
 
 .practice-status {
@@ -507,7 +507,7 @@
   gap: 0.4rem;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .practice-status--new::before {
@@ -515,7 +515,7 @@
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
-  background: #c45c26;
+  background: #059669;
   flex-shrink: 0;
 }
 
@@ -529,7 +529,7 @@
 }
 
 .practice-status--progress {
-  color: #c45c26;
+  color: #059669;
 }
 
 .practice-status--progress::before {
@@ -537,7 +537,7 @@
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
-  background: #c45c26;
+  background: #059669;
   flex-shrink: 0;
 }
 
@@ -547,11 +547,11 @@
   gap: 0.35rem;
   padding: 0.42rem 0.8rem;
   border-radius: 999px;
-  background: rgba(196, 92, 38, 0.09);
-  border: 1px solid rgba(196, 92, 38, 0.18);
+  background: rgba(5, 150, 105, 0.09);
+  border: 1px solid rgba(5, 150, 105, 0.18);
   font-size: 0.75rem;
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
   white-space: nowrap;
   transition:
     background 0.15s ease,
@@ -561,8 +561,8 @@
 }
 
 .practice-card:hover .practice-card-cta {
-  background: #c45c26;
-  border-color: #c45c26;
+  background: #059669;
+  border-color: #059669;
   color: #fff;
 }
 
@@ -584,7 +584,7 @@
 
 .practice-skeleton-line {
   border-radius: 0.35rem;
-  background: linear-gradient(90deg, #f0ebe3 0%, #faf8f5 50%, #f0ebe3 100%);
+  background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
   background-size: 200% 100%;
   animation: practice-shimmer 1.4s ease infinite;
 }

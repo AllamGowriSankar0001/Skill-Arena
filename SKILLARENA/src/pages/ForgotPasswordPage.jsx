@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard, { AuthFooterLink } from '../components/auth/AuthCard'
 import AuthErrorAlert from '../components/auth/AuthErrorAlert'
 import { authApi } from '../services/api'
 import { ROUTES } from '../routes'
-import { trimValue } from '../utils/authValidation'
-import { AUTH_MESSAGES } from '../constants/authMessages'
+import {
+  FIELD_LIMITS,
+  getEmailError,
+  isForgotPasswordFormReady,
+  trimValue,
+} from '../utils/authValidation'
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate()
@@ -14,8 +18,11 @@ const ForgotPasswordPage = () => {
   const confirmedEmail = location.state?.email
 
   const [email, setEmail] = useState(confirmedEmail || '')
-  const [error, setError] = useState('')
+  const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const emailError = useMemo(() => getEmailError(email), [email])
+  const formReady = useMemo(() => isForgotPasswordFormReady({ email }), [email])
 
   if (confirmed) {
     return (
@@ -46,14 +53,11 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setError('')
+    setServerError('')
+
+    if (!formReady) return
 
     const trimmedEmail = trimValue(email)
-    if (!trimmedEmail) {
-      setError(AUTH_MESSAGES.FILL_REQUIRED_FIELDS)
-      return
-    }
-
     setLoading(true)
     try {
       await authApi.forgotPassword({ email: trimmedEmail })
@@ -62,11 +66,13 @@ const ForgotPasswordPage = () => {
         replace: true,
       })
     } catch (err) {
-      setError(err.message || 'Unable to send reset email')
+      setServerError(err.message || 'Unable to send reset email')
     } finally {
       setLoading(false)
     }
   }
+
+  const canSubmit = formReady && !loading
 
   return (
     <AuthCard
@@ -81,21 +87,32 @@ const ForgotPasswordPage = () => {
       }
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        {error ? <AuthErrorAlert message={error} /> : null}
+        {serverError ? <AuthErrorAlert message={serverError} /> : null}
 
-        <div className={`auth-field${error ? ' auth-field--error' : ''}`}>
+        <div className={`auth-field${emailError ? ' auth-field--error' : ''}`}>
           <label htmlFor="forgot-email">Email</label>
           <input
             id="forgot-email"
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              if (serverError) setServerError('')
+            }}
             autoComplete="email"
+            maxLength={FIELD_LIMITS.email}
+            aria-invalid={Boolean(emailError) || undefined}
+            aria-describedby={emailError ? 'forgot-email-error' : undefined}
           />
+          {emailError ? (
+            <p id="forgot-email-error" className="auth-field-error" role="alert">
+              {emailError}
+            </p>
+          ) : null}
         </div>
 
-        <button type="submit" className="auth-submit" disabled={loading}>
+        <button type="submit" className="auth-submit" disabled={!canSubmit}>
           {loading ? 'Sending…' : 'Send reset link'}
         </button>
       </form>

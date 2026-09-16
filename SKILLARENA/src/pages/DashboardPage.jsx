@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CourseThumbnail from '../components/CourseThumbnail'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { homeApi } from '../services/api'
 import { ROUTES } from '../routes'
@@ -73,7 +74,7 @@ const DashboardPage = () => {
         </header>
 
         {error ? <p className="dashboard-alert dashboard-alert--error">{error}</p> : null}
-        {loading ? <p className="dashboard-alert">Loading your dashboard…</p> : null}
+        {loading ? <PageLoadingSkeleton label="Loading your dashboard" /> : null}
 
         {!loading ? (
           <div className="dashboard-layout">

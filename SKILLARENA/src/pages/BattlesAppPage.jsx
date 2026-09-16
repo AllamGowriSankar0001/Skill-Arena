@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { battleApi } from '../services/api'
 import { ROUTES } from '../routes'
 import './BattlesAppPage.css'
@@ -265,10 +266,7 @@ const BattlesAppPage = () => {
     return (
       <div className="arena-page arena-page--boot">
         <div className="arena-boot">
-          <div className="arena-boot-emblem" aria-hidden="true">
-            VS
-          </div>
-          <p className="arena-boot-text">Loading battle arena…</p>
+          <PageLoadingSkeleton label="Loading battle arena" />
         </div>
       </div>
     )

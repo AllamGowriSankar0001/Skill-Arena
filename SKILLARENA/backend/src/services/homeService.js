@@ -16,6 +16,7 @@ const {
 } = require('../models');
 const { getUserStats } = require('./userStatsService');
 const { rankFromLevel } = require('../utils/level');
+const { withPerfSpan } = require('../utils/perfContext');
 
 function formatCourse(course) {
   if (!course) return null;
@@ -34,260 +35,333 @@ function formatCourse(course) {
 }
 
 async function getContinueLearning(userId) {
-  const enrollment = await Enrollment.findOne({
-    userId,
-    status: 'ACTIVE',
-  })
-    .sort({ lastAccessedAt: -1, updatedAt: -1 })
-    .populate('courseId')
-    .populate('currentLessonId');
+  return withPerfSpan('home.continueLearning', async () => {
+    const enrollment = await Enrollment.findOne({
+      userId,
+      status: 'ACTIVE',
+    })
+      .sort({ lastAccessedAt: -1, updatedAt: -1 })
+      .populate('courseId', 'title slug shortDescription thumbnailUrl level estimatedMinutes stats')
+      .populate('currentLessonId', 'title')
+      .select('courseId currentLessonId progressPercentage lastAccessedAt status')
+      .lean();
 
-  if (!enrollment?.courseId) {
-    return null;
-  }
+    if (!enrollment?.courseId) {
+      return null;
+    }
 
-  return {
-    enrollmentId: enrollment._id,
-    course: formatCourse(enrollment.courseId),
-    currentLesson: enrollment.currentLessonId
-      ? {
-          id: enrollment.currentLessonId._id,
-          title: enrollment.currentLessonId.title,
-        }
-      : null,
-    progressPercentage: enrollment.progressPercentage,
-    lastAccessedAt: enrollment.lastAccessedAt,
-  };
+    return {
+      enrollmentId: enrollment._id,
+      course: formatCourse(enrollment.courseId),
+      currentLesson: enrollment.currentLessonId
+        ? {
+            id: enrollment.currentLessonId._id,
+            title: enrollment.currentLessonId.title,
+          }
+        : null,
+      progressPercentage: enrollment.progressPercentage,
+      lastAccessedAt: enrollment.lastAccessedAt,
+    };
+  });
 }
 
 async function getDailyChallenge(userId) {
-  const now = new Date();
-  const challenge = await DailyChallenge.findOne({
-    status: 'ACTIVE',
-    startAt: { $lte: now },
-    endAt: { $gte: now },
-  });
+  return withPerfSpan('home.dailyChallenge', async () => {
+    const now = new Date();
+    const challenge = await DailyChallenge.findOne({
+      status: 'ACTIVE',
+      startAt: { $lte: now },
+      endAt: { $gte: now },
+    })
+      .select('title description targetValue xpReward')
+      .lean();
 
-  if (!challenge) {
-    return null;
-  }
+    if (!challenge) {
+      return null;
+    }
 
-  let userChallenge = await UserDailyChallenge.findOne({
-    userId,
-    dailyChallengeId: challenge._id,
-  });
-
-  if (!userChallenge) {
-    userChallenge = await UserDailyChallenge.create({
+    let userChallenge = await UserDailyChallenge.findOne({
       userId,
       dailyChallengeId: challenge._id,
-      targetValue: challenge.targetValue,
-    });
-  }
+    })
+      .select('currentProgress targetValue status')
+      .lean();
 
-  return {
-    id: challenge._id,
-    title: challenge.title,
-    description: challenge.description,
-    currentProgress: userChallenge.currentProgress,
-    targetValue: userChallenge.targetValue,
-    xpReward: challenge.xpReward,
-    status: userChallenge.status,
-  };
+    if (!userChallenge) {
+      userChallenge = await UserDailyChallenge.create({
+        userId,
+        dailyChallengeId: challenge._id,
+        targetValue: challenge.targetValue,
+      });
+    }
+
+    return {
+      id: challenge._id,
+      title: challenge.title,
+      description: challenge.description,
+      currentProgress: userChallenge.currentProgress,
+      targetValue: userChallenge.targetValue,
+      xpReward: challenge.xpReward,
+      status: userChallenge.status,
+    };
+  });
 }
 
 async function getActiveBattle(userId) {
-  const battle = await Battle.findOne({
-    participants: {
-      $elemMatch: {
-        userId,
-        status: { $in: ['INVITED', 'JOINED', 'READY', 'PLAYING'] },
+  return withPerfSpan('home.activeBattle', async () => {
+    const battle = await Battle.findOne({
+      participants: {
+        $elemMatch: {
+          userId,
+          status: { $in: ['INVITED', 'JOINED', 'READY', 'PLAYING'] },
+        },
       },
-    },
-    status: { $in: ['WAITING', 'MATCHED', 'STARTING', 'IN_PROGRESS'] },
-  })
-    .populate('skillId', 'name')
-    .sort({ scheduledAt: 1, createdAt: -1 });
-
-  if (!battle) {
-    return null;
-  }
-
-  const opponent = battle.participants.find(
-    (p) => String(p.userId) !== String(userId),
-  );
-  let opponentUser = null;
-  if (opponent) {
-    opponentUser = await User.findById(opponent.userId).select('name');
-  }
-
-  return {
-    id: battle._id,
-    battleCode: battle.battleCode,
-    format: battle.format,
-    mode: battle.mode,
-    status: battle.status,
-    skillName: battle.skillId?.name,
-    opponentName: opponentUser?.name,
-    scheduledAt: battle.scheduledAt,
-    startedAt: battle.startedAt,
-  };
-}
-
-async function getRecommendedCourses(userId) {
-  const user = await User.findById(userId).select('interestedSkillIds');
-  const filter = { status: 'PUBLISHED' };
-
-  if (user?.interestedSkillIds?.length) {
-    filter.skillIds = { $in: user.interestedSkillIds };
-  }
-
-  let courses = await Course.find(filter)
-    .sort({ isFeatured: -1, 'stats.enrollmentCount': -1 })
-    .limit(4);
-
-  if (courses.length < 4) {
-    const existingIds = courses.map((c) => c._id);
-    const more = await Course.find({
-      status: 'PUBLISHED',
-      _id: { $nin: existingIds },
+      status: { $in: ['WAITING', 'MATCHED', 'STARTING', 'IN_PROGRESS'] },
     })
-      .sort({ isFeatured: -1 })
-      .limit(4 - courses.length);
-    courses = [...courses, ...more];
-  }
+      .populate('skillId', 'name')
+      .select('battleCode format mode status skillId participants scheduledAt startedAt')
+      .sort({ scheduledAt: 1, createdAt: -1 })
+      .lean();
 
-  return courses.map(formatCourse);
+    if (!battle) {
+      return null;
+    }
+
+    const opponent = battle.participants.find((p) => String(p.userId) !== String(userId));
+    let opponentName = null;
+    if (opponent) {
+      const opponentUser = await User.findById(opponent.userId).select('name').lean();
+      opponentName = opponentUser?.name || null;
+    }
+
+    return {
+      id: battle._id,
+      battleCode: battle.battleCode,
+      format: battle.format,
+      mode: battle.mode,
+      status: battle.status,
+      skillName: battle.skillId?.name,
+      opponentName,
+      scheduledAt: battle.scheduledAt,
+      startedAt: battle.startedAt,
+    };
+  });
 }
 
-async function getWeeklyLeaderboard(userId) {
-  const adminUsers = await User.find({ role: 'ADMIN' }).select('_id').lean();
-  const adminIds = adminUsers.map((entry) => entry._id);
+async function getRecommendedCourses(userId, interestedSkillIds = null) {
+  return withPerfSpan('home.recommendedCourses', async () => {
+    let skillIds = interestedSkillIds;
+    if (skillIds == null) {
+      const user = await User.findById(userId).select('interestedSkillIds').lean();
+      skillIds = user?.interestedSkillIds || [];
+    }
 
-  const topUsers = await UserStats.find({ userId: { $nin: adminIds } })
-    .sort({ totalXp: -1 })
-    .limit(3)
-    .populate('userId', 'name role');
+    const filter = { status: 'PUBLISHED' };
+    if (skillIds?.length) {
+      filter.skillIds = { $in: skillIds };
+    }
 
-  const entries = topUsers
-    .filter((entry) => entry.userId && entry.userId.role !== 'ADMIN')
-    .map((entry, index) => ({
-      rank: index + 1,
-      name: entry.userId.name,
-      xp: entry.totalXp,
-    }));
+    let courses = await Course.find(filter)
+      .sort({ isFeatured: -1, 'stats.enrollmentCount': -1 })
+      .limit(4)
+      .select('title slug shortDescription thumbnailUrl level estimatedMinutes stats')
+      .lean();
 
-  const currentUser = await User.findById(userId).select('role').lean();
-  if (!currentUser || currentUser.role === 'ADMIN') {
-    return { entries, yourRank: null };
-  }
+    if (courses.length < 4) {
+      const existingIds = courses.map((c) => c._id);
+      const more = await Course.find({
+        status: 'PUBLISHED',
+        _id: { $nin: existingIds },
+      })
+        .sort({ isFeatured: -1 })
+        .limit(4 - courses.length)
+        .select('title slug shortDescription thumbnailUrl level estimatedMinutes stats')
+        .lean();
+      courses = [...courses, ...more];
+    }
 
-  const myStats = await UserStats.findOne({ userId });
-  let yourRank = null;
-  if (myStats && myStats.totalXp > 0) {
-    yourRank =
-      (await UserStats.countDocuments({
-        userId: { $nin: adminIds },
-        totalXp: { $gt: myStats.totalXp },
-      })) + 1;
-  }
+    return courses.map(formatCourse);
+  });
+}
 
-  return { entries, yourRank };
+async function getWeeklyLeaderboard(userId, userRole = null, { computeYourRank = true } = {}) {
+  return withPerfSpan('home.weeklyLeaderboard', async () => {
+    const adminUsers = await User.find({ role: 'ADMIN' }).select('_id').lean();
+    const adminIds = adminUsers.map((entry) => entry._id);
+
+    const topUsers = await UserStats.find({ userId: { $nin: adminIds } })
+      .sort({ totalXp: -1 })
+      .limit(3)
+      .populate('userId', 'name role');
+
+    const entries = topUsers
+      .filter((entry) => entry.userId && entry.userId.role !== 'ADMIN')
+      .map((entry, index) => ({
+        rank: index + 1,
+        name: entry.userId.name,
+        xp: entry.totalXp,
+      }));
+
+    if (!computeYourRank) {
+      return { entries, yourRank: null, adminIds };
+    }
+
+    let role = userRole;
+    if (role == null) {
+      const currentUser = await User.findById(userId).select('role').lean();
+      if (!currentUser || currentUser.role === 'ADMIN') {
+        return { entries, yourRank: null };
+      }
+      role = currentUser.role;
+    } else if (role === 'ADMIN') {
+      return { entries, yourRank: null };
+    }
+
+    const myStats = await UserStats.findOne({ userId }).select('totalXp').lean();
+    let yourRank = null;
+    if (myStats && myStats.totalXp > 0) {
+      yourRank =
+        (await UserStats.countDocuments({
+          userId: { $nin: adminIds },
+          totalXp: { $gt: myStats.totalXp },
+        })) + 1;
+    }
+
+    return { entries, yourRank };
+  });
 }
 
 async function getHomeData(userId) {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
-  }
+  return withPerfSpan('home.total', async () => {
+    const user = await withPerfSpan('home.user', () =>
+      User.findById(userId).select('name avatarUrl role interestedSkillIds').lean(),
+    );
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-  const stats = user.role === 'ADMIN' ? null : await getUserStats(userId);
+    const [
+      stats,
+      continueLearning,
+      dailyChallenge,
+      activeBattle,
+      recommendedCourses,
+      weeklyLeaderboard,
+      unreadNotificationCount,
+      recentAchievements,
+    ] = await Promise.all([
+      withPerfSpan('home.userStats', async () =>
+        user.role === 'ADMIN' ? null : getUserStats(userId),
+      ),
+      getContinueLearning(userId),
+      getDailyChallenge(userId),
+      getActiveBattle(userId),
+      getRecommendedCourses(userId, user.interestedSkillIds),
+      getWeeklyLeaderboard(userId, user.role, { computeYourRank: false }),
+      withPerfSpan('home.unreadNotifications', () =>
+        Notification.countDocuments({ userId, isRead: false }),
+      ),
+      withPerfSpan('home.recentAchievements', () =>
+        UserAchievement.find({ userId, status: 'COMPLETED' })
+          .sort({ unlockedAt: -1 })
+          .limit(5)
+          .populate('achievementId', 'title description iconUrl xpReward code name')
+          .lean(),
+      ),
+    ]);
 
-  const [
-    continueLearning,
-    dailyChallenge,
-    activeBattle,
-    recommendedCourses,
-    weeklyLeaderboard,
-    unreadNotificationCount,
-    recentAchievements,
-  ] = await Promise.all([
-    getContinueLearning(userId),
-    getDailyChallenge(userId),
-    getActiveBattle(userId),
-    getRecommendedCourses(userId),
-    getWeeklyLeaderboard(userId),
-    Notification.countDocuments({ userId, isRead: false }),
-    UserAchievement.find({ userId, status: 'COMPLETED' })
-      .sort({ unlockedAt: -1 })
-      .limit(5)
-      .populate('achievementId'),
-  ]);
+    let weekly = {
+      entries: weeklyLeaderboard.entries,
+      yourRank: weeklyLeaderboard.yourRank,
+    };
 
-  return {
-    user: {
-      id: user._id,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-    },
-    stats:
-      user.role === 'ADMIN' || !stats
-        ? null
-        : {
-            totalXp: stats.totalXp,
-            level: stats.level,
-            currentLevelXp: stats.currentLevelXp,
-            nextLevelXp: stats.nextLevelXp,
-            currentStreak: stats.currentStreak,
-            rank: rankFromLevel(stats.level),
-            coursesCompleted: stats.coursesCompleted,
-            lessonsCompleted: stats.lessonsCompleted,
-            questionsCorrect: stats.questionsCorrect,
-            battlesWon: stats.battlesWon,
-            practiceSessionsCompleted: stats.practiceSessionsCompleted,
-          },
-    continueLearning,
-    dailyChallenge,
-    activeBattle,
-    recommendedCourses,
-    weeklyLeaderboard,
-    recentAchievements: recentAchievements.map((item) => ({
-      id: item.achievementId?._id,
-      name: item.achievementId?.name,
-      iconUrl: item.achievementId?.iconUrl,
-      unlockedAt: item.unlockedAt,
-    })),
-    unreadNotificationCount,
-  };
+    if (
+      user.role !== 'ADMIN' &&
+      stats &&
+      stats.totalXp > 0 &&
+      Array.isArray(weeklyLeaderboard.adminIds)
+    ) {
+      weekly.yourRank = await withPerfSpan('home.weeklyYourRank', async () =>
+        (await UserStats.countDocuments({
+          userId: { $nin: weeklyLeaderboard.adminIds },
+          totalXp: { $gt: stats.totalXp },
+        })) + 1,
+      );
+    }
+
+    return {
+      user: {
+        id: user._id,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+      },
+      stats:
+        user.role === 'ADMIN' || !stats
+          ? null
+          : {
+              totalXp: stats.totalXp,
+              level: stats.level,
+              currentLevelXp: stats.currentLevelXp,
+              nextLevelXp: stats.nextLevelXp,
+              currentStreak: stats.currentStreak,
+              rank: rankFromLevel(stats.level),
+              coursesCompleted: stats.coursesCompleted,
+              lessonsCompleted: stats.lessonsCompleted,
+              questionsCorrect: stats.questionsCorrect,
+              battlesWon: stats.battlesWon,
+              practiceSessionsCompleted: stats.practiceSessionsCompleted,
+            },
+      continueLearning,
+      dailyChallenge,
+      activeBattle,
+      recommendedCourses,
+      weeklyLeaderboard: weekly,
+      recentAchievements: recentAchievements.map((item) => ({
+        id: item.achievementId?._id,
+        name: item.achievementId?.name,
+        iconUrl: item.achievementId?.iconUrl,
+        unlockedAt: item.unlockedAt,
+      })),
+      unreadNotificationCount,
+    };
+  });
 }
 
 async function listCourses() {
-  const courses = await Course.find({ status: 'PUBLISHED' }).sort({
-    isFeatured: -1,
-    'stats.enrollmentCount': -1,
-  });
+  const courses = await Course.find({ status: 'PUBLISHED' })
+    .select('title slug shortDescription thumbnailUrl level estimatedMinutes stats isFeatured')
+    .sort({
+      isFeatured: -1,
+      'stats.enrollmentCount': -1,
+    })
+    .lean();
 
   return courses.map(formatCourse);
 }
 
 async function getCourseDetail(courseId) {
-  const course = await Course.findOne({ _id: courseId, status: 'PUBLISHED' }).populate(
-    'categoryId',
-    'name',
-  );
+  const course = await Course.findOne({ _id: courseId, status: 'PUBLISHED' })
+    .populate('categoryId', 'name')
+    .select(
+      'title slug shortDescription description thumbnailUrl level estimatedMinutes stats categoryId',
+    );
 
   if (!course) {
     throw new Error('Course not found.');
   }
 
-  const modules = await CourseModule.find({ courseId: course._id, status: 'ACTIVE' }).sort({
-    order: 1,
-  });
+  const modules = await CourseModule.find({ courseId: course._id, status: 'ACTIVE' })
+    .sort({ order: 1 })
+    .select('title description order')
+    .lean();
 
   const lessons = await Lesson.find({
     courseId: course._id,
     status: 'PUBLISHED',
-  }).sort({ order: 1 });
+  })
+    .sort({ order: 1 })
+    .select('title slug description type order durationMinutes moduleId')
+    .lean();
 
   const lessonsByModule = lessons.reduce((acc, lesson) => {
     const key = lesson.moduleId.toString();
@@ -404,7 +478,9 @@ async function listPracticeAssessments() {
   })
     .populate('skillId', 'name slug')
     .sort({ updatedAt: -1 })
-    .select('title description difficulty mode xpReward skillId passingPercentage durationSeconds questions');
+    .select('title description difficulty mode xpReward skillId passingPercentage durationSeconds questions')
+    .limit(200)
+    .lean();
 
   return assessments.map((assessment) => ({
     _id: assessment._id.toString(),
@@ -447,7 +523,8 @@ async function listPublishedBlogPosts() {
   const posts = await BlogPost.find({ status: 'PUBLISHED' })
     .populate('authorId', 'name')
     .sort({ publishedAt: -1, createdAt: -1 })
-    .select('-content');
+    .select('title slug excerpt coverImageUrl authorId publishedAt updatedAt tags')
+    .lean();
 
   return posts.map((post) => ({
     id: post._id.toString(),
@@ -463,7 +540,9 @@ async function listPublishedBlogPosts() {
 }
 
 async function getBlogPostBySlug(slug) {
-  const post = await BlogPost.findOne({ slug, status: 'PUBLISHED' }).populate('authorId', 'name');
+  const post = await BlogPost.findOne({ slug, status: 'PUBLISHED' })
+    .populate('authorId', 'name')
+    .lean();
   if (!post) {
     throw new Error('Blog post not found.');
   }

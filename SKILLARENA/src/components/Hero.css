@@ -1,28 +1,27 @@
 .hero {
-  --hero-ink: #1a110a;
-  --hero-accent: #3d2818;
-  --hero-underline: #d4a574;
-  --hero-badge-bg: #f5e8c8;
-  --hero-muted: #4a4038;
+  --hero-ink: var(--sa-ink);
+  --hero-accent: var(--sa-primary);
+  --hero-underline: #6ee7b7;
+  --hero-badge-bg: var(--sa-primary-soft);
+  --hero-muted: var(--sa-muted);
 
-  min-height: 100vh;
-  padding: calc(3rem + var(--navbar-height, 4.25rem)) 3rem 4rem;
-  background-color: #fdf8f0;
+  min-height: auto;
+  padding: calc(2.5rem + var(--navbar-height, 4.25rem)) 3rem 3.5rem;
+  background-color: var(--sa-bg);
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(245, 232, 200, 0.85) 0%, transparent 42%),
-    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
-  background-position: center, center;
+    radial-gradient(circle at 12% 18%, var(--sa-blob-green) 0%, transparent 42%),
+    radial-gradient(circle at 88% 12%, var(--sa-blob-mint) 0%, transparent 36%),
+    radial-gradient(circle at 70% 78%, var(--sa-blob-pink) 0%, transparent 40%);
 }
 
 .hero-inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: 4rem;
+  gap: 3.5rem;
   max-width: 72rem;
   margin: 0 auto;
-  min-height: calc(100vh - var(--navbar-height, 4.25rem) - 7rem);
+  min-height: clamp(28rem, 72vh, 40rem);
 }
 
 .hero-content {
@@ -31,23 +30,25 @@
 
 .hero-aside-wrap {
   min-height: 100%;
-  padding-top: 3rem;
+  padding-top: 0;
 }
 
 .hero-aside {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 1.5rem;
+  padding-top: 0;
 }
 
 .hero-image {
   width: 100%;
-  max-width: 36rem;
+  max-width: 34rem;
   height: auto;
   display: block;
   border-radius: 1.25rem;
   object-fit: contain;
+  box-shadow: var(--sa-image-shadow);
+  background: var(--sa-surface);
 }
 
 .hero-badge {
@@ -57,7 +58,7 @@
   padding: 0.45rem 0.9rem;
   border-radius: 9999px;
   background-color: var(--hero-badge-bg);
-  color: var(--hero-ink);
+  color: var(--sa-primary);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -71,7 +72,7 @@
 
 .hero-title {
   margin-top: 1.75rem;
-  font-size: clamp(2.75rem, 5vw, 4.5rem);
+  font-size: clamp(2.75rem, 5vw, 4.25rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -127,60 +128,56 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.9rem 1.5rem;
-  border-radius: 9999px;
+  border-radius: 0.65rem;
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .hero-btn-primary {
-  border: 2px solid var(--hero-ink);
-  background-color: var(--hero-ink);
-  color: #fdf8f0;
+  border: 2px solid var(--sa-primary);
+  background-color: var(--sa-primary);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
 }
 
 .hero-btn-primary:hover {
-  background-color: #fdf8f0;
-  color: var(--hero-ink);
+  background-color: var(--sa-primary-hover);
+  border-color: var(--sa-primary-hover);
+  color: #ffffff;
 }
 
 .hero-btn-secondary {
-  border: 1px solid rgba(26, 17, 10, 0.12);
-  background-color: rgba(255, 255, 255, 0.55);
-  color: var(--hero-ink);
+  border: 1px solid var(--sa-border-strong);
+  background-color: var(--sa-surface);
+  color: var(--sa-primary);
 }
 
 .hero-btn-secondary:hover {
-  background-color: #fff;
-  border-color: rgba(26, 17, 10, 0.22);
+  background-color: var(--sa-primary-soft);
+  border-color: rgba(5, 150, 105, 0.28);
 }
 
 @media (max-width: 1024px) {
   .hero {
-    min-height: auto;
-    padding: calc(2rem + var(--navbar-height, 4rem)) 2rem 3.5rem;
+    padding: calc(2rem + var(--navbar-height, 4rem)) 2rem 3rem;
   }
 
   .hero-inner {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 2rem;
     min-height: auto;
   }
 
   .hero-aside-wrap {
-    margin-top: 2.5rem;
-    padding-top: 1rem;
-  }
-
-  .hero-aside {
-    padding-top: 0;
+    margin-top: 0.5rem;
   }
 
   .hero-image {
-    max-width: 28rem;
+    max-width: 26rem;
     margin-inline: auto;
   }
 
@@ -195,7 +192,7 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding: calc(1.5rem + var(--navbar-height, 4rem)) 1.25rem 2.5rem;
+    padding: calc(1.5rem + var(--navbar-height, 4rem)) 1.25rem 2.25rem;
   }
 
   .hero-title {
@@ -223,7 +220,7 @@
 
 @media (min-width: 641px) and (max-width: 1024px) {
   .hero {
-    padding: calc(2.5rem + var(--navbar-height, 4rem)) 2.5rem 4rem;
+    padding: calc(2.25rem + var(--navbar-height, 4rem)) 2.5rem 3.25rem;
   }
 
   .hero-title {

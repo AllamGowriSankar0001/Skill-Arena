@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CodingPlayground from '../components/CodingPlayground'
 import CodingViewportGate from '../components/CodingViewportGate'
+import PageBreadcrumb from '../components/PageBreadcrumb'
 import PracticeQuiz from '../components/PracticeQuiz'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { useAuth } from '../context/AuthContext'
 import { applyXpUpdate } from '../utils/xpSync'
 import { learningApi } from '../services/api'
@@ -67,7 +69,7 @@ const PracticeDetailPage = () => {
     return (
       <main className="practice-detail-page">
         <div className="practice-detail-inner">
-          <p className="practice-detail-loading">Loading practice set…</p>
+          <PageLoadingSkeleton label="Loading practice set" />
         </div>
       </main>
     )
@@ -77,9 +79,12 @@ const PracticeDetailPage = () => {
     return (
       <main className="practice-detail-page">
         <div className="practice-detail-inner">
-          <Link to={ROUTES.practice} className="practice-detail-back">
-            ← Back to practice
-          </Link>
+          <PageBreadcrumb
+            items={[
+              { label: 'Practice', to: ROUTES.practice },
+              { label: 'Not found' },
+            ]}
+          />
           <p className="practice-detail-error">{error || 'Practice set not found.'}</p>
         </div>
       </main>
@@ -95,9 +100,12 @@ const PracticeDetailPage = () => {
   return (
     <main className="practice-detail-page">
       <div className="practice-detail-inner">
-        <Link to={ROUTES.practice} className="practice-detail-back">
-          ← Back to practice
-        </Link>
+        <PageBreadcrumb
+          items={[
+            { label: 'Practice', to: ROUTES.practice },
+            { label: practice.title },
+          ]}
+        />
 
         <header className="practice-detail-header">
           <div className="practice-detail-heading">
@@ -173,7 +181,7 @@ const PracticeDetailPage = () => {
               action={codingAction}
               contextLabel="coding practice"
               backTo={ROUTES.practice}
-              backLabel="← Back to practice"
+              backLabel="Practice"
             >
               <CodingPlayground
                 contextType="practice"

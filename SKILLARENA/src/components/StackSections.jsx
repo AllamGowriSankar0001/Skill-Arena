@@ -3,9 +3,10 @@ import LearnSection from './LearnSection'
 import CommunitySection from './CommunitySection'
 import './StackSections.css'
 
+/** Linear landing sections — no sticky stacking. */
 const StackSections = () => {
   return (
-    <div className="stack-sections">
+    <div className="landing-sections">
       <BattlesSection />
       <LearnSection />
       <CommunitySection />

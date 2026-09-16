@@ -28,11 +28,13 @@ export function PasswordField({
   maxLength,
   required = false,
   hasError = false,
+  errorMessage = '',
 }) {
   const [visible, setVisible] = useState(false)
+  const describedBy = errorMessage ? `${id}-error` : undefined
 
   return (
-    <div className={`auth-field${hasError ? ' auth-field--error' : ''}`}>
+    <div className={`auth-field${hasError || errorMessage ? ' auth-field--error' : ''}`}>
       <label htmlFor={id}>{label}</label>
       <div className="auth-password-wrap">
         <input
@@ -45,7 +47,8 @@ export function PasswordField({
           minLength={minLength}
           maxLength={maxLength}
           required={required}
-          aria-invalid={hasError || undefined}
+          aria-invalid={hasError || Boolean(errorMessage) || undefined}
+          aria-describedby={describedBy}
         />
         <button
           type="button"
@@ -57,6 +60,11 @@ export function PasswordField({
           {visible ? <EyeOffIcon /> : <EyeIcon />}
         </button>
       </div>
+      {errorMessage ? (
+        <p id={describedBy} className="auth-field-error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   )
 }

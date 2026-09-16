@@ -20,7 +20,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .skeleton-preview-grid {
@@ -31,5 +31,5 @@
   max-width: 42rem;
   padding: 1rem;
   border-radius: 0.85rem;
-  background: #f6f3ee;
+  background: #f8fafc;
 }

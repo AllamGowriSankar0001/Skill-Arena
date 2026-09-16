@@ -9,13 +9,13 @@
   background:
     radial-gradient(circle at 50% 0%, rgba(67, 56, 202, 0.1), transparent 55%),
     #fff;
-  box-shadow: 0 12px 32px rgba(26, 17, 10, 0.06);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
 
 .coding-viewport-gate-icon {
   width: 4.5rem;
   height: 3.5rem;
-  color: #4338ca;
+  color: #059669;
 }
 
 .coding-viewport-gate-kicker {
@@ -32,7 +32,7 @@
   max-width: 22rem;
   font-size: clamp(1.25rem, 3vw, 1.55rem);
   line-height: 1.35;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .coding-viewport-gate-copy {
@@ -40,7 +40,7 @@
   max-width: 28rem;
   font-size: 0.92rem;
   line-height: 1.6;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .coding-viewport-gate-list {
@@ -51,14 +51,14 @@
   max-width: 24rem;
   text-align: left;
   font-size: 0.84rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .coding-viewport-gate-back {
   margin-top: 0.35rem;
   padding: 0.65rem 1rem;
   border-radius: 0.55rem;
-  background: #1a110a;
+  background: #0f172a;
   color: #fdf8f0;
   font-size: 0.88rem;
   font-weight: 600;
@@ -66,5 +66,5 @@
 }
 
 .coding-viewport-gate-back:hover {
-  background: #2d2218;
+  background: #1e293b;
 }

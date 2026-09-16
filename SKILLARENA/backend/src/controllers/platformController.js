@@ -7,6 +7,10 @@ const {
   listPublishedBlogPosts,
   getBlogPostBySlug,
 } = require('../services/homeService');
+const { canAccessLesson } = require('../services/lessonProgressService');
+const { Lesson } = require('../models');
+
+const isAdminUser = (user) => user?.role === 'ADMIN';
 
 const getCourses = async (req, res, next) => {
   try {
@@ -29,6 +33,23 @@ const getCourse = async (req, res, next) => {
 
 const getLesson = async (req, res, next) => {
   try {
+    const lesson = await Lesson.findOne({ _id: req.params.id, status: 'PUBLISHED' });
+    if (!lesson) {
+      return res.status(404).json({ message: 'Lesson not found.' });
+    }
+
+    const access = await canAccessLesson(req.user._id, lesson, {
+      isAdmin: isAdminUser(req.user),
+    });
+
+    if (!access.allowed) {
+      return res.status(403).json({
+        message: access.reason || 'Lesson is locked.',
+        code: 'LESSON_LOCKED',
+        previousLessonId: access.previousLessonId,
+      });
+    }
+
     const detail = await getLessonDetail(req.params.id);
     res.json(detail);
   } catch (error) {

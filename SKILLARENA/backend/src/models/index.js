@@ -28,6 +28,8 @@ const CommunityLike = require('./CommunityLike');
 const CommunityComment = require('./CommunityComment');
 const CommunityRoom = require('./CommunityRoom');
 const CommunityMember = require('./CommunityMember');
+const AuthSession = require('./AuthSession');
+const PasswordResetToken = require('./PasswordResetToken');
 
 module.exports = {
   User,
@@ -60,4 +62,6 @@ module.exports = {
   CommunityComment,
   CommunityRoom,
   CommunityMember,
+  AuthSession,
+  PasswordResetToken,
 };

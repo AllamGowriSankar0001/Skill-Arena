@@ -1,4 +1,3 @@
-import ScrollReveal from './ScrollReveal'
 import './MarqueeBar.css'
 
 const MARQUEE_ITEMS = [
@@ -11,10 +10,10 @@ const MARQUEE_ITEMS = [
   'FREE FOREVER',
 ]
 
-const MarqueeItems = () => (
+const MarqueeItems = ({ keyPrefix = '' }) => (
   <>
     {MARQUEE_ITEMS.map((item) => (
-      <span key={item} className="marquee-bar-item">
+      <span key={`${keyPrefix}${item}`} className="marquee-bar-item">
         <span className="marquee-bar-text">{item}</span>
         <span className="marquee-bar-star" aria-hidden="true">★</span>
       </span>
@@ -24,16 +23,16 @@ const MarqueeItems = () => (
 
 const MarqueeBar = () => {
   return (
-    <ScrollReveal as="section" className="marquee-bar" aria-label="Skill Arena highlights">
+    <section className="marquee-bar" aria-label="Skill Arena highlights">
       <div className="marquee-bar-track">
         <div className="marquee-bar-content">
-          <MarqueeItems />
+          <MarqueeItems keyPrefix="a-" />
         </div>
         <div className="marquee-bar-content" aria-hidden="true">
-          <MarqueeItems />
+          <MarqueeItems keyPrefix="b-" />
         </div>
       </div>
-    </ScrollReveal>
+    </section>
   )
 }
 

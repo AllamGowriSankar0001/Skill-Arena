@@ -1,10 +1,15 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { runCodingTests } = require('../src/services/codingTestRunner');
+const {
+  runCodingTests,
+  getActiveCodingChildCount,
+  getCodingConcurrencyStats,
+  MAX_CONCURRENT,
+} = require('../src/services/codingTestRunner');
 
 describe('codingTestRunner', () => {
-  test('passes ELEMENT_EXISTS and TEXT_CONTAINS', () => {
-    const result = runCodingTests(
+  test('passes ELEMENT_EXISTS and TEXT_CONTAINS', async () => {
+    const result = await runCodingTests(
       {
         html: '<h1>Welcome to Skill Arena</h1>',
         css: 'h1 { text-align: center; }',
@@ -31,8 +36,8 @@ describe('codingTestRunner', () => {
     assert.equal(result.score, 100);
   });
 
-  test('detects CONSOLE_CONTAINS and GLOBAL_VALUE_EQUALS', () => {
-    const result = runCodingTests(
+  test('detects CONSOLE_CONTAINS and GLOBAL_VALUE_EQUALS', async () => {
+    const result = await runCodingTests(
       {
         html: '<div id="output"></div>',
         css: '',
@@ -53,8 +58,8 @@ describe('codingTestRunner', () => {
     assert.equal(result.score, 100);
   });
 
-  test('fails when assertions do not match', () => {
-    const result = runCodingTests(
+  test('fails when assertions do not match', async () => {
+    const result = await runCodingTests(
       { html: '<p>Hi</p>', css: '', javascript: '' },
       [{ type: 'ELEMENT_EXISTS', selector: 'h1' }],
     );
@@ -101,5 +106,14 @@ describe('enrollment progress calculation', () => {
         ? 0
         : Math.round((completedPublishedLessons / totalPublishedLessons) * 100);
     assert.equal(progressPercentage, 0);
+  });
+});
+
+describe('coding runner process hygiene', () => {
+  test('concurrency stats expose process-local limits', () => {
+    const stats = getCodingConcurrencyStats();
+    assert.equal(stats.max, MAX_CONCURRENT);
+    assert.ok(typeof stats.active === 'number');
+    assert.equal(getActiveCodingChildCount(), 0);
   });
 });

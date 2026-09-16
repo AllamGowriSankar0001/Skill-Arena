@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get('/courses', getCourses);
 router.get('/courses/:id', getCourse);
-router.get('/lessons/:id', getLesson);
+router.get('/lessons/:id', authMiddleware, getLesson);
 router.get('/practice', getPractice);
 router.get('/blogs', getBlogs);
 router.get('/blogs/:slug', getBlog);

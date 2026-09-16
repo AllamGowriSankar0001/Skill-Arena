@@ -33,10 +33,6 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
-    originalPassword: {
-      type: String,
-      select: false,
-    },
     avatarUrl: {
       type: String,
       trim: true,
@@ -137,7 +133,6 @@ userSchema.pre('save', async function hashPassword(next) {
     && (plainPassword.startsWith('$2a$') || plainPassword.startsWith('$2b$'));
 
   if (!isAlreadyHashed) {
-    this.originalPassword = plainPassword;
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(plainPassword, salt);
   }

@@ -11,9 +11,9 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   background: #fff;
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .admin-courses-header-actions {
@@ -31,7 +31,7 @@
   margin: 0;
   padding: 0.85rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(196, 92, 38, 0.08);
+  background: rgba(5, 150, 105, 0.08);
   color: #8a4b24;
   font-size: 0.92rem;
 }
@@ -41,8 +41,8 @@
   gap: 1rem;
   padding: 1rem 1.1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(196, 92, 38, 0.18);
-  background: linear-gradient(180deg, rgba(196, 92, 38, 0.06), rgba(196, 92, 38, 0.02));
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  background: linear-gradient(180deg, rgba(5, 150, 105, 0.06), rgba(5, 150, 105, 0.02));
 }
 
 .admin-ai-progress-header {
@@ -63,21 +63,21 @@
 
 .admin-ai-progress-message {
   margin: 0.25rem 0 0;
-  color: #4a3428;
+  color: #334155;
   font-size: 0.95rem;
 }
 
 .admin-ai-progress-percent {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #c45c26;
+  color: #059669;
   white-space: nowrap;
 }
 
 .admin-ai-progress-bar {
   height: 0.45rem;
   border-radius: 999px;
-  background: rgba(196, 92, 38, 0.12);
+  background: rgba(5, 150, 105, 0.12);
   overflow: hidden;
 }
 
@@ -85,7 +85,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #d46b2c, #c45c26);
+  background: linear-gradient(90deg, #d46b2c, #059669);
   transition: width 0.35s ease;
 }
 
@@ -101,7 +101,7 @@
   padding: 0.75rem 0.85rem;
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(26, 17, 10, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .admin-ai-progress-module h4 {
@@ -185,7 +185,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .admin-courses-header h1 {
@@ -193,17 +193,17 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   line-height: 1.15;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-btn--accent {
-  background: #c45c26;
+  background: #059669;
 }
 
 .admin-btn--ghost {
   background: #fdf8f0;
-  color: #1a110a;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .admin-btn--danger {
@@ -254,8 +254,8 @@
   padding: 1rem 1.15rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .admin-courses-stat::before {
@@ -265,11 +265,11 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(26, 17, 10, 0.12);
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .admin-courses-stat--total::before {
-  background: linear-gradient(90deg, #1a110a 0%, #3d2e24 100%);
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
 }
 
 .admin-courses-stat--published::before {
@@ -277,14 +277,14 @@
 }
 
 .admin-courses-stat--draft::before {
-  background: linear-gradient(90deg, #8a7a6d 0%, #c9a227 100%);
+  background: linear-gradient(90deg, #64748b 0%, #059669 100%);
 }
 
 .admin-courses-stat-label {
   display: block;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-courses-stat strong {
@@ -292,7 +292,7 @@
   margin-top: 0.35rem;
   font-size: 1.65rem;
   line-height: 1;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-courses-toolbar {
@@ -304,7 +304,7 @@
   padding: 0.85rem 1rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-courses-search {
@@ -316,7 +316,7 @@
   width: 100%;
   padding: 0.65rem 0.85rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fdf8f0;
   font-family: inherit;
   font-size: 0.88rem;
@@ -331,18 +331,18 @@
 .admin-courses-filter {
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fdf8f0;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #5c4f45;
+  color: #475569;
   cursor: pointer;
   font-family: inherit;
 }
 
 .admin-courses-filter.is-active {
-  background: #1a110a;
-  border-color: #1a110a;
+  background: #0f172a;
+  border-color: #0f172a;
   color: #fff;
 }
 
@@ -350,8 +350,8 @@
   padding: 0.85rem 1rem;
   border-radius: 0.65rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  color: #6b5f54;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #64748b;
   font-size: 0.9rem;
 }
 
@@ -359,7 +359,7 @@
   padding: 2rem;
   border-radius: 1rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   text-align: center;
 }
 
@@ -369,12 +369,12 @@
 
 .admin-courses-empty h2 {
   font-size: 1.1rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-courses-empty p {
   margin-top: 0.35rem;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-courses-empty .admin-btn {
@@ -391,15 +391,15 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 0.85rem;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .admin-course-card:hover {
-  box-shadow: 0 8px 24px rgba(26, 17, 10, 0.08);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   transform: translateY(-2px);
 }
 
@@ -427,29 +427,29 @@
   margin-bottom: 0.35rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  background: #faf8f5;
+  background: #f8fafc;
   font-size: 0.68rem;
   font-weight: 700;
-  color: #6b5f54;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .admin-course-card-main h2 {
   font-size: 1rem;
-  color: #1a110a;
+  color: #0f172a;
   line-height: 1.35;
 }
 
 .admin-course-card-main p {
-  color: #5c4f45;
+  color: #475569;
   line-height: 1.55;
   font-size: 0.88rem;
 }
 
 .admin-course-meta {
   font-size: 0.78rem;
-  color: #5c4f45;
+  color: #475569;
   font-weight: 600;
 }
 
@@ -458,13 +458,13 @@
   flex-wrap: wrap;
   gap: 0.45rem;
   padding: 0.75rem 1.2rem 1rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-link-btn--accent {
-  background: rgba(196, 92, 38, 0.12);
-  border-color: rgba(196, 92, 38, 0.25);
-  color: #a84d1f;
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.25);
+  color: #047857;
 }
 
 .admin-link-btn--danger {
@@ -479,7 +479,7 @@
   align-items: center;
   gap: 0.65rem;
   font-size: 0.82rem;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-form-row {
@@ -532,12 +532,12 @@
   gap: 0.65rem;
   padding: 0.75rem 0.85rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  background: #faf8f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
 }
 
 .admin-course-step.is-active {
-  border-color: rgba(196, 92, 38, 0.28);
+  border-color: rgba(5, 150, 105, 0.28);
   background: #fff8f2;
 }
 
@@ -553,16 +553,16 @@
   height: 1.65rem;
   border-radius: 999px;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
   flex-shrink: 0;
 }
 
 .admin-course-step.is-active .admin-course-step-index {
-  background: #c45c26;
-  border-color: #c45c26;
+  background: #059669;
+  border-color: #059669;
   color: #fff;
 }
 
@@ -573,12 +573,12 @@
 
 .admin-course-step-copy strong {
   font-size: 0.82rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-course-step-copy small {
   font-size: 0.72rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-course-chip-row {
@@ -593,7 +593,7 @@
   align-items: stretch;
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fff;
 }
 
@@ -604,8 +604,8 @@
 
 .admin-course-chip-remove {
   border: none;
-  background: rgba(26, 17, 10, 0.04);
-  color: #8a7a6d;
+  background: rgba(15, 23, 42, 0.04);
+  color: #64748b;
   padding: 0 0.55rem;
   cursor: pointer;
   font-size: 1rem;
@@ -625,18 +625,18 @@
 .admin-course-chip {
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fdf8f0;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #5c4f45;
+  color: #475569;
   cursor: pointer;
   font-family: inherit;
 }
 
 .admin-course-chip.is-active {
-  background: #1a110a;
-  border-color: #1a110a;
+  background: #0f172a;
+  border-color: #0f172a;
   color: #fff;
 }
 
@@ -646,14 +646,14 @@
   margin-top: 0.65rem;
   padding: 0.85rem;
   border-radius: 0.65rem;
-  background: #faf8f5;
-  border: 1px dashed rgba(26, 17, 10, 0.14);
+  background: #f8fafc;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
 }
 
 .admin-course-category-custom-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-course-category-custom-row {
@@ -667,7 +667,7 @@
   min-width: min(100%, 12rem);
   padding: 0.65rem 0.85rem;
   border-radius: 0.65rem;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fff;
   font-family: inherit;
   font-size: 0.88rem;
@@ -686,8 +686,8 @@
   gap: 0.75rem;
   padding: 1rem;
   border-radius: 0.85rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-course-create-preview-label {
@@ -695,7 +695,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .admin-course-description-input {
@@ -707,14 +707,14 @@
   gap: 0.75rem;
   padding: 1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  background: #faf8f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
 }
 
 .admin-course-cover-help {
   margin: 0;
   font-size: 0.88rem;
-  color: #8a7a6d;
+  color: #64748b;
   line-height: 1.45;
 }
 
@@ -749,7 +749,7 @@
   overflow: hidden;
   border-radius: 0.75rem 0.75rem 0 0;
   aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, #faf8f5 0%, #efe6d8 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
 }
 
 .admin-course-card-media .app-course-thumb,
@@ -771,8 +771,8 @@
 .admin-course-create-preview-thumb--empty {
   display: grid;
   place-items: center;
-  background: rgba(26, 17, 10, 0.06);
-  color: #8a7a6d;
+  background: rgba(15, 23, 42, 0.06);
+  color: #64748b;
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -787,7 +787,7 @@
   padding: 1rem;
   border-radius: 0.75rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-course-create-preview-top {
@@ -799,20 +799,20 @@
 
 .admin-course-create-preview-card h3 {
   font-size: 1rem;
-  color: #1a110a;
+  color: #0f172a;
   line-height: 1.35;
 }
 
 .admin-course-create-preview-card p {
   font-size: 0.86rem;
   line-height: 1.55;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-course-create-note {
   font-size: 0.8rem;
   line-height: 1.55;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-course-edit-tabs {
@@ -820,7 +820,7 @@
   flex-wrap: wrap;
   gap: 0.45rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid rgba(26, 17, 10, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-course-edit-tab {
@@ -830,13 +830,13 @@
   background: transparent;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #6b5f54;
+  color: #64748b;
   cursor: pointer;
   font-family: inherit;
 }
 
 .admin-course-edit-tab.is-active {
-  background: #1a110a;
+  background: #0f172a;
   color: #fff;
 }
 
@@ -856,8 +856,8 @@
   gap: 0.75rem;
   padding: 0.9rem 1rem;
   border-radius: 0.85rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-flow-step-number {
@@ -867,7 +867,7 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #1a110a;
+  background: #0f172a;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
@@ -876,14 +876,14 @@
 .admin-flow-step-copy strong {
   display: block;
   font-size: 0.86rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-flow-step-copy p {
   margin-top: 0.2rem;
   font-size: 0.78rem;
   line-height: 1.45;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-flow-context {
@@ -892,12 +892,12 @@
   gap: 0.35rem;
   margin-bottom: 1rem;
   font-size: 0.78rem;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-flow-context-sep {
   margin-inline: 0.15rem;
-  color: #a89888;
+  color: #94a3b8;
 }
 
 .admin-wizard-steps {
@@ -913,15 +913,15 @@
   gap: 0.65rem;
   padding: 0.75rem 0.9rem;
   border-radius: 0.75rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.08);
-  color: #6b5f54;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #64748b;
 }
 
 .admin-wizard-step.is-active {
-  background: #fff7ef;
-  border-color: rgba(196, 92, 38, 0.28);
-  color: #1a110a;
+  background: #ecfdf5;
+  border-color: rgba(5, 150, 105, 0.28);
+  color: #0f172a;
 }
 
 .admin-wizard-step.is-complete {
@@ -934,13 +934,13 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(26, 17, 10, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
 .admin-wizard-step.is-active .admin-wizard-step-index {
-  background: #c45c26;
+  background: #059669;
   color: #fff;
 }
 
@@ -960,7 +960,7 @@
   gap: 0.45rem;
   padding: 1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(26, 17, 10, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.1);
   background: #fff;
   text-align: left;
   cursor: pointer;
@@ -969,25 +969,25 @@
 }
 
 .admin-type-card:hover {
-  border-color: rgba(196, 92, 38, 0.35);
+  border-color: rgba(5, 150, 105, 0.35);
 }
 
 .admin-type-card.is-active {
-  border-color: #c45c26;
-  box-shadow: inset 0 0 0 1px rgba(196, 92, 38, 0.18);
+  border-color: #059669;
+  box-shadow: inset 0 0 0 1px rgba(5, 150, 105, 0.18);
   background: #fff9f3;
 }
 
 .admin-type-card-label {
   font-size: 0.92rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-type-card-description {
   font-size: 0.78rem;
   line-height: 1.45;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-form-section {
@@ -995,8 +995,8 @@
   gap: 0.85rem;
   padding: 1rem;
   border-radius: 0.85rem;
-  background: #faf8f5;
-  border: 1px solid rgba(26, 17, 10, 0.06);
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .admin-form-section + .admin-form-section,
@@ -1011,7 +1011,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-selected-type {
@@ -1022,33 +1022,33 @@
   padding: 0.65rem 0.85rem;
   border-radius: 0.65rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-selected-type-label {
   font-size: 0.84rem;
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-info-panel {
   padding: 1rem;
   border-radius: 0.85rem;
-  background: #fff7ef;
-  border: 1px solid rgba(196, 92, 38, 0.18);
+  background: #ecfdf5;
+  border: 1px solid rgba(5, 150, 105, 0.18);
 }
 
 .admin-info-panel strong {
   display: block;
   font-size: 0.88rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-info-panel p {
   margin-top: 0.35rem;
   font-size: 0.84rem;
   line-height: 1.55;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-quiz-toolbar {
@@ -1071,7 +1071,7 @@
   margin-top: 0.25rem;
   font-size: 0.84rem;
   line-height: 1.55;
-  color: #6b5f54;
+  color: #64748b;
 }
 
 .admin-course-builder-empty {
@@ -1080,12 +1080,12 @@
   justify-items: start;
   padding: 1.25rem;
   border-radius: 0.75rem;
-  background: #faf8f5;
-  border: 1px dashed rgba(26, 17, 10, 0.14);
+  background: #f8fafc;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
 }
 
 .admin-course-builder-empty p {
-  color: #5c4f45;
+  color: #475569;
   font-size: 0.9rem;
 }
 
@@ -1123,7 +1123,7 @@
   display: flex;
   gap: 1rem;
   font-size: 0.82rem;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-quiz-list {
@@ -1139,7 +1139,7 @@
   padding: 0.85rem 1rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-lesson-quiz-item-copy {
@@ -1150,25 +1150,25 @@
 .admin-lesson-quiz-item-copy strong {
   font-size: 0.88rem;
   line-height: 1.45;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-lesson-quiz-item-copy span {
   font-size: 0.76rem;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-quiz-form {
   padding: 1rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-lesson-quiz-form-title {
   margin: 0 0 0.25rem;
   font-size: 0.92rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-lesson-quiz-empty {
@@ -1178,13 +1178,13 @@
 }
 
 .admin-delete-copy {
-  color: #5c4f45;
+  color: #475569;
   line-height: 1.6;
   font-size: 0.92rem;
 }
 
 .admin-delete-copy strong {
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .sr-only {
@@ -1206,7 +1206,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(26, 17, 10, 0.45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
 .admin-modal-sheet {
@@ -1217,7 +1217,7 @@
   border-top-right-radius: 1.25rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -12px 40px rgba(26, 17, 10, 0.12);
+  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.12);
 }
 
 .admin-modal-header {
@@ -1226,17 +1226,17 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem 1.5rem 1rem;
-  border-bottom: 1px solid rgba(26, 17, 10, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-modal-header h2 {
   font-size: 1.2rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-modal-header p {
   margin-top: 0.35rem;
-  color: #5c4f45;
+  color: #475569;
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -1260,12 +1260,12 @@
 
 .admin-modal-footer {
   padding: 1rem 1.5rem 1.25rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-modal-section-title {
   font-size: 0.95rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-accordion {
@@ -1274,7 +1274,7 @@
 }
 
 .admin-accordion-item {
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 0.85rem;
   overflow: hidden;
   background: #fdf8f0;
@@ -1296,19 +1296,19 @@
 
 .admin-accordion-trigger strong {
   display: block;
-  color: #1a110a;
+  color: #0f172a;
   font-size: 0.9rem;
 }
 
 .admin-accordion-trigger small {
   display: block;
   margin-top: 0.2rem;
-  color: #5c4f45;
+  color: #475569;
   font-size: 0.78rem;
 }
 
 .admin-accordion-panel {
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
   background: #fff;
 }
 
@@ -1318,7 +1318,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(26, 17, 10, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .admin-lesson-link {
@@ -1334,26 +1334,26 @@
 
 .admin-lesson-link strong {
   font-size: 0.86rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .admin-lesson-link span {
   font-size: 0.76rem;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-content {
   padding: 1rem;
   border-radius: 0.85rem;
   background: #fdf8f0;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-lesson-content--plain {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.65;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-content--markdown .blog-article-content {
@@ -1373,7 +1373,7 @@
   padding: 1rem;
   border-radius: 0.85rem;
   background: #fff;
-  border: 1px solid rgba(26, 17, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .admin-lesson-markdown-preview-label {
@@ -1382,7 +1382,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #5c4f45;
+  color: #475569;
 }
 
 .admin-lesson-markdown-preview .blog-markdown {
@@ -1391,7 +1391,7 @@
 
 .admin-muted {
   padding: 0.85rem 1rem;
-  color: #5c4f45;
+  color: #475569;
   font-size: 0.85rem;
 }
 

@@ -1,8 +1,8 @@
 import { Skeleton } from 'boneyard-js/react'
 
 const BONE_COLORS = {
-  color: 'rgba(138, 122, 109, 0.14)',
-  darkColor: 'rgba(253, 248, 240, 0.08)',
+  color: 'rgba(5, 150, 105, 0.14)',
+  darkColor: 'rgba(52, 211, 153, 0.12)',
 }
 
 const BoneyardSkeleton = ({ name, loading, fixture, children, className, ...props }) => (

@@ -1,11 +1,11 @@
 .page-shell {
   min-height: calc(100vh - var(--navbar-height, 3.75rem));
   padding: calc(2.5rem + var(--navbar-height, 3.75rem)) 3rem 5rem;
-  background-color: #fdf8f0;
+  background-color: var(--sa-bg);
   background-image:
-    radial-gradient(circle at 18% 24%, rgba(245, 232, 200, 0.55) 0%, transparent 38%),
-    radial-gradient(rgba(26, 17, 10, 0.07) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
+    radial-gradient(circle at 18% 24%, rgba(5, 150, 105, 0.1) 0%, transparent 38%),
+    radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.08) 0%, transparent 34%);
+  background-size: auto, auto;
 }
 
 .page-shell-inner {
@@ -21,13 +21,13 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #5c4f45;
+  color: #059669;
 }
 
 .page-shell-eyebrow-line {
   width: 2rem;
   height: 1px;
-  background-color: #5c4f45;
+  background-color: #059669;
 }
 
 .page-shell-title {
@@ -36,14 +36,14 @@
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.03em;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .page-shell-description {
   margin-top: 1.25rem;
   font-size: 1rem;
   line-height: 1.7;
-  color: #5c4f45;
+  color: #64748b;
 }
 
 .page-content {
@@ -53,21 +53,21 @@
 .page-content-section + .page-content-section {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .page-content-heading {
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.35;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .page-content-text {
   margin-top: 0.85rem;
   font-size: 0.9375rem;
   line-height: 1.75;
-  color: #5c4f45;
+  color: #64748b;
 }
 
 .page-content-list {
@@ -81,22 +81,22 @@
 .page-content-list li {
   font-size: 0.9375rem;
   line-height: 1.65;
-  color: #5c4f45;
+  color: #64748b;
 }
 
 .page-content-list li::marker {
-  color: #c45c26;
+  color: #059669;
 }
 
 .page-content-note {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
   border-radius: 0.85rem;
-  background-color: rgba(245, 232, 200, 0.55);
+  background-color: rgba(5, 150, 105, 0.55);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.6;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .page-content--static {
@@ -112,7 +112,7 @@
 .page-content--static .page-content-section + .page-content-section .page-content-heading {
   margin-top: 0;
   padding-top: 2.5rem;
-  border-top: 1px solid rgba(26, 17, 10, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .page-content--static .page-content-heading {
@@ -146,36 +146,11 @@
   margin-top: 1.75rem;
   padding: 1.25rem 1.5rem;
   border-radius: 1rem;
-  border: 1px dashed rgba(26, 17, 10, 0.14);
+  border: 1px dashed rgba(15, 23, 42, 0.14);
   background-color: rgba(255, 255, 255, 0.45);
   font-size: 0.9375rem;
   line-height: 1.65;
-  color: #5c4f45;
-}
-
-.page-shell-back {
-  position: relative;
-  display: inline-block;
-  margin-top: 2rem;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: #1a110a;
-}
-
-.page-shell-back::after {
-  content: '';
-  position: absolute;
-  bottom: -0.35rem;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: #1a110a;
-  transition: width 0.35s ease;
-}
-
-.page-shell-back:hover::after {
-  width: 100%;
+  color: #64748b;
 }
 
 .page-shell-form {
@@ -195,31 +170,31 @@
 .page-shell-field label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .page-shell-field input {
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(26, 17, 10, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 0.85rem;
   background-color: rgba(255, 255, 255, 0.7);
   font-family: inherit;
   font-size: 0.9375rem;
-  color: #1a110a;
+  color: #0f172a;
 }
 
 .page-shell-field input:focus {
-  outline: 2px solid rgba(196, 92, 38, 0.35);
-  border-color: rgba(196, 92, 38, 0.45);
+  outline: 2px solid rgba(5, 150, 105, 0.35);
+  border-color: rgba(5, 150, 105, 0.45);
 }
 
 .page-shell-submit {
   margin-top: 0.5rem;
   padding: 0.9rem 1.5rem;
-  border: 2px solid #1a110a;
+  border: 2px solid #0f172a;
   border-radius: 9999px;
-  background-color: #1a110a;
-  color: #fdf8f0;
+  background-color: #0f172a;
+  color: #ffffff;
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -228,30 +203,30 @@
 }
 
 .page-shell-submit:hover {
-  background-color: #fdf8f0;
-  color: #1a110a;
+  background-color: var(--sa-bg);
+  color: #0f172a;
 }
 
 .page-shell-switch {
   margin-top: 1rem;
   font-size: 0.875rem;
-  color: #5c4f45;
+  color: #64748b;
 }
 
 .page-shell-switch a {
   font-weight: 700;
-  color: #1a110a;
+  color: #0f172a;
   text-decoration: none;
 }
 
 .page-shell-error {
   padding: 0.85rem 1rem;
   border-radius: 0.85rem;
-  background-color: rgba(196, 92, 38, 0.12);
+  background-color: rgba(5, 150, 105, 0.12);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.5;
-  color: #8b3c12;
+  color: #b91c1c;
 }
 
 .page-shell-submit:disabled {

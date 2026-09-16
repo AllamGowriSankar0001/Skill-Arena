@@ -163,10 +163,13 @@ const getOrCreateResume = async (userId) => {
 };
 
 const listMyResumes = async (userId) => {
-  const resumes = await Resume.find({ userId }).sort({ updatedAt: -1 });
-  return resumes
-    .filter(hasResumeContent)
-    .map(formatResumeSummary);
+  const resumes = await Resume.find({ userId })
+    .select(
+      'title name role about jobDescription projectsText educationText contact experiences projects educations sections updatedAt createdAt',
+    )
+    .sort({ updatedAt: -1 })
+    .lean();
+  return resumes.filter(hasResumeContent).map(formatResumeSummary);
 };
 
 const createResume = async (userId) => {
@@ -234,10 +237,15 @@ const runResumeAI = async (userId, type, context, stateOverride) => {
 
 const listResumesForAdmin = async () => {
   const resumes = await Resume.find()
+    .select('-profileImage')
     .populate('userId', 'name email role')
-    .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 })
+    .limit(500);
 
-  return resumes.map(formatResume);
+  return resumes.map((resume) => ({
+    ...formatResume(resume),
+    profileImage: null,
+  }));
 };
 
 const deleteResume = async (userId) => {

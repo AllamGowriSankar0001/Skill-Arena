@@ -11,10 +11,10 @@
   padding: 0 3rem;
   isolation: isolate;
   pointer-events: auto;
-  background-color: rgba(253, 248, 240, 0.45);
+  background-color: var(--sa-nav-bg);
   backdrop-filter: blur(18px) saturate(1.35);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
-  border-bottom: 1px solid rgba(253, 248, 240, 0.35);
+  border-bottom: 1px solid transparent;
   transform: translateY(0);
   transition:
     transform 0.35s ease,
@@ -29,13 +29,13 @@
 
 .navbar--bordered,
 .navbar--menu-open {
-  background-color: rgba(253, 248, 240, 0.92);
-  border-bottom-color: rgba(26, 17, 10, 0.1);
-  box-shadow: 0 10px 32px rgba(26, 17, 10, 0.06);
+  background-color: var(--sa-nav-bg-solid);
+  border-bottom-color: var(--sa-border);
+  box-shadow: var(--sa-shadow);
 }
 
 .navbar--menu-open {
-  background-color: rgba(253, 248, 240, 0.98);
+  background-color: var(--sa-nav-bg-solid);
 }
 
 .navbar-logo {
@@ -71,7 +71,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1a110a;
+  color: var(--sa-ink);
 }
 
 .navbar-links a::after {
@@ -81,7 +81,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: #1a110a;
+  background-color: #059669;
   transition: width 0.35s ease;
 }
 
@@ -106,7 +106,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1a110a;
+  color: var(--sa-ink);
   transition: opacity 0.2s ease;
 }
 
@@ -119,24 +119,24 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border: 2px solid #1a110a;
-  border-radius: 9999px;
+  border: 2px solid var(--sa-primary);
+  border-radius: 0.65rem;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #fdf8f0;
-  background: linear-gradient(to right, #fdf8f0 50%, #1a110a 50%);
-  background-size: 200% 100%;
-  background-position: 100% 0;
-  transition: background-position 0.45s ease, color 0.45s ease;
+  color: #ffffff;
+  background: var(--sa-primary);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.22);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .navbar-signup:hover {
-  background-position: 0 0;
-  color: #1a110a;
+  background: var(--sa-primary-hover);
+  border-color: var(--sa-primary-hover);
+  color: #ffffff;
 }
 
 .navbar--static {
@@ -150,8 +150,9 @@
 }
 
 .navbar-signup--active {
-  background-position: 0 0;
-  color: #1a110a;
+  background: var(--sa-primary-hover);
+  border-color: var(--sa-primary-hover);
+  color: #ffffff;
 }
 
 .navbar-signup span {
@@ -170,12 +171,10 @@
   width: 2.65rem;
   height: 2.65rem;
   padding: 0;
-  border: 1px solid rgba(26, 17, 10, 0.16);
+  border: 1px solid var(--sa-border-strong);
   border-radius: 100%;
-  background: #f5f0e8;
-  box-shadow:
-    0 1px 2px rgba(26, 17, 10, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  background: var(--sa-bg-alt);
+  box-shadow: none;
   font-family: inherit;
   appearance: none;
   -webkit-appearance: none;
@@ -186,16 +185,24 @@
     box-shadow 0.2s ease;
 }
 
+.navbar-mobile-tools {
+  display: none;
+  align-items: center;
+  gap: 0.55rem;
+  position: relative;
+  z-index: 10002;
+}
+
 .navbar-toggle:hover {
   background: #fff;
-  border-color: rgba(26, 17, 10, 0.22);
-  box-shadow: 0 2px 8px rgba(26, 17, 10, 0.08);
+  border-color: rgba(15, 23, 42, 0.22);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .navbar--menu-open .navbar-toggle {
   background: #fff;
-  border-color: rgba(26, 17, 10, 0.2);
-  box-shadow: 0 4px 16px rgba(26, 17, 10, 0.1);
+  border-color: rgba(15, 23, 42, 0.2);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
 }
 
 .navbar-toggle-line {
@@ -203,7 +210,7 @@
   width: 1.35rem;
   height: 2px;
   margin: 0 auto;
-  background-color: #1a110a;
+  background-color: var(--sa-ink);
   border-radius: 9999px;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -243,6 +250,10 @@
     display: inline-flex;
   }
 
+  .navbar-mobile-tools {
+    display: inline-flex;
+  }
+
   .navbar-mobile-backdrop {
     display: block;
     position: fixed;
@@ -250,7 +261,7 @@
     z-index: 9998;
     border: none;
     padding: 0;
-    background-color: rgba(26, 17, 10, 0.45);
+    background-color: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
     opacity: 0;
@@ -279,9 +290,9 @@
     width: min(20rem, 88vw);
     z-index: 9999;
     padding: calc(var(--navbar-height) + 0.75rem) 1rem 1.25rem;
-    background: linear-gradient(180deg, #fffdf9 0%, #fdf8f0 100%);
-    border-left: 1px solid rgba(26, 17, 10, 0.08);
-    box-shadow: -16px 0 48px rgba(26, 17, 10, 0.12);
+    background: linear-gradient(180deg, var(--sa-bg) 0%, var(--sa-bg-alt) 100%);
+    border-left: 1px solid var(--sa-border);
+    box-shadow: -16px 0 48px rgba(15, 23, 42, 0.12);
     opacity: 1;
     visibility: hidden;
     transform: translateX(104%);
@@ -308,14 +319,14 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #c45c26;
+    color: #059669;
   }
 
   .navbar-mobile-lead {
     margin: 0.35rem 0 0;
     font-size: 0.84rem;
     line-height: 1.5;
-    color: #6b5f54;
+    color: #64748b;
   }
 
   .navbar-mobile-links {
@@ -336,9 +347,9 @@
     letter-spacing: 0;
     text-transform: none;
     text-decoration: none;
-    color: #1a110a;
-    background: #fff;
-    border: 1px solid rgba(26, 17, 10, 0.08);
+    color: var(--sa-ink);
+    background: var(--sa-surface);
+    border: 1px solid var(--sa-border);
     border-radius: 0.8rem;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
     transition:
@@ -353,7 +364,7 @@
 
   .navbar-mobile-link-arrow {
     font-size: 0.95rem;
-    color: rgba(26, 17, 10, 0.38);
+    color: rgba(15, 23, 42, 0.38);
   }
 
   .navbar-mobile-actions {
@@ -371,7 +382,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #8a7a6d;
+    color: #94a3b8;
   }
 
   .navbar-mobile-btn {
@@ -397,23 +408,23 @@
 
   .navbar-mobile-btn--primary {
     border: none;
-    color: #fdf8f0;
-    background: #1a110a;
+    color: #ffffff;
+    background: #059669;
   }
 
   .navbar-mobile-btn--primary.navbar-mobile-btn--active {
-    background: #c45c26;
+    background: #047857;
   }
 
   .navbar-mobile-btn--ghost {
-    border: 1px solid rgba(26, 17, 10, 0.12);
-    color: #1a110a;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    color: #0f172a;
     background: rgba(255, 255, 255, 0.72);
   }
 
   .navbar-mobile-btn--ghost.navbar-mobile-btn--active {
-    border-color: rgba(196, 92, 38, 0.35);
-    background: rgba(196, 92, 38, 0.08);
+    border-color: rgba(5, 150, 105, 0.35);
+    background: rgba(5, 150, 105, 0.08);
   }
 }
 

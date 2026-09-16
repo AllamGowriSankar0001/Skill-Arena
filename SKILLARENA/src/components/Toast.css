@@ -16,7 +16,7 @@
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 30px rgba(26, 17, 10, 0.14);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
   pointer-events: auto;
   animation: app-toast-in 0.22s ease-out;
 }
@@ -34,7 +34,7 @@
   height: 1.5rem;
   border: none;
   border-radius: 999px;
-  background: rgba(26, 17, 10, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   color: inherit;
   cursor: pointer;
   font-size: 0.75rem;

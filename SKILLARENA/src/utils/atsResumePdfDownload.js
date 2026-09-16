@@ -1,6 +1,5 @@
 import { API_BASE_URL } from '../config/env.js'
-
-const getToken = () => localStorage.getItem('skillarena_token')
+import { getCsrfToken } from '../services/api.js'
 
 const pdfBlobCache = new Map()
 const inFlightRequests = new Map()
@@ -21,12 +20,13 @@ const fetchPdfBlob = async (ats) => {
   let pending = inFlightRequests.get(key)
   if (!pending) {
     pending = (async () => {
-      const token = getToken()
+      const csrf = getCsrfToken()
       const response = await fetch(`${API_BASE_URL}/resume/pdf`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
         },
         body: JSON.stringify({ ats }),
       })

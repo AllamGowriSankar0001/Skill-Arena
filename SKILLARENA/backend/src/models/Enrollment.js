@@ -70,6 +70,13 @@ const enrollmentSchema = new mongoose.Schema(
 enrollmentSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 enrollmentSchema.index({ userId: 1, status: 1 });
 enrollmentSchema.index({ userId: 1, lastAccessedAt: -1 });
+// Course leaderboard / publish fan-out: filter by courseId (+ status/progress)
+enrollmentSchema.index({
+  courseId: 1,
+  status: 1,
+  progressPercentage: -1,
+  completedLessonCount: -1,
+});
 
 const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
 

@@ -214,6 +214,22 @@ const assertRoomAccess = async (userId, roomId, { isPlatformAdmin = false } = {}
   throw createHttpError(403, 'Join this community to view messages', 'NOT_A_MEMBER');
 };
 
+/**
+ * Ensure the caller may interact with a post (global lounge or room membership).
+ */
+const assertPostAccess = async (userId, post, { isPlatformAdmin = false } = {}) => {
+  if (!post) {
+    throw createHttpError(404, 'Message not found', 'POST_NOT_FOUND');
+  }
+
+  if (!post.roomId) {
+    return { post };
+  }
+
+  await assertRoomAccess(userId, post.roomId, { isPlatformAdmin });
+  return { post };
+};
+
 const getCommunityMeta = async (userId, { isPlatformAdmin = false } = {}) => {
   const [categories, courses, postCount, memberCount, globalCount, memberships, officialRooms] =
     await Promise.all([
@@ -231,68 +247,104 @@ const getCommunityMeta = async (userId, { isPlatformAdmin = false } = {}) => {
     ]);
 
   const membershipMap = new Map(memberships.map((item) => [String(item.roomId), item]));
-  const memberRoomIds = new Set(memberships.map((item) => String(item.roomId)));
 
   const userRooms = memberships.length
-    ? await CommunityRoom.find({ _id: { $in: memberships.map((item) => item.roomId) }, status: 'ACTIVE' })
+    ? await CommunityRoom.find({
+        _id: { $in: memberships.map((item) => item.roomId) },
+        status: 'ACTIVE',
+      })
         .sort({ updatedAt: -1 })
         .lean()
     : [];
 
   const memberRoomIdSet = new Set(userRooms.map((room) => String(room._id)));
+  const officialOnly = officialRooms.filter((room) => !memberRoomIdSet.has(String(room._id)));
 
-  const categoryChannels = await Promise.all(
-    categories.map(async (category) => ({
-      id: `category-${category._id}`,
-      type: 'CATEGORY',
-      name: category.name,
-      slug: category.slug,
-      description: `Discuss ${category.name.toLowerCase()} courses, battles, and study tips.`,
-      postCount: await countForFilter({
-        status: 'ACTIVE',
-        platformCategoryId: category._id,
-        roomId: null,
-      }),
-    })),
+  const categoryIds = categories.map((category) => category._id);
+  const courseIds = courses.map((course) => course._id);
+  const roomIds = [...userRooms, ...officialOnly].map((room) => room._id);
+
+  const orClauses = [];
+  if (categoryIds.length) {
+    orClauses.push({ roomId: null, platformCategoryId: { $in: categoryIds } });
+  }
+  if (courseIds.length) {
+    orClauses.push({ roomId: null, courseId: { $in: courseIds } });
+  }
+  if (roomIds.length) {
+    orClauses.push({ roomId: { $in: roomIds } });
+  }
+
+  // One aggregation replaces per-channel countDocuments fan-out.
+  const countRows = orClauses.length
+    ? await CommunityPost.aggregate([
+        {
+          $match: {
+            status: 'ACTIVE',
+            $or: orClauses,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              roomId: '$roomId',
+              platformCategoryId: '$platformCategoryId',
+              courseId: '$courseId',
+            },
+            count: { $sum: 1 },
+          },
+        },
+      ])
+    : [];
+
+  const categoryCountMap = new Map();
+  const courseCountMap = new Map();
+  const roomCountMap = new Map();
+
+  countRows.forEach((row) => {
+    if (row._id.roomId) {
+      roomCountMap.set(String(row._id.roomId), row.count);
+      return;
+    }
+    if (row._id.courseId) {
+      courseCountMap.set(String(row._id.courseId), row.count);
+      return;
+    }
+    if (row._id.platformCategoryId) {
+      categoryCountMap.set(String(row._id.platformCategoryId), row.count);
+    }
+  });
+
+  const categoryChannels = categories.map((category) => ({
+    id: `category-${category._id}`,
+    type: 'CATEGORY',
+    name: category.name,
+    slug: category.slug,
+    description: `Discuss ${category.name.toLowerCase()} courses, battles, and study tips.`,
+    postCount: categoryCountMap.get(String(category._id)) || 0,
+  }));
+
+  const courseChannels = courses.map((course) => ({
+    id: `course-${course._id}`,
+    type: 'COURSE',
+    name: course.title,
+    slug: course.slug,
+    description: `Course lounge for ${course.title}. Ask questions and share progress.`,
+    postCount: courseCountMap.get(String(course._id)) || 0,
+  }));
+
+  const roomChannels = userRooms.map((room) =>
+    serializeRoomChannel(room, membershipMap.get(String(room._id)), roomCountMap.get(String(room._id)) || 0, {
+      isMember: true,
+      isPlatformAdmin,
+    }),
   );
 
-  const courseChannels = await Promise.all(
-    courses.map(async (course) => ({
-      id: `course-${course._id}`,
-      type: 'COURSE',
-      name: course.title,
-      slug: course.slug,
-      description: `Course lounge for ${course.title}. Ask questions and share progress.`,
-      postCount: await countForFilter({
-        status: 'ACTIVE',
-        courseId: course._id,
-        roomId: null,
-      }),
-    })),
-  );
-
-  const roomChannels = await Promise.all(
-    userRooms.map(async (room) =>
-      serializeRoomChannel(
-        room,
-        membershipMap.get(String(room._id)),
-        await countForFilter({ status: 'ACTIVE', roomId: room._id }),
-        { isMember: true, isPlatformAdmin },
-      ),
-    ),
-  );
-
-  const officialChannels = await Promise.all(
-    officialRooms
-      .filter((room) => !memberRoomIdSet.has(String(room._id)))
-      .map(async (room) =>
-        serializeRoomChannel(
-          room,
-          null,
-          await countForFilter({ status: 'ACTIVE', roomId: room._id }),
-          { isMember: false, isPlatformAdmin },
-        ),
-      ),
+  const officialChannels = officialOnly.map((room) =>
+    serializeRoomChannel(room, null, roomCountMap.get(String(room._id)) || 0, {
+      isMember: false,
+      isPlatformAdmin,
+    }),
   );
 
   const channels = [
@@ -635,11 +687,13 @@ const updateRoom = async (userId, roomId, payload = {}, isPlatformAdmin = false)
   };
 };
 
-const toggleLike = async (userId, postId) => {
+const toggleLike = async (userId, postId, { isPlatformAdmin = false } = {}) => {
   const post = await CommunityPost.findOne({ _id: postId, status: 'ACTIVE' });
   if (!post) {
     throw createHttpError(404, 'Message not found', 'POST_NOT_FOUND');
   }
+
+  await assertPostAccess(userId, post, { isPlatformAdmin });
 
   const existing = await CommunityLike.findOne({ userId, postId });
 
@@ -666,11 +720,13 @@ const toggleLike = async (userId, postId) => {
   };
 };
 
-const listComments = async (userId, postId, query = {}) => {
+const listComments = async (userId, postId, query = {}, { isPlatformAdmin = false } = {}) => {
   const post = await CommunityPost.findOne({ _id: postId, status: 'ACTIVE' });
   if (!post) {
     throw createHttpError(404, 'Message not found', 'POST_NOT_FOUND');
   }
+
+  await assertPostAccess(userId, post, { isPlatformAdmin });
 
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
   const limit = Math.min(50, Math.max(1, Number.parseInt(query.limit, 10) || 30));
@@ -707,7 +763,7 @@ const listComments = async (userId, postId, query = {}) => {
   };
 };
 
-const addComment = async (userId, postId, payload = {}) => {
+const addComment = async (userId, postId, payload = {}, { isPlatformAdmin = false } = {}) => {
   const content = payload.content?.trim();
   if (!content) {
     throw createHttpError(400, 'Reply is required', 'CONTENT_REQUIRED');
@@ -720,6 +776,8 @@ const addComment = async (userId, postId, payload = {}) => {
   if (!post) {
     throw createHttpError(404, 'Message not found', 'POST_NOT_FOUND');
   }
+
+  await assertPostAccess(userId, post, { isPlatformAdmin });
 
   const comment = await CommunityComment.create({
     postId,
@@ -750,6 +808,8 @@ const deletePost = async (userId, postId, isAdmin = false) => {
   if (!post) {
     throw createHttpError(404, 'Message not found', 'POST_NOT_FOUND');
   }
+
+  await assertPostAccess(userId, post, { isPlatformAdmin: isAdmin });
 
   if (!isAdmin && String(post.authorId) !== String(userId)) {
     throw createHttpError(403, 'You can only delete your own messages', 'FORBIDDEN');

@@ -8,14 +8,17 @@ const scrollContainerToTop = (element) => {
 }
 
 const ScrollToTop = () => {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
 
   useEffect(() => {
+    // Keep in-page section anchors (e.g. /#features) from being reset to the top.
+    if (hash) return
+
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     scrollContainerToTop(document.documentElement)
     scrollContainerToTop(document.body)
     scrollContainerToTop(document.querySelector('.admin-main'))
-  }, [pathname])
+  }, [pathname, hash])
 
   return null
 }

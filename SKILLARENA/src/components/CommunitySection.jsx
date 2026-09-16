@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
+import communityImage from '../assets/community.png'
 import { ROUTES } from '../routes'
 import './CommunitySection.css'
-
-const COMMUNITY_IMAGE = '/community.png'
 
 const CommunitySection = () => {
   return (
@@ -13,7 +12,7 @@ const CommunitySection = () => {
           <div className="community-media">
             <img
               className="community-image"
-              src={COMMUNITY_IMAGE}
+              src={communityImage}
               alt="Skill Arena community with squads, real-time chat, and study sessions"
               width={1024}
               height={1024}

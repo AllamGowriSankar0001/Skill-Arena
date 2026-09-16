@@ -1,0 +1,531 @@
+﻿{
+  "phase": 9,
+  "measuredAt": "2026-09-06T07:52:06.213Z",
+  "environment": {
+    "cpus": 8,
+    "ramGB": 7.8,
+    "freeGB": 0.9,
+    "platform": "win32",
+    "release": "10.0.26200",
+    "node": "v20.19.0",
+    "base": "http://127.0.0.1:5000/api",
+    "baselineN": 30
+  },
+  "authBaseline": {
+    "login": {
+      "requests": 25,
+      "ok": 25,
+      "avg": 499.04,
+      "p50": 503.16,
+      "p75": 546.31,
+      "p95": 599.53,
+      "p99": 734.76,
+      "min": 389.54,
+      "max": 734.76,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 25
+      }
+    },
+    "refresh": {
+      "requests": 20,
+      "ok": 20,
+      "avg": 473.35,
+      "p50": 480.04,
+      "p75": 529.79,
+      "p95": 599.8,
+      "p99": 601.57,
+      "min": 334.59,
+      "max": 601.57,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 20
+      }
+    }
+  },
+  "baseline": {
+    "health": {
+      "path": "/health",
+      "requests": 30,
+      "ok": 30,
+      "avg": 1.79,
+      "p50": 1.73,
+      "p75": 2.02,
+      "p95": 2.54,
+      "p99": 2.56,
+      "min": 1.27,
+      "max": 2.56,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "home": {
+      "path": "/home",
+      "requests": 30,
+      "ok": 30,
+      "avg": 641.54,
+      "p50": 630.66,
+      "p75": 685.47,
+      "p95": 731.1,
+      "p99": 746.78,
+      "min": 568.88,
+      "max": 746.78,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "practice": {
+      "path": "/learning/practice?limit=50",
+      "requests": 30,
+      "ok": 30,
+      "avg": 368.49,
+      "p50": 368.87,
+      "p75": 407.54,
+      "p95": 502.56,
+      "p99": 514.54,
+      "min": 257.1,
+      "max": 514.54,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "community-meta": {
+      "path": "/learning/community/meta",
+      "requests": 30,
+      "ok": 30,
+      "avg": 276.63,
+      "p50": 261.39,
+      "p75": 326.37,
+      "p95": 382.08,
+      "p99": 386.29,
+      "min": 189.95,
+      "max": 386.29,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "leaderboard-global": {
+      "path": "/learning/leaderboard?scope=global&limit=25",
+      "requests": 30,
+      "ok": 30,
+      "avg": 379.8,
+      "p50": 388.02,
+      "p75": 416.38,
+      "p95": 518.74,
+      "p99": 531.67,
+      "min": 253.41,
+      "max": 531.67,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "course-detail": {
+      "path": "/platform/courses/6a36e810676d5134271b65b7",
+      "requests": 30,
+      "ok": 30,
+      "avg": 388.8,
+      "p50": 391.38,
+      "p75": 449.38,
+      "p95": 483.63,
+      "p99": 590.48,
+      "min": 274.01,
+      "max": 590.48,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    },
+    "leaderboard-course": {
+      "path": "/learning/leaderboard?scope=course&courseId=6a36e810676d5134271b65b7&limit=25",
+      "requests": 30,
+      "ok": 30,
+      "avg": 573.55,
+      "p50": 481.29,
+      "p75": 535.52,
+      "p95": 997.82,
+      "p99": 2820.15,
+      "min": 368.84,
+      "max": 2820.15,
+      "errorRateApp": 0,
+      "rateLimited": 0,
+      "status": {
+        "200": 30
+      }
+    }
+  },
+  "concurrent": {
+    "A": {
+      "concurrency": 5,
+      "durationMs": 16897,
+      "totalRequests": 34,
+      "throughputRps": 2.01,
+      "overall": {
+        "requests": 34,
+        "ok": 34,
+        "avg": 2058.6,
+        "p50": 469.99,
+        "p75": 2795.24,
+        "p95": 9550.3,
+        "p99": 9607.53,
+        "min": 265.03,
+        "max": 9607.53,
+        "errorRateApp": 0,
+        "rateLimited": 0,
+        "status": {
+          "200": 34
+        }
+      },
+      "byEndpoint": {
+        "leaderboard-global": {
+          "requests": 6,
+          "ok": 6,
+          "avg": 1492.78,
+          "p50": 412.25,
+          "p75": 2795.24,
+          "p95": 4620.73,
+          "p99": 4620.73,
+          "min": 331.53,
+          "max": 4620.73,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 6
+          }
+        },
+        "course-detail": {
+          "requests": 5,
+          "ok": 5,
+          "avg": 1362.32,
+          "p50": 415.65,
+          "p75": 672.38,
+          "p95": 5004.48,
+          "p99": 5004.48,
+          "min": 332,
+          "max": 5004.48,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 5
+          }
+        },
+        "home": {
+          "requests": 6,
+          "ok": 6,
+          "avg": 3122.11,
+          "p50": 994.33,
+          "p75": 4701.63,
+          "p95": 9326.58,
+          "p99": 9326.58,
+          "min": 497.6,
+          "max": 9326.58,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 6
+          }
+        },
+        "leaderboard-course": {
+          "requests": 5,
+          "ok": 5,
+          "avg": 1462.21,
+          "p50": 555.98,
+          "p75": 991.86,
+          "p95": 4927.37,
+          "p99": 4927.37,
+          "min": 365.83,
+          "max": 4927.37,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 5
+          }
+        },
+        "community-meta": {
+          "requests": 6,
+          "ok": 6,
+          "avg": 2667.47,
+          "p50": 316.22,
+          "p75": 5262.47,
+          "p95": 9550.3,
+          "p99": 9550.3,
+          "min": 265.03,
+          "max": 9550.3,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 6
+          }
+        },
+        "practice": {
+          "requests": 6,
+          "ok": 6,
+          "avg": 2029.27,
+          "p50": 383.29,
+          "p75": 1119.62,
+          "p95": 9607.53,
+          "p99": 9607.53,
+          "min": 297.71,
+          "max": 9607.53,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 6
+          }
+        }
+      }
+    },
+    "B": {
+      "concurrency": 15,
+      "durationMs": 15767,
+      "totalRequests": 134,
+      "throughputRps": 8.5,
+      "overall": {
+        "requests": 134,
+        "ok": 134,
+        "avg": 1706.84,
+        "p50": 1090.87,
+        "p75": 1907.88,
+        "p95": 5072.21,
+        "p99": 6897.39,
+        "min": 285.12,
+        "max": 7416.16,
+        "errorRateApp": 0,
+        "rateLimited": 0,
+        "status": {
+          "200": 134
+        }
+      },
+      "byEndpoint": {
+        "community-meta": {
+          "requests": 22,
+          "ok": 22,
+          "avg": 1298.73,
+          "p50": 870.75,
+          "p75": 1324.54,
+          "p95": 3988.85,
+          "p99": 6165.69,
+          "min": 285.12,
+          "max": 6165.69,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 22
+          }
+        },
+        "leaderboard-global": {
+          "requests": 22,
+          "ok": 22,
+          "avg": 1425.14,
+          "p50": 998.77,
+          "p75": 1583.31,
+          "p95": 3572.56,
+          "p99": 5112.93,
+          "min": 369.47,
+          "max": 5112.93,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 22
+          }
+        },
+        "course-detail": {
+          "requests": 22,
+          "ok": 22,
+          "avg": 1429.83,
+          "p50": 1006.92,
+          "p75": 1416.89,
+          "p95": 3990.15,
+          "p99": 5072.21,
+          "min": 357.69,
+          "max": 5072.21,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 22
+          }
+        },
+        "practice": {
+          "requests": 23,
+          "ok": 23,
+          "avg": 1602.53,
+          "p50": 934.81,
+          "p75": 1422.33,
+          "p95": 4564.48,
+          "p99": 7416.16,
+          "min": 322.99,
+          "max": 7416.16,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 23
+          }
+        },
+        "leaderboard-course": {
+          "requests": 22,
+          "ok": 22,
+          "avg": 1927.12,
+          "p50": 1152.88,
+          "p75": 1988.43,
+          "p95": 4698.55,
+          "p99": 4999.58,
+          "min": 398.02,
+          "max": 4999.58,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 22
+          }
+        },
+        "home": {
+          "requests": 23,
+          "ok": 23,
+          "avg": 2525.23,
+          "p50": 1751.39,
+          "p75": 2989.79,
+          "p95": 6507.38,
+          "p99": 6897.39,
+          "min": 786.61,
+          "max": 6897.39,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 23
+          }
+        }
+      }
+    },
+    "C": {
+      "concurrency": 25,
+      "durationMs": 14503,
+      "totalRequests": 196,
+      "throughputRps": 13.51,
+      "overall": {
+        "requests": 196,
+        "ok": 196,
+        "avg": 1698.56,
+        "p50": 1811.96,
+        "p75": 1992.68,
+        "p95": 2893.51,
+        "p99": 3903.5,
+        "min": 761.46,
+        "max": 4165.25,
+        "errorRateApp": 0,
+        "rateLimited": 0,
+        "status": {
+          "200": 196
+        }
+      },
+      "byEndpoint": {
+        "community-meta": {
+          "requests": 33,
+          "ok": 33,
+          "avg": 1210.65,
+          "p50": 1084.74,
+          "p75": 1161.04,
+          "p95": 2145.91,
+          "p99": 3017.22,
+          "min": 761.46,
+          "max": 3017.22,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 33
+          }
+        },
+        "leaderboard-global": {
+          "requests": 33,
+          "ok": 33,
+          "avg": 1468.68,
+          "p50": 1300.99,
+          "p75": 1864.76,
+          "p95": 1931.55,
+          "p99": 2802.01,
+          "min": 861.84,
+          "max": 2802.01,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 33
+          }
+        },
+        "practice": {
+          "requests": 33,
+          "ok": 33,
+          "avg": 1495.19,
+          "p50": 1597.31,
+          "p75": 1873.82,
+          "p95": 2043.12,
+          "p99": 2090.72,
+          "min": 863.17,
+          "max": 2090.72,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 33
+          }
+        },
+        "course-detail": {
+          "requests": 32,
+          "ok": 32,
+          "avg": 1524.58,
+          "p50": 1296.69,
+          "p75": 1865.36,
+          "p95": 2835.64,
+          "p99": 2923.24,
+          "min": 867.31,
+          "max": 2923.24,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 32
+          }
+        },
+        "leaderboard-course": {
+          "requests": 32,
+          "ok": 32,
+          "avg": 1849.75,
+          "p50": 1941.02,
+          "p75": 1997.45,
+          "p95": 2118.37,
+          "p99": 2857.73,
+          "min": 935.12,
+          "max": 2857.73,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 32
+          }
+        },
+        "home": {
+          "requests": 33,
+          "ok": 33,
+          "avg": 2641.8,
+          "p50": 2804.06,
+          "p75": 2877.41,
+          "p95": 3903.5,
+          "p99": 4165.25,
+          "min": 1918.55,
+          "max": 4165.25,
+          "errorRateApp": 0,
+          "rateLimited": 0,
+          "status": {
+            "200": 33
+          }
+        }
+      }
+    }
+  }
+}

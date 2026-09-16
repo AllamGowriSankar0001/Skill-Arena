@@ -1,13 +1,14 @@
 .cta {
-  --cta-ink: #1a110a;
-  --cta-muted: #5c4f45;
+  --cta-ink: var(--sa-ink);
+  --cta-muted: var(--sa-muted);
 
-  padding: 6rem 3rem 7rem;
-  background-color: #fdf8f0;
+  padding: 5rem 3rem 5.5rem;
+  background-color: var(--sa-bg-alt);
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(253, 248, 240, 0.95) 0%, rgba(245, 232, 200, 0.55) 52%, rgba(232, 210, 175, 0.75) 100%),
-    radial-gradient(rgba(26, 17, 10, 0.06) 1px, transparent 1px);
-  background-size: auto, 22px 22px;
+    radial-gradient(circle at 50% 40%, rgba(5, 150, 105, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(244, 114, 182, 0.08) 0%, transparent 38%);
+  background-size: auto, auto, auto;
 }
 
 .cta-inner {
@@ -50,35 +51,37 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.95rem 1.6rem;
-  border-radius: 9999px;
+  border-radius: 0.65rem;
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .cta-btn-primary {
-  border: 2px solid var(--cta-ink);
-  background-color: var(--cta-ink);
-  color: #fdf8f0;
+  border: 2px solid var(--sa-primary);
+  background-color: var(--sa-primary);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
 }
 
 .cta-btn-primary:hover {
-  background-color: #fdf8f0;
-  color: var(--cta-ink);
+  background-color: var(--sa-primary-hover);
+  border-color: var(--sa-primary-hover);
+  color: #ffffff;
 }
 
 .cta-btn-secondary {
-  border: 1px solid rgba(26, 17, 10, 0.1);
-  background-color: #ffffff;
-  color: var(--cta-ink);
+  border: 1px solid var(--sa-border-strong);
+  background-color: var(--sa-surface);
+  color: var(--sa-primary);
 }
 
 .cta-btn-secondary:hover {
-  background-color: #fdf8f0;
-  border-color: rgba(26, 17, 10, 0.2);
+  background-color: var(--sa-primary-soft);
+  border-color: rgba(5, 150, 105, 0.28);
 }
 
 @media (max-width: 1024px) {

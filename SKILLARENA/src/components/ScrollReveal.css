@@ -8,10 +8,6 @@
   will-change: opacity, transform;
 }
 
-.scroll-reveal:not(.is-visible) {
-  pointer-events: none;
-}
-
 .scroll-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);

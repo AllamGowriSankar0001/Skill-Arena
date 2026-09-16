@@ -133,6 +133,7 @@ assessmentSchema.index({ courseId: 1 });
 assessmentSchema.index({ lessonId: 1 });
 assessmentSchema.index({ skillId: 1 });
 assessmentSchema.index({ status: 1 });
+assessmentSchema.index({ type: 1, status: 1, updatedAt: -1 });
 assessmentSchema.index({ seriesRootId: 1, seriesPart: 1 });
 assessmentSchema.index({ seriesBaseTitle: 1, type: 1 });
 

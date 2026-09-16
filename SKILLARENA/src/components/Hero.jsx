@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
 import heroImage from '../assets/hero-image.png'
 import { ROUTES } from '../routes'
 import './Hero.css'
 
 const Hero = () => {
+  const navigate = useNavigate()
+
   return (
     <section className="hero">
       <div className="hero-inner">
@@ -52,16 +54,25 @@ const Hero = () => {
             </p>
           </ScrollReveal>
 
-          <ScrollReveal delay={400}>
-            <div className="hero-actions">
-              <Link to={ROUTES.signup} className="hero-btn hero-btn-primary">
-                Enter the Arena <span aria-hidden="true">→</span>
-              </Link>
-              <Link to={`${ROUTES.home}#features`} className="hero-btn hero-btn-secondary">
-                How it works
-              </Link>
-            </div>
-          </ScrollReveal>
+          <div className="hero-actions">
+            <Link to={ROUTES.signup} className="hero-btn hero-btn-primary">
+              Enter the Arena <span aria-hidden="true">→</span>
+            </Link>
+            <a
+              href="#features"
+              className="hero-btn hero-btn-secondary"
+              onClick={(event) => {
+                event.preventDefault()
+                const section = document.getElementById('features')
+                if (section) {
+                  section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+                navigate({ pathname: ROUTES.home, hash: 'features' })
+              }}
+            >
+              How it works
+            </a>
+          </div>
         </div>
 
         <ScrollReveal className="hero-aside-wrap" delay={200}>

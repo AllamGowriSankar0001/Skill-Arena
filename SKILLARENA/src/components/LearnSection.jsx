@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal'
+import libraryImage from '../assets/library.png'
 import { ROUTES } from '../routes'
 import './LearnSection.css'
-
-const LIBRARY_IMAGE = '/library.png'
 
 const LearnSection = () => {
   return (
@@ -39,7 +38,7 @@ const LearnSection = () => {
           <div className="learn-media">
             <img
               className="learn-image"
-              src={LIBRARY_IMAGE}
+              src={libraryImage}
               alt="Skill Arena learning library with courses, progress tracking, streaks, and skill paths"
               width={1024}
               height={1024}

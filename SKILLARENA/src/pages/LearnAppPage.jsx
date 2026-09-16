@@ -4,7 +4,8 @@ import AppEmptyState from '../components/AppEmptyState'
 import BoneyardSkeleton from '../components/BoneyardSkeleton'
 import CourseCard from '../components/CourseCard'
 import { MOCK_COURSE } from '../fixtures/skeletonFixtures'
-import { getStoredUser, learningApi, platformApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import { learningApi, platformApi } from '../services/api'
 import { ROUTES } from '../routes'
 import './AppSectionPage.css'
 import './CoursesPage.css'
@@ -13,7 +14,7 @@ const COURSE_CARD_FIXTURE = <CourseCard course={MOCK_COURSE} asLink={false} />
 const SKELETON_COUNT = 6
 
 const LearnAppPage = () => {
-  const user = getStoredUser()
+  const { user } = useAuth()
   const [courses, setCourses] = useState([])
   const [enrollmentByCourseId, setEnrollmentByCourseId] = useState(new Map())
   const [loading, setLoading] = useState(true)
@@ -28,7 +29,7 @@ const LearnAppPage = () => {
   }, [])
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       setEnrollmentByCourseId(new Map())
       return
     }
@@ -41,7 +42,7 @@ const LearnAppPage = () => {
         setEnrollmentByCourseId(map)
       })
       .catch(() => {})
-  }, [user])
+  }, [user?.id])
 
   return (
     <main className="courses-page">

@@ -1,0 +1,323 @@
+﻿MongoDB connected
+{
+  "phase": 9,
+  "kind": "race-resilience",
+  "measuredAt": "2026-09-06T07:59:36.975Z",
+  "host": {
+    "cpus": 8,
+    "ramGB": 7.8,
+    "freeGB": 1,
+    "node": "v20.19.0"
+  },
+  "coding": {
+    "configuredMax": 2,
+    "waves": {
+      "concurrent_1": {
+        "n": 1,
+        "wallMs": 2013,
+        "ok": 1,
+        "fail": 0,
+        "maxActiveObserved": 1,
+        "maxChildrenObserved": 1,
+        "maxWaitingObserved": 0,
+        "residualChildren": 0,
+        "residualStats": {
+          "active": 0,
+          "waiting": 0,
+          "max": 2
+        }
+      },
+      "concurrent_2": {
+        "n": 2,
+        "wallMs": 1897,
+        "ok": 2,
+        "fail": 0,
+        "maxActiveObserved": 2,
+        "maxChildrenObserved": 2,
+        "maxWaitingObserved": 0,
+        "residualChildren": 0,
+        "residualStats": {
+          "active": 0,
+          "waiting": 0,
+          "max": 2
+        }
+      },
+      "concurrent_5": {
+        "n": 5,
+        "wallMs": 5468,
+        "ok": 5,
+        "fail": 0,
+        "maxActiveObserved": 2,
+        "maxChildrenObserved": 2,
+        "maxWaitingObserved": 3,
+        "residualChildren": 0,
+        "residualStats": {
+          "active": 0,
+          "waiting": 0,
+          "max": 2
+        }
+      },
+      "concurrent_10": {
+        "n": 10,
+        "wallMs": 9433,
+        "ok": 10,
+        "fail": 0,
+        "maxActiveObserved": 2,
+        "maxChildrenObserved": 2,
+        "maxWaitingObserved": 8,
+        "residualChildren": 0,
+        "residualStats": {
+          "active": 0,
+          "waiting": 0,
+          "max": 2
+        }
+      }
+    },
+    "concurrencyCapHonored": true
+  },
+  "pdf": {
+    "configuredMax": 2,
+    "warm": {
+      "status": 200,
+      "ms": 5701.6,
+      "bytes": 46254,
+      "cache": "MISS",
+      "json": null
+    },
+    "cacheHit": {
+      "n": 5,
+      "avg": 9.1,
+      "p50": 5.09,
+      "p95": 17.86,
+      "p99": 17.86,
+      "min": 2.98,
+      "max": 17.86,
+      "statuses": {
+        "200": 5
+      }
+    },
+    "waves": {
+      "miss_1": {
+        "n": 1,
+        "wallMs": 5380,
+        "avg": 5380.56,
+        "p50": 5380.56,
+        "p95": 5380.56,
+        "p99": 5380.56,
+        "min": 5380.56,
+        "max": 5380.56,
+        "statuses": {
+          "200": 1
+        },
+        "bytesMax": 50094,
+        "over5MiB": false
+      },
+      "miss_2": {
+        "n": 2,
+        "wallMs": 7517,
+        "avg": 6848.22,
+        "p50": 6180.32,
+        "p95": 7516.11,
+        "p99": 7516.11,
+        "min": 6180.32,
+        "max": 7516.11,
+        "statuses": {
+          "200": 2
+        },
+        "bytesMax": 49872,
+        "over5MiB": false
+      },
+      "miss_5": {
+        "n": 5,
+        "wallMs": 5814,
+        "avg": 2324.91,
+        "p50": 7.96,
+        "p95": 5813.26,
+        "p99": 5813.26,
+        "min": 5.88,
+        "max": 5813.26,
+        "statuses": {
+          "200": 2,
+          "429": 3
+        },
+        "bytesMax": 50093,
+        "over5MiB": false
+      },
+      "hit_5": {
+        "n": 5,
+        "wallMs": 9,
+        "avg": 7.09,
+        "p50": 6.34,
+        "p95": 8.87,
+        "p99": 8.87,
+        "min": 5.99,
+        "max": 8.87,
+        "statuses": {
+          "200": 2,
+          "429": 3
+        },
+        "bytesMax": 46254,
+        "over5MiB": false
+      },
+      "miss_10": {
+        "n": 10,
+        "wallMs": 6973,
+        "avg": 1356.89,
+        "p50": 10.82,
+        "p95": 6973,
+        "p99": 6973,
+        "min": 9.58,
+        "max": 6973,
+        "statuses": {
+          "200": 2,
+          "429": 8
+        },
+        "bytesMax": 49871,
+        "over5MiB": false
+      }
+    }
+  },
+  "battleRace": {
+    "assessmentId": "6a3be8cd54187575e12c6a9a",
+    "durationSeconds": 120,
+    "timerBefore": {
+      "endsAt": "2026-09-06T08:00:45.180Z",
+      "remainingSeconds": 10,
+      "expired": false,
+      "durationSeconds": 120
+    },
+    "timerAfter": {
+      "endsAt": "2026-09-06T08:00:32.273Z",
+      "remainingSeconds": 0,
+      "expired": true,
+      "durationSeconds": 120
+    },
+    "beforeExpiry": {
+      "accepted": true,
+      "timerExpired": false
+    },
+    "concurrentLate": {
+      "total": 12,
+      "accepted": 0,
+      "blockedTimeUp": 12,
+      "otherErrors": []
+    },
+    "lateSubmitBlocked": true,
+    "concurrentLateSubmitBlocked": true,
+    "duplicateScoring": false,
+    "finalizeConsistency": true,
+    "finalStatus": "IN_PROGRESS",
+    "participantCompletedAt": null,
+    "participantScore": 0
+  },
+  "failure": {
+    "pdf": {
+      "pdfUnavailableProbe": {
+        "status": null,
+        "error": "connect ECONNREFUSED 127.0.0.1:18001",
+        "ms": 1.8478
+      },
+      "apiStillHealthy": true
+    },
+    "mongo": {
+      "hardMongoKill": "UNVERIFIED (Atlas shared ÔÇö not stopped during Phase 9)",
+      "apiHealth": 200
+    }
+  },
+  "rateLimitArchitecture": {
+    "processLocalMap": true,
+    "note": "Per-process only ÔÇö two API instances each keep independent counters",
+    "multiInstanceShared": false
+  },
+  "refreshContention": {
+    "concurrentSameToken": {
+      "total": 8,
+      "success200": 1,
+      "failures": [
+        { "status": 401, "message": "INVALID_REFRESH x7 (post-fix after atomic claim fix)" }
+      ],
+      "expected": "Exactly one success preferred; extras should fail safely without revoking the winner incorrectly",
+      "observedExactlyOneSuccess": true,
+      "note": "Initial race run hit stale API process (8/8). After restart with sessionService atomic claim: 1x200 + 7xINVALID_REFRESH."
+    },
+    "winnerFollowUpRefresh": {
+      "status": 200,
+      "ok": true
+    },
+    "originalTokenReuseAfter": {
+      "status": 401,
+      "message": "Session expired. Please sign in again."
+    }
+  },
+  "manyRefresh": {
+    "sessions": 5,
+    "wallMs": 569,
+    "n": 5,
+    "avg": 535.16,
+    "p50": 536.15,
+    "p95": 569.35,
+    "p99": 569.35,
+    "min": 500.75,
+    "max": 569.35,
+    "statuses": {
+      "200": 5
+    },
+    "allOk": true
+  },
+  "rateLimits": {
+    "login": {
+      "configured": "30/15min/IP",
+      "burst": {
+        "n": 5,
+        "avg": 627.81,
+        "p50": 474.84,
+        "p95": 994.94,
+        "p99": 994.94,
+        "min": 397.77,
+        "max": 994.94,
+        "statuses": {
+          "200": 5
+        }
+      },
+      "observed429": 0,
+      "lastHeaders": {
+        "limit": "30",
+        "remaining": "5"
+      },
+      "note": "Full exhaustion also observed after Phase 9 load baseline logins"
+    },
+    "refresh": {
+      "configured": "60/15min/IP",
+      "burst": {
+        "n": 15,
+        "avg": 440.95,
+        "p50": 435.04,
+        "p95": 537.96,
+        "p99": 537.96,
+        "min": 330.36,
+        "max": 537.96,
+        "statuses": {
+          "200": 15
+        }
+      },
+      "observed429": 0
+    },
+    "forgotPassword": {
+      "configured": "5/hour/IP",
+      "burst": {
+        "n": 7,
+        "avg": 1.65,
+        "p50": 1.54,
+        "p95": 2.32,
+        "p99": 2.32,
+        "min": 1.46,
+        "max": 2.32,
+        "statuses": {
+          "429": 7
+        }
+      },
+      "observed429": 7,
+      "accepted": 0
+    }
+  }
+}

@@ -1,9 +1,10 @@
-const jwt = require('jsonwebtoken');
+/**
+ * @deprecated Use utils/accessToken.signAccessToken via sessionService.
+ * Kept so any legacy require() does not crash during migration.
+ */
+const { signAccessToken } = require('./accessToken');
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
-};
+const generateToken = (userId, sessionId = 'legacy') =>
+  signAccessToken({ userId, sessionId });
 
 module.exports = generateToken;

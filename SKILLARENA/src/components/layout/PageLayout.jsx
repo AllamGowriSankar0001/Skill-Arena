@@ -5,12 +5,10 @@ import Footer from '../Footer'
 import { useAuth } from '../../context/AuthContext'
 
 const PageLayout = () => {
-  const { isAuthenticated, bootstrapping } = useAuth()
+  const { isAuthenticated } = useAuth()
 
-  if (bootstrapping) {
-    return <div className="app-loading">Loading…</div>
-  }
-
+  // Public marketing pages (home, blog, etc.) should render immediately.
+  // Auth bootstrap still runs in AuthProvider and updates the navbar when ready.
   if (isAuthenticated) {
     return (
       <>

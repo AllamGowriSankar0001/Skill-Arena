@@ -21,6 +21,7 @@ export const ROUTES = {
   login: '/login',
   signup: '/signup',
   forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
   terms: '/terms',
   privacy: '/privacy',
   cookies: '/cookies',
@@ -31,6 +32,7 @@ export const ROUTES = {
   press: '/press',
   contact: '/contact',
   blog: '/blog',
+  socialComingSoon: '/social-coming-soon',
   courses: '/courses',
   pricing: '/pricing',
   roadmap: '/roadmap',
@@ -56,8 +58,8 @@ export const LANDING_SECTIONS = {
 export const FOOTER_LINKS = {
   Product: [
     { label: 'Features', to: `${ROUTES.home}#features` },
-    { label: 'Battles', to: ROUTES.battles },
-    { label: 'Courses', to: ROUTES.courses },
+    { label: 'Battles', to: `${ROUTES.home}#battles` },
+    { label: 'Courses', to: `${ROUTES.home}#learn` },
     { label: 'Tournaments', to: ROUTES.tournaments },
     { label: 'Leaderboard', to: ROUTES.leaderboard },
     { label: 'Pricing', to: ROUTES.pricing },
@@ -73,7 +75,7 @@ export const FOOTER_LINKS = {
   ],
   Resources: [
     { label: 'Help center', to: ROUTES.helpCenter },
-    { label: 'Community', to: ROUTES.community },
+    { label: 'Community', to: `${ROUTES.home}#community` },
     { label: 'Guides', to: ROUTES.guides },
     { label: 'FAQ', to: ROUTES.faq },
     { label: 'Security', to: ROUTES.security },

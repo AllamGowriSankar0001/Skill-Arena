@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
 import ScrollReveal from './ScrollReveal'
-import { FOOTER_LINKS } from '../routes'
+import { FOOTER_LINKS, ROUTES } from '../routes'
 import './Footer.css'
 
 const SOCIAL_LINKS = [
-  { label: 'Twitter', icon: 'x' },
-  { label: 'GitHub', icon: 'github' },
-  { label: 'Instagram', icon: 'instagram' },
-  { label: 'YouTube', icon: 'youtube' },
+  { label: 'Twitter', icon: 'x', to: ROUTES.socialComingSoon },
+  { label: 'GitHub', icon: 'github', to: ROUTES.socialComingSoon },
+  { label: 'Instagram', icon: 'instagram', to: ROUTES.socialComingSoon },
+  { label: 'YouTube', icon: 'youtube', to: ROUTES.socialComingSoon },
 ]
 
 const socialIcons = {
@@ -24,7 +24,7 @@ const socialIcons = {
   ),
   instagram: (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm-5 4.5A5.5 5.5 0 1 1 6.5 14 5.5 5.5 0 0 1 12 8.5zm0 2A3.5 3.5 0 1 0 15.5 14 3.5 3.5 0 0 0 12 10.5zM17.8 6.3a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1z" />
+      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm-5 4.5A5.5 5.5 0 1 1 6.5 14 5.5 5.5 0 0 1 12 8.5zm0 2A3.5 3.5 0 1 0 15.5 14 3.5 3.5 0 0 0 12 10.5zM17.8 6.3a1.1 1.1 0 1 1-1.1 1.1 1.1 0 0 1 1.1-1.1z" />
     </svg>
   ),
   youtube: (
@@ -72,15 +72,15 @@ const Footer = ({ compact = false }) => {
               </p>
 
               <div className="footer-social">
-                {SOCIAL_LINKS.map(({ label, icon }) => (
-                  <a
+                {SOCIAL_LINKS.map(({ label, icon, to }) => (
+                  <Link
                     key={label}
-                    href="#"
+                    to={to}
                     className="footer-social-link"
                     aria-label={label}
                   >
                     {socialIcons[icon]}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

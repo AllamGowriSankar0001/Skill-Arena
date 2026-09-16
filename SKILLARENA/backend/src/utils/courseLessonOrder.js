@@ -1,8 +1,14 @@
 const { CourseModule, Lesson } = require('../models');
 
 async function getPublishedLessonsForCourse(courseId) {
-  const modules = await CourseModule.find({ courseId, status: 'ACTIVE' }).sort({ order: 1 }).lean();
-  const lessons = await Lesson.find({ courseId, status: 'PUBLISHED' }).sort({ order: 1 }).lean();
+  const modules = await CourseModule.find({ courseId, status: 'ACTIVE' })
+    .sort({ order: 1 })
+    .select('_id order')
+    .lean();
+  const lessons = await Lesson.find({ courseId, status: 'PUBLISHED' })
+    .sort({ order: 1 })
+    .select('_id moduleId order title type')
+    .lean();
 
   const lessonsByModule = lessons.reduce((acc, lesson) => {
     const key = lesson.moduleId.toString();

@@ -11,17 +11,38 @@ const PASSWORD_STRENGTH_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$&*]).{6,}$/;
 
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : '');
 
+const validatePasswordValue = (password) => {
+  const trimmedPassword = trimValue(password);
+
+  if (!trimmedPassword) {
+    return { ok: false, message: MSG.FILL_REQUIRED_FIELDS };
+  }
+
+  if (trimmedPassword.length > PASSWORD_MAX_LENGTH) {
+    return { ok: false, message: MSG.EXCEED_LENGTH };
+  }
+
+  if (!PASSWORD_CHARS_PATTERN.test(trimmedPassword)) {
+    return { ok: false, message: MSG.PASSWORD_SPECIAL_CHARS };
+  }
+
+  if (!PASSWORD_STRENGTH_PATTERN.test(trimmedPassword)) {
+    return { ok: false, message: MSG.WEAK_PASSWORD };
+  }
+
+  return { ok: true, password: trimmedPassword };
+};
+
 const validateSignupFields = ({ name, email, password, confirmPassword }) => {
   const trimmedName = trimValue(name);
   const trimmedEmail = trimValue(email);
-  const trimmedPassword = trimValue(password);
   const trimmedConfirm = trimValue(confirmPassword);
 
-  if (!trimmedName || !trimmedEmail || !trimmedPassword || !trimmedConfirm) {
+  if (!trimmedName || !trimmedEmail || !password || !trimmedConfirm) {
     return { ok: false, message: MSG.SIGNUP_FILL_REQUIRED };
   }
 
-  if (trimmedPassword !== trimmedConfirm) {
+  if (trimValue(password) !== trimmedConfirm) {
     return { ok: false, message: MSG.PASSWORDS_DO_NOT_MATCH };
   }
 
@@ -45,23 +66,16 @@ const validateSignupFields = ({ name, email, password, confirmPassword }) => {
     return { ok: false, message: MSG.INVALID_EMAIL_FORMAT };
   }
 
-  if (trimmedPassword.length > PASSWORD_MAX_LENGTH) {
-    return { ok: false, message: MSG.EXCEED_LENGTH };
-  }
-
-  if (!PASSWORD_CHARS_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: MSG.PASSWORD_SPECIAL_CHARS };
-  }
-
-  if (!PASSWORD_STRENGTH_PATTERN.test(trimmedPassword)) {
-    return { ok: false, message: MSG.WEAK_PASSWORD };
+  const passwordCheck = validatePasswordValue(password);
+  if (!passwordCheck.ok) {
+    return passwordCheck;
   }
 
   return {
     ok: true,
     name: trimmedName,
     email: trimmedEmail.toLowerCase(),
-    password: trimmedPassword,
+    password: passwordCheck.password,
   };
 };
 
@@ -86,4 +100,5 @@ module.exports = {
   PASSWORD_MAX_LENGTH,
   validateSignupFields,
   validateLoginFields,
+  validatePasswordValue,
 };

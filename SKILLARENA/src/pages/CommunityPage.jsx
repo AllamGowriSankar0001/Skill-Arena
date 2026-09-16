@@ -4,6 +4,7 @@ import BoneyardSkeleton from '../components/BoneyardSkeleton'
 import CommunityMessagePreview from '../components/CommunityMessagePreview'
 import { MOCK_COMMUNITY_MESSAGE } from '../fixtures/skeletonFixtures'
 import { useAuth } from '../context/AuthContext'
+import PageLoadingSkeleton from '../components/PageLoadingSkeleton'
 import { learningApi } from '../services/api'
 import {
   findChannel,

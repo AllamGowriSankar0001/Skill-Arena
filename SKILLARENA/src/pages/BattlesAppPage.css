@@ -1,14 +1,14 @@
 .arena-page {
-  --arena-bg: var(--app-bg, #f6f3ee);
+  --arena-bg: var(--app-bg, #f8fafc);
   --arena-surface: #fff;
-  --arena-surface-soft: #faf8f5;
-  --arena-border: rgba(26, 17, 10, 0.08);
-  --arena-border-strong: rgba(26, 17, 10, 0.14);
-  --arena-gold: #c45c26;
-  --arena-gold-soft: rgba(196, 92, 38, 0.1);
-  --arena-orange: #e86a2a;
-  --arena-text: #1a110a;
-  --arena-muted: #6b5f54;
+  --arena-surface-soft: #f8fafc;
+  --arena-border: rgba(15, 23, 42, 0.08);
+  --arena-border-strong: rgba(15, 23, 42, 0.14);
+  --arena-gold: #059669;
+  --arena-gold-soft: rgba(5, 150, 105, 0.1);
+  --arena-orange: #10b981;
+  --arena-text: #0f172a;
+  --arena-muted: #64748b;
   --arena-accent: #0d9488;
 
   position: relative;
@@ -42,13 +42,13 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border: 2px solid rgba(196, 92, 38, 0.35);
+  border: 2px solid rgba(5, 150, 105, 0.35);
   background: #fff;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--arena-gold);
-  box-shadow: 0 8px 24px rgba(196, 92, 38, 0.12);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.12);
   animation: arena-pulse 1.6s ease-in-out infinite;
 }
 
@@ -75,7 +75,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-title {
@@ -147,8 +147,8 @@
   margin-bottom: 1rem;
   padding: 1rem 1.1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(196, 92, 38, 0.2);
-  background: rgba(196, 92, 38, 0.06);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  background: rgba(5, 150, 105, 0.06);
 }
 
 .arena-no-match-title {
@@ -176,7 +176,7 @@
   border-radius: 0.75rem;
   background: #fff;
   border: 1px solid var(--arena-border);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .arena-mode-tab {
@@ -217,7 +217,7 @@
   border-radius: 0.85rem;
   border: 1px solid var(--arena-border);
   background: var(--arena-surface);
-  box-shadow: 0 1px 2px rgba(26, 17, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .arena-panel--config {
@@ -286,13 +286,13 @@
 
 .arena-choice-card:hover:not(:disabled) {
   border-color: var(--arena-border-strong);
-  box-shadow: 0 4px 12px rgba(26, 17, 10, 0.06);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .arena-choice-card.is-selected {
-  border-color: rgba(196, 92, 38, 0.45);
-  background: rgba(196, 92, 38, 0.05);
-  box-shadow: 0 0 0 1px rgba(196, 92, 38, 0.15);
+  border-color: rgba(5, 150, 105, 0.45);
+  background: rgba(5, 150, 105, 0.05);
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.15);
 }
 
 .arena-choice-card strong {
@@ -362,7 +362,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-select-wrap {
@@ -376,8 +376,8 @@
   right: 0.85rem;
   width: 0.45rem;
   height: 0.45rem;
-  border-right: 2px solid #8a7a6d;
-  border-bottom: 2px solid #8a7a6d;
+  border-right: 2px solid #64748b;
+  border-bottom: 2px solid #64748b;
   transform: translateY(-65%) rotate(45deg);
   pointer-events: none;
 }
@@ -405,8 +405,8 @@
 }
 
 .arena-select:focus {
-  border-color: rgba(196, 92, 38, 0.45);
-  box-shadow: 0 0 0 3px rgba(196, 92, 38, 0.1);
+  border-color: rgba(5, 150, 105, 0.45);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
 .arena-select:disabled {
@@ -499,9 +499,9 @@
 
 .arena-btn--queue {
   width: 100%;
-  background: linear-gradient(135deg, #c45c26 0%, #e86a2a 100%);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #fff;
-  box-shadow: 0 8px 20px rgba(196, 92, 38, 0.25);
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
 }
 
 .arena-btn--queue:hover:not(:disabled) {
@@ -509,7 +509,7 @@
 }
 
 .arena-btn--primary {
-  background: linear-gradient(135deg, #c45c26, #e86a2a);
+  background: linear-gradient(135deg, #059669, #10b981);
   color: #fff;
 }
 
@@ -565,7 +565,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-friends-divider {
@@ -600,7 +600,7 @@
   min-width: 0;
   padding: 0.75rem 0.85rem;
   border-radius: 0.6rem;
-  border: 1px dashed rgba(196, 92, 38, 0.35);
+  border: 1px dashed rgba(5, 150, 105, 0.35);
   background: #fff;
   color: var(--arena-gold);
   font-family: inherit;
@@ -668,7 +668,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
   text-align: center;
 }
 
@@ -685,7 +685,7 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(196, 92, 38, 0.3);
+  border: 1px solid rgba(5, 150, 105, 0.3);
   background: #fff;
   font-size: 0.72rem;
   font-weight: 800;
@@ -705,21 +705,21 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border: 1px dashed rgba(26, 17, 10, 0.15);
+  border: 1px dashed rgba(15, 23, 42, 0.15);
   background: #fff;
   font-size: 0.62rem;
   font-weight: 800;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-slot--filled .arena-slot-avatar {
   border-style: solid;
-  border-color: rgba(196, 92, 38, 0.35);
+  border-color: rgba(5, 150, 105, 0.35);
   color: var(--arena-gold);
 }
 
 .arena-slot--you .arena-slot-avatar {
-  background: rgba(196, 92, 38, 0.1);
+  background: rgba(5, 150, 105, 0.1);
   color: var(--arena-gold);
 }
 
@@ -753,7 +753,7 @@
   font-size: 0.65rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-loadout dd {
@@ -777,7 +777,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a7a6d;
+  color: #64748b;
 }
 
 .arena-history ul {
@@ -848,7 +848,7 @@
   border-radius: 0.85rem;
   border: 1px solid var(--arena-border);
   background: #fff;
-  box-shadow: 0 20px 50px rgba(26, 17, 10, 0.12);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
 }
 
 .arena-radar {
@@ -884,7 +884,7 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: linear-gradient(135deg, #c45c26, #e86a2a);
+  background: linear-gradient(135deg, #059669, #10b981);
   color: #fff;
   font-size: 0.85rem;
   font-weight: 800;
